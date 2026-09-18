@@ -1,0 +1,196 @@
+/*
+ * Design tokens.
+ *
+ * Layer 1 — primitives: plain custom properties. Deliberately NOT inside @theme,
+ *   so they never become Tailwind utilities. Components must not use them.
+ * Layer 2 — semantic tokens: declared in @theme, so each one becomes a Tailwind
+ *   utility (`--color-surface-raised` -> `bg-surface-raised`). This is the only
+ *   layer components are allowed to touch.
+ *
+ * Light is the default. Dark is applied either by system preference (unless the
+ * document opts out with data-theme="light") or explicitly with data-theme="dark".
+ *
+ * This is a seed set: enough to build the review screen's first regions without
+ * inventing values ad hoc. Add semantic names here rather than raw values in a
+ * component.
+ */
+
+:root {
+  /* Neutrals */
+  --neutral-0: #ffffff;
+  --neutral-5: #f7f8f9;
+  --neutral-10: #eef0f2;
+  --neutral-20: #dfe3e7;
+  --neutral-30: #c4cad1;
+  --neutral-40: #9aa3ad;
+  --neutral-50: #6b7580;
+  --neutral-60: #4a535d;
+  --neutral-70: #343c45;
+  --neutral-80: #23292f;
+  --neutral-90: #16191d;
+  --neutral-100: #0b0d0f;
+
+  /* Blue — accent, focus, informational */
+  --blue-10: #e8f1fc;
+  --blue-30: #a8caf2;
+  --blue-50: #2f6fc4;
+  --blue-60: #1f5399;
+  --blue-80: #16243a;
+
+  /* Green — a rule that is met */
+  --green-10: #e6f4ea;
+  --green-30: #8fcaa4;
+  --green-50: #1f7a43;
+  --green-60: #175f34;
+  --green-80: #10261a;
+
+  /* Amber — a rule a human decided to waive */
+  --amber-10: #fdf3e0;
+  --amber-30: #e3bd78;
+  --amber-50: #8f6512;
+  --amber-60: #71500e;
+  --amber-80: #2e2209;
+
+  /* Red — a rule that is broken */
+  --red-10: #fdeceb;
+  --red-30: #f0a49e;
+  --red-50: #bf3328;
+  --red-60: #97271e;
+  --red-80: #33110f;
+
+  /* Violet — work still in progress */
+  --violet-10: #efeafc;
+  --violet-30: #bda9ee;
+  --violet-50: #5c43ab;
+  --violet-60: #47338a;
+  --violet-80: #1e1633;
+}
+
+@theme {
+  /* Surfaces */
+  --color-surface-base: var(--neutral-5);
+  --color-surface-raised: var(--neutral-0);
+  --color-surface-sunken: var(--neutral-10);
+
+  /* Text. Every value here clears 4.5:1 on its intended surface. */
+  --color-text-primary: var(--neutral-90);
+  --color-text-secondary: var(--neutral-60);
+  --color-text-muted: var(--neutral-50);
+  --color-text-inverse: var(--neutral-0);
+
+  /* Lines */
+  --color-border-subtle: var(--neutral-20);
+  --color-border-strong: var(--neutral-30);
+
+  /* Interaction */
+  --color-accent: var(--blue-50);
+  --color-accent-strong: var(--blue-60);
+  --color-focus-ring: var(--blue-50);
+
+  /*
+   * Gate and run status. Each status has a foreground for text and icon and a
+   * background for the quiet badge behind it. Status is never carried by colour
+   * alone, so these always ship next to an icon and a word.
+   */
+  --color-status-pass-fg: var(--green-60);
+  --color-status-pass-bg: var(--green-10);
+  --color-status-fail-fg: var(--red-60);
+  --color-status-fail-bg: var(--red-10);
+  --color-status-waived-fg: var(--amber-60);
+  --color-status-waived-bg: var(--amber-10);
+  --color-status-unknown-fg: var(--neutral-60);
+  --color-status-unknown-bg: var(--neutral-10);
+  --color-status-running-fg: var(--violet-60);
+  --color-status-running-bg: var(--violet-10);
+
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+}
+
+/*
+ * Dark theme. Same semantic names, different values, so no component changes.
+ * The :not([data-theme="light"]) guard lets an explicit light choice win over
+ * the system preference.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-surface-base: var(--neutral-100);
+    --color-surface-raised: var(--neutral-90);
+    --color-surface-sunken: var(--neutral-80);
+
+    --color-text-primary: var(--neutral-5);
+    --color-text-secondary: var(--neutral-30);
+    --color-text-muted: var(--neutral-40);
+    --color-text-inverse: var(--neutral-100);
+
+    --color-border-subtle: var(--neutral-70);
+    --color-border-strong: var(--neutral-60);
+
+    --color-accent: var(--blue-30);
+    --color-accent-strong: var(--blue-10);
+    --color-focus-ring: var(--blue-30);
+
+    --color-status-pass-fg: var(--green-30);
+    --color-status-pass-bg: var(--green-80);
+    --color-status-fail-fg: var(--red-30);
+    --color-status-fail-bg: var(--red-80);
+    --color-status-waived-fg: var(--amber-30);
+    --color-status-waived-bg: var(--amber-80);
+    --color-status-unknown-fg: var(--neutral-30);
+    --color-status-unknown-bg: var(--neutral-80);
+    --color-status-running-fg: var(--violet-30);
+    --color-status-running-bg: var(--violet-80);
+  }
+}
+
+:root[data-theme='dark'] {
+  --color-surface-base: var(--neutral-100);
+  --color-surface-raised: var(--neutral-90);
+  --color-surface-sunken: var(--neutral-80);
+
+  --color-text-primary: var(--neutral-5);
+  --color-text-secondary: var(--neutral-30);
+  --color-text-muted: var(--neutral-40);
+  --color-text-inverse: var(--neutral-100);
+
+  --color-border-subtle: var(--neutral-70);
+  --color-border-strong: var(--neutral-60);
+
+  --color-accent: var(--blue-30);
+  --color-accent-strong: var(--blue-10);
+  --color-focus-ring: var(--blue-30);
+
+  --color-status-pass-fg: var(--green-30);
+  --color-status-pass-bg: var(--green-80);
+  --color-status-fail-fg: var(--red-30);
+  --color-status-fail-bg: var(--red-80);
+  --color-status-waived-fg: var(--amber-30);
+  --color-status-waived-bg: var(--amber-80);
+  --color-status-unknown-fg: var(--neutral-30);
+  --color-status-unknown-bg: var(--neutral-80);
+  --color-status-running-fg: var(--violet-30);
+  --color-status-running-bg: var(--violet-80);
+}
+
+/*
+ * Motion. Functional only: state changes, data arriving, focus. These stay plain
+ * custom properties because they are used through arbitrary values, e.g.
+ * `duration-[var(--motion-duration-fast)]`.
+ */
+:root {
+  --motion-duration-instant: 80ms;
+  --motion-duration-fast: 140ms;
+  --motion-duration-base: 220ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0.13, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-instant: 1ms;
+    --motion-duration-fast: 1ms;
+    --motion-duration-base: 1ms;
+  }
+}

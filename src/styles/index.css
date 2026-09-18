@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/*
+ * A `dark:` variant for the rare case that a component needs more than a token
+ * swap. Tokens handle the normal case on their own, so reach for this sparingly.
+ */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    background-color: var(--color-surface-base);
+    color: var(--color-text-primary);
+  }
+
+  /* Focus must always be visible — see the accessibility rule in AGENTS.md. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}

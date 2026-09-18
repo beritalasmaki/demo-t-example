@@ -82,9 +82,12 @@
   --color-border-subtle: var(--neutral-20);
   --color-border-strong: var(--neutral-30);
 
-  /* Interaction */
-  --color-accent: var(--blue-50);
-  --color-accent-strong: var(--blue-60);
+  /*
+   * Interaction. Named "action" rather than "accent" on purpose: shadcn/ui uses
+   * "accent" for a quiet hover surface, and one name cannot mean both.
+   */
+  --color-action: var(--blue-50);
+  --color-action-strong: var(--blue-60);
   --color-focus-ring: var(--blue-50);
 
   /*
@@ -128,8 +131,8 @@
     --color-border-subtle: var(--neutral-70);
     --color-border-strong: var(--neutral-60);
 
-    --color-accent: var(--blue-30);
-    --color-accent-strong: var(--blue-10);
+    --color-action: var(--blue-30);
+    --color-action-strong: var(--blue-10);
     --color-focus-ring: var(--blue-30);
 
     --color-status-pass-fg: var(--green-30);
@@ -158,8 +161,8 @@
   --color-border-subtle: var(--neutral-70);
   --color-border-strong: var(--neutral-60);
 
-  --color-accent: var(--blue-30);
-  --color-accent-strong: var(--blue-10);
+  --color-action: var(--blue-30);
+  --color-action-strong: var(--blue-10);
   --color-focus-ring: var(--blue-30);
 
   --color-status-pass-fg: var(--green-30);

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 @import './tokens.css';
 
 /*
@@ -6,6 +7,48 @@
  * swap. Tokens handle the normal case on their own, so reach for this sparingly.
  */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * shadcn/ui bridge.
+ *
+ * shadcn components are written against a fixed set of names — bg-background,
+ * text-muted-foreground, border-border, ring-ring. Rather than keep a second
+ * palette alive next to ours, each of those names is mapped onto a semantic token
+ * from tokens.css. One source of truth, and shadcn components theme themselves.
+ *
+ * Note the vocabulary mismatch: shadcn's "accent" is a quiet hover surface, not a
+ * brand colour. Ours is called --color-action for that reason.
+ *
+ * Unverified: the shadcn registry (ui.shadcn.com) is blocked by this session's
+ * egress policy, so no component has been generated against this mapping yet.
+ * Check it when the first component is added.
+ */
+@theme inline {
+  --color-background: var(--color-surface-base);
+  --color-foreground: var(--color-text-primary);
+
+  --color-card: var(--color-surface-raised);
+  --color-card-foreground: var(--color-text-primary);
+  --color-popover: var(--color-surface-raised);
+  --color-popover-foreground: var(--color-text-primary);
+
+  --color-primary: var(--color-action);
+  --color-primary-foreground: var(--color-text-inverse);
+  --color-secondary: var(--color-surface-sunken);
+  --color-secondary-foreground: var(--color-text-primary);
+
+  --color-muted: var(--color-surface-sunken);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-accent: var(--color-surface-sunken);
+  --color-accent-foreground: var(--color-text-primary);
+
+  --color-destructive: var(--color-status-fail-fg);
+  --color-destructive-foreground: var(--color-text-inverse);
+
+  --color-border: var(--color-border-subtle);
+  --color-input: var(--color-border-strong);
+  --color-ring: var(--color-focus-ring);
+}
 
 @layer base {
   html {

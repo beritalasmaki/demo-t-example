@@ -17,12 +17,7 @@
  * Running · Blocked · Awaiting review · Approved · Changes requested · Rejected.
  */
 export type RunStatus =
-  | 'running'
-  | 'blocked'
-  | 'awaiting_review'
-  | 'approved'
-  | 'changes_requested'
-  | 'rejected'
+  'running' | 'blocked' | 'awaiting_review' | 'approved' | 'changes_requested' | 'rejected'
 
 /**
  * Region 3 (Policy gates). Content rules' exact labels:

@@ -10,171 +10,179 @@
  * Light is the default. Dark is applied either by system preference (unless the
  * document opts out with data-theme="light") or explicitly with data-theme="dark".
  *
- * This is a seed set: enough to build the review screen's first regions without
- * inventing values ad hoc. Add semantic names here rather than raw values in a
- * component.
+ * Usage rules for the brand and status colours below live in src/styles/README.md —
+ * read them before using --color-primary, --color-accent or any --color-status-*
+ * value in a component.
  */
 
 :root {
-  /* Neutrals */
+  /*
+   * Neutral ramp, lightest to darkest, numbered by position rather than an evenly
+   * spaced scale — these are exactly the values the product's neutral tokens need,
+   * not a generated palette. Several are shared between the two themes on purpose
+   * (--neutral-1 is both light bg and dark text-primary; --neutral-12 is both
+   * light text-primary and dark surface).
+   */
   --neutral-0: #ffffff;
-  --neutral-5: #f7f8f9;
-  --neutral-10: #eef0f2;
-  --neutral-20: #dfe3e7;
-  --neutral-30: #c4cad1;
-  --neutral-40: #9aa3ad;
-  --neutral-50: #6b7580;
-  --neutral-60: #4a535d;
-  --neutral-70: #343c45;
-  --neutral-80: #23292f;
-  --neutral-90: #16191d;
-  --neutral-100: #0b0d0f;
+  --neutral-1: #fafafa;
+  --neutral-2: #f5f5f5;
+  --neutral-3: #e4e4e4;
+  --neutral-4: #cacaca;
+  --neutral-5: #b0b0b0;
+  --neutral-6: #9c9c9c;
+  --neutral-7: #6e6e6e;
+  --neutral-8: #5c5c5c;
+  --neutral-9: #444444;
+  --neutral-10: #333333;
+  --neutral-11: #2b2b2b;
+  --neutral-12: #222222;
+  --neutral-13: #1a1a1a;
 
-  /* Blue — accent, focus, informational */
-  --blue-10: #e8f1fc;
-  --blue-30: #a8caf2;
-  --blue-50: #2f6fc4;
-  --blue-60: #1f5399;
-  --blue-80: #16243a;
+  /* Brand — violet (primary) */
+  --violet-light: #5b4fc7;
+  --violet-light-hover: #4a3fa8;
+  --violet-dark: #9c90e8;
+  --violet-dark-hover: #b0a6ee;
 
-  /* Green — a rule that is met */
-  --green-10: #e6f4ea;
-  --green-30: #8fcaa4;
-  --green-50: #1f7a43;
-  --green-60: #175f34;
-  --green-80: #10261a;
+  /* Brand — teal-green (accent) */
+  --teal-light: #1e9e8c;
+  --teal-light-hover: #187e70;
+  --teal-dark: #5cd9c4;
+  --teal-dark-hover: #7ce3d1;
 
-  /* Amber — a rule a human decided to waive */
-  --amber-10: #fdf3e0;
-  --amber-30: #e3bd78;
-  --amber-50: #8f6512;
-  --amber-60: #71500e;
-  --amber-80: #2e2209;
-
-  /* Red — a rule that is broken */
-  --red-10: #fdeceb;
-  --red-30: #f0a49e;
-  --red-50: #bf3328;
-  --red-60: #97271e;
-  --red-80: #33110f;
-
-  /* Violet — work still in progress */
-  --violet-10: #efeafc;
-  --violet-30: #bda9ee;
-  --violet-50: #5c43ab;
-  --violet-60: #47338a;
-  --violet-80: #1e1633;
+  /*
+   * Status — a separate system from brand (src/styles/README.md). One value per
+   * status per theme: this is a foreground colour for an icon and a border, not a
+   * fill — see the README before using one as a background or as text colour.
+   */
+  --status-green-light: #1e8a5a;
+  --status-green-dark: #4fd98a;
+  --status-red-light: #b3261e;
+  --status-red-dark: #f2897f;
+  --status-amber-light: #8a5a00;
+  --status-amber-dark: #e0a94d;
+  --status-slate-light: #6b7280;
+  --status-slate-dark: #9aa1ac;
+  --status-blue-light: #3d5a80;
+  --status-blue-dark: #8fb8e0;
 }
 
 @theme {
   /* Surfaces */
-  --color-surface-base: var(--neutral-5);
-  --color-surface-raised: var(--neutral-0);
-  --color-surface-sunken: var(--neutral-10);
-
-  /* Text. Every value here clears 4.5:1 on its intended surface. */
-  --color-text-primary: var(--neutral-90);
-  --color-text-secondary: var(--neutral-60);
-  --color-text-muted: var(--neutral-50);
-  --color-text-inverse: var(--neutral-0);
+  --color-bg: var(--neutral-1);
+  --color-surface: var(--neutral-0);
+  --color-surface-raised: var(--neutral-2);
 
   /* Lines */
-  --color-border-subtle: var(--neutral-20);
-  --color-border-strong: var(--neutral-30);
+  --color-border-subtle: var(--neutral-3);
+  --color-border: var(--neutral-4);
+
+  /* Text. Primary and secondary clear 4.5:1 on every surface above. Disabled does
+   * not (it is not required to: WCAG 1.4.3 exempts inactive UI text) — see the
+   * README for the numbers. */
+  --color-text-primary: var(--neutral-12);
+  --color-text-secondary: var(--neutral-8);
+  --color-text-disabled: var(--neutral-6);
 
   /*
-   * Interaction. Named "action" rather than "accent" on purpose: shadcn/ui uses
-   * "accent" for a quiet hover surface, and one name cannot mean both.
+   * Brand. Primary and accent are never used on Approve / Request changes / Reject
+   * — see src/styles/README.md, "Usage rules". *-foreground is the text/icon
+   * colour for a filled primary or accent surface — it flips per theme (white in
+   * light, near-black in dark), because the dark-theme brand colours are
+   * lightened for their own contrast and need a dark foreground in turn.
    */
-  --color-action: var(--blue-50);
-  --color-action-strong: var(--blue-60);
-  --color-focus-ring: var(--blue-50);
+  --color-primary: var(--violet-light);
+  --color-primary-hover: var(--violet-light-hover);
+  --color-primary-foreground: var(--neutral-0);
+  --color-accent: var(--teal-light);
+  --color-accent-hover: var(--teal-light-hover);
+  --color-accent-foreground: var(--neutral-13);
+
+  --color-focus-ring: var(--color-primary);
 
   /*
-   * Gate and run status. Each status has a foreground for text and icon and a
-   * background for the quiet badge behind it. Status is never carried by colour
-   * alone, so these always ship next to an icon and a word.
+   * Status — a separate palette from brand, never reused for non-status UI
+   * (src/styles/README.md). Icon and border colour only; the label next to it
+   * uses --color-text-primary or --color-text-secondary, never the status colour
+   * itself — several of these fall below 4.5:1 as text on light surfaces.
    */
-  --color-status-pass-fg: var(--green-60);
-  --color-status-pass-bg: var(--green-10);
-  --color-status-fail-fg: var(--red-60);
-  --color-status-fail-bg: var(--red-10);
-  --color-status-waived-fg: var(--amber-60);
-  --color-status-waived-bg: var(--amber-10);
-  --color-status-unknown-fg: var(--neutral-60);
-  --color-status-unknown-bg: var(--neutral-10);
-  --color-status-running-fg: var(--violet-60);
-  --color-status-running-bg: var(--violet-10);
+  --color-status-pass: var(--status-green-light);
+  --color-status-fail: var(--status-red-light);
+  --color-status-waived: var(--status-amber-light);
+  --color-status-not-applicable: var(--status-slate-light);
+  --color-status-unknown: var(--status-blue-light);
 
   /* Radius */
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
+
+  /*
+   * Type. Raleway for headings, buttons and the wordmark; Montserrat for body and
+   * table/data text. Both loaded via Google Fonts — see index.html. Weights are
+   * requested, not assumed: Raleway 500/600/700, Montserrat 400/500.
+   */
+  --font-heading: 'Raleway', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
 }
 
 /*
  * Dark theme. Same semantic names, different values, so no component changes.
  * The :not([data-theme="light"]) guard lets an explicit light choice win over
- * the system preference.
+ * the system preference. Type tokens are theme-independent and stay in @theme.
  */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-surface-base: var(--neutral-100);
-    --color-surface-raised: var(--neutral-90);
-    --color-surface-sunken: var(--neutral-80);
+    --color-bg: var(--neutral-13);
+    --color-surface: var(--neutral-12);
+    --color-surface-raised: var(--neutral-11);
 
-    --color-text-primary: var(--neutral-5);
-    --color-text-secondary: var(--neutral-30);
-    --color-text-muted: var(--neutral-40);
-    --color-text-inverse: var(--neutral-100);
+    --color-border-subtle: var(--neutral-10);
+    --color-border: var(--neutral-9);
 
-    --color-border-subtle: var(--neutral-70);
-    --color-border-strong: var(--neutral-60);
+    --color-text-primary: var(--neutral-1);
+    --color-text-secondary: var(--neutral-5);
+    --color-text-disabled: var(--neutral-7);
 
-    --color-action: var(--blue-30);
-    --color-action-strong: var(--blue-10);
-    --color-focus-ring: var(--blue-30);
+    --color-primary: var(--violet-dark);
+    --color-primary-hover: var(--violet-dark-hover);
+    --color-primary-foreground: var(--neutral-13);
+    --color-accent: var(--teal-dark);
+    --color-accent-hover: var(--teal-dark-hover);
+    --color-accent-foreground: var(--neutral-13);
 
-    --color-status-pass-fg: var(--green-30);
-    --color-status-pass-bg: var(--green-80);
-    --color-status-fail-fg: var(--red-30);
-    --color-status-fail-bg: var(--red-80);
-    --color-status-waived-fg: var(--amber-30);
-    --color-status-waived-bg: var(--amber-80);
-    --color-status-unknown-fg: var(--neutral-30);
-    --color-status-unknown-bg: var(--neutral-80);
-    --color-status-running-fg: var(--violet-30);
-    --color-status-running-bg: var(--violet-80);
+    --color-status-pass: var(--status-green-dark);
+    --color-status-fail: var(--status-red-dark);
+    --color-status-waived: var(--status-amber-dark);
+    --color-status-not-applicable: var(--status-slate-dark);
+    --color-status-unknown: var(--status-blue-dark);
   }
 }
 
 :root[data-theme='dark'] {
-  --color-surface-base: var(--neutral-100);
-  --color-surface-raised: var(--neutral-90);
-  --color-surface-sunken: var(--neutral-80);
+  --color-bg: var(--neutral-13);
+  --color-surface: var(--neutral-12);
+  --color-surface-raised: var(--neutral-11);
 
-  --color-text-primary: var(--neutral-5);
-  --color-text-secondary: var(--neutral-30);
-  --color-text-muted: var(--neutral-40);
-  --color-text-inverse: var(--neutral-100);
+  --color-border-subtle: var(--neutral-10);
+  --color-border: var(--neutral-9);
 
-  --color-border-subtle: var(--neutral-70);
-  --color-border-strong: var(--neutral-60);
+  --color-text-primary: var(--neutral-1);
+  --color-text-secondary: var(--neutral-5);
+  --color-text-disabled: var(--neutral-7);
 
-  --color-action: var(--blue-30);
-  --color-action-strong: var(--blue-10);
-  --color-focus-ring: var(--blue-30);
+  --color-primary: var(--violet-dark);
+  --color-primary-hover: var(--violet-dark-hover);
+  --color-primary-foreground: var(--neutral-13);
+  --color-accent: var(--teal-dark);
+  --color-accent-hover: var(--teal-dark-hover);
+  --color-accent-foreground: var(--neutral-13);
 
-  --color-status-pass-fg: var(--green-30);
-  --color-status-pass-bg: var(--green-80);
-  --color-status-fail-fg: var(--red-30);
-  --color-status-fail-bg: var(--red-80);
-  --color-status-waived-fg: var(--amber-30);
-  --color-status-waived-bg: var(--amber-80);
-  --color-status-unknown-fg: var(--neutral-30);
-  --color-status-unknown-bg: var(--neutral-80);
-  --color-status-running-fg: var(--violet-30);
-  --color-status-running-bg: var(--violet-80);
+  --color-status-pass: var(--status-green-dark);
+  --color-status-fail: var(--status-red-dark);
+  --color-status-waived: var(--status-amber-dark);
+  --color-status-not-applicable: var(--status-slate-dark);
+  --color-status-unknown: var(--status-blue-dark);
 }
 
 /*

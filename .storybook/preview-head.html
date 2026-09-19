@@ -1,0 +1,11 @@
+<!--
+  Storybook's preview iframe is a separate document shell from index.html, so the app's
+  Google Fonts <link> tags there never reach it. Same fonts, same reason, duplicated here:
+  see index.html and src/styles/tokens.css (--font-heading / --font-body).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700&family=Montserrat:wght@400;500&display=swap"
+  rel="stylesheet"
+/>

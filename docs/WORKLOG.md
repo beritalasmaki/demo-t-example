@@ -39,6 +39,100 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-19 · Design system foundation: fonts, full colour palette, usage rules
+
+**Goal**
+Replace the scaffold session's placeholder colour tokens with the real palette (exact hex
+values given, both themes), add the two typefaces, encode the three brand/status usage rules,
+document all of it in Storybook, and verify contrast before finishing. No components.
+
+**What changed**
+- `src/styles/tokens.css` — full replacement of the primitive and semantic colour layers,
+  plus `--font-heading` / `--font-body`. `--radius-*` and `--motion-*` untouched.
+- `index.html` and `.storybook/preview-head.html` — Google Fonts, requesting exactly the
+  weights used (Raleway 500/600/700, Montserrat 400/500).
+- `src/styles/index.css` — shadcn bridge updated for the new token names; `accent`/
+  `accent-foreground` dropped from it entirely (see below).
+- `src/styles/README.md` — the three usage rules, plus the contrast numbers and what they
+  mean for how status/accent colours can be used.
+- `src/styles/tokens.stories.tsx` — rewritten: full palette, a typography specimen, the
+  spacing scale, and the usage rules, in both themes.
+- `docs/DECISIONS.md` — four new entries (0007 down to 0005) for the judgment calls below.
+- `src/lib/types.ts` — one unrelated Prettier reformat (a union type's line wrap) picked up
+  by `prettier --write .` before committing; not otherwise touched.
+
+**Steps, in order**
+1. Computed the actual WCAG contrast ratio for every realistic pairing before writing
+   anything — a small Node script (`docs/DECISIONS.md`, 0005), not left as scratch work
+   claimed but not shown. This is what the rest of the session's colour decisions are built on.
+2. Rewrote `tokens.css`: a 14-step neutral ramp (the exact greys given, several reused between
+   themes on purpose — e.g. light `bg` and dark `text-primary` are the same hex), then brand
+   and status primitives, then the semantic layer.
+3. `index.html`: added the Google Fonts `<link>`, requesting only the weights specified.
+4. `npx vite build`, then a throwaway probe component (`bg-primary`, `text-status-fail`,
+   `font-heading`, etc.), to confirm every new utility actually resolves to its token rather
+   than trusting the source. Deleted the probe immediately after.
+5. Rewrote the shadcn bridge in `index.css`. Two decisions here, both logged: `accent`/
+   `accent-foreground` dropped rather than repointed (0007), and `destructive-foreground`
+   reuses `--color-primary-foreground` rather than a duplicate pair, since the fail colour
+   needs the identical white-in-light/near-black-in-dark flip (checked, not assumed).
+6. Wrote the usage rules and contrast findings into `src/styles/README.md`, then
+   `docs/DECISIONS.md` for the two that are real trade-offs rather than just findings: status/
+   accent colours are icon-and-border only, never literal text colour (0006) — several fail
+   4.5:1 as text in light theme otherwise — and the contrast-by-computation method itself
+   (0005), since it caught a real bug (see below).
+7. Rewrote `tokens.stories.tsx`. Built the status swatches to match the usage rule as-built
+   (icon + border in the status colour, label in `text-primary`) rather than just describing
+   the rule in prose next to a swatch that violates it.
+8. `npx storybook build` to a scratch directory; grepped the output for the new token values
+   and confirmed the story registered. Fonts were missing from the built iframe on the first
+   pass — Storybook's preview iframe is a separate document from `index.html`, so the app's
+   `<link>` tags never reach it. Added `.storybook/preview-head.html` with the same tags,
+   rebuilt, confirmed both font families now appear in the built `iframe.html`.
+9. `npm run check`, then `npx prettier --check .` — flagged one unrelated file
+   (`src/lib/types.ts`, a union type Prettier now wants unwrapped); `--write` on it since it
+   was a no-content, mechanical fix, not something to leave failing `format:check`.
+
+**Why it was done this way**
+- The contrast numbers are what actually drove the design decisions, not the other way
+  around: the usage rule that status/accent colours are icon-and-border-only exists *because*
+  several of them measured under 4.5:1 as text, not as a rule decided first and checked after.
+- The reference mockup already showed this resolved (status labels in the ordinary text
+  colour, not the status colour) — the rule was implicit in the source material; writing it
+  down in `DECISIONS.md` makes it a rule a future component can be checked against, not just
+  a pattern to notice by looking at a picture.
+- Dropping the shadcn `accent` bridge slot rather than quietly repointing it to a neutral
+  surface: repointing it would make `bg-accent` resolve to *something* without anyone having
+  decided that was right for the specific component using it — the same failure mode
+  `AGENTS.md` already warns against for one-off values, just hidden behind an existing name.
+
+**How to do this by hand**
+Compute contrast with the standard WCAG formula (linearize each sRGB channel, luminance-
+weighted sum, `(L_lighter + 0.05) / (L_darker + 0.05)`) for every text/background pairing that
+will actually occur, not a full cross-product of every token against every other — check
+`--color-bg` against text tokens, `--color-surface-raised` against text tokens, each status
+colour against the neutral surfaces it will sit on, and a candidate foreground against any
+brand colour meant to be used as a filled background. Where a value fails, decide whether the
+right fix is a different value, a restriction on how it's used (this session's choice for
+status/accent), or an accepted exception (disabled text, borders) — and write down which, and
+why, rather than silently picking one.
+
+**Verification**
+`npm run check` green. `npx vite build` + a throwaway probe component confirmed every new
+Tailwind utility resolves to its token (deleted after). `npx storybook build` confirmed the
+rewritten tokens story registers and both fonts load in the built preview. Contrast: every
+pairing computed exactly (not estimated) via the WCAG formula; results and the resulting
+usage rule are in `src/styles/README.md`, "Contrast".
+
+**Open questions / next**
+- No component yet actually uses a status chip or an accent pill — the tokens story is the
+  first real check that the icon-only-colour rule is buildable, not a component enforcing it.
+  Worth a lint rule or a shared component (once one exists) rather than relying on review.
+- `src/lib/format.ts` (still not built — see the previous entry) is where `RunStatus`/
+  `GateResult` values will eventually need the exact labels from Content rules; nothing in
+  this session's token work required it yet.
+
+
 ### 2026-09-19 · Data layer: src/lib/types.ts, the three fixtures, src/lib/api.ts
 
 **Goal**

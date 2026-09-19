@@ -39,6 +39,110 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-19 · PolicyGateList and PolicyGateRow, plus the lib helpers they need
+
+**Goal**
+Build the first two real product components — `PolicyGateList` and `PolicyGateRow` — against
+`run-messy` as the primary fixture, following `docs/spec-review-screen.md` for the five
+results, sort order, and content rules exactly.
+
+**What changed**
+- `src/lib/gates.ts`, `src/lib/format.ts` (+ tests) — documented in `lib/README.md` as
+  planned, built now, scoped to exactly what these two components need.
+- `src/components/StatusBadge.tsx`, `src/components/Disclosure.tsx` (+ stories, tests) —
+  reusable, product-agnostic pieces.
+- `src/features/run/PolicyGateRow.tsx`, `src/features/run/PolicyGateList.tsx` (+ stories,
+  tests).
+- Commits: `9e43f56` (gates.ts/format.ts), `30761df` (StatusBadge/Disclosure), `c200b1c`
+  (PolicyGateRow), `07b0abd` (a fix found during verification, see below), `709a4b4`
+  (PolicyGateList).
+
+**Steps, in order**
+1. Read `AGENTS.md` and `docs/spec-review-screen.md` fresh, per the task, plus
+   `src/lib/types.ts` and `src/fixtures/run-messy.ts` (the assigned primary fixture) before
+   planning anything.
+2. Checked `run-messy.ts` against the task's claim that it "has the widest range of gate
+   results" — it doesn't: only `pass` and `unknown`, no `fail` or `waived` at all.
+   `run-blocked.ts` actually has the wider range. Flagged this in the plan rather than
+   silently building fewer stories than asked, and used `run-blocked`'s gates to cover what
+   `run-messy` can't.
+3. Wrote `gates.ts` and `format.ts` first, since both components need them.
+   `resolveEvidence`/`explanationFor` came from re-reading the fixtures closely: "what broke
+   it", the "not run" reason, and the evidence list turn out to be the same lookup — the
+   `detail` of whichever timeline event a gate's `evidenceIds` point to. There is no separate
+   field for any of the three anywhere in the data model.
+4. Verified every lucide-react icon name I planned to use actually exists in the installed
+   version (`node -e "require('lucide-react')"`) before writing `StatusBadge`, rather than
+   guessing and finding out at typecheck time.
+5. Built `Disclosure` on native `<details>`/`<summary>` rather than custom JS. Confirmed, not
+   assumed, that jsdom does not implement native keyboard activation for `<summary>`: a
+   dispatched `keydown` does nothing, only `.click()` toggles it. Wrote the keyboard test
+   around what jsdom can actually verify (reachable by Tab) and left a comment saying
+   explicitly what it can't (Enter/Space activation, which every real browser does via
+   `<summary>`'s implicit button role) rather than asserting something that would be a false
+   negative.
+6. Built `PolicyGateRow`, then `PolicyGateList`, running `tsc -b` and `eslint` after each file
+   rather than saving verification for the end.
+7. Built a static Storybook bundle and served it locally, then used the environment's global
+   `playwright` CLI (not a project dependency — checked `which playwright` first, found it
+   pre-installed) to screenshot the `AllResults` and `Exception` stories in both light and
+   dark and actually looked at them, rather than trusting that a successful build meant
+   correct rendering.
+8. That screenshot caught a real bug: `formatDateTime` rendered "03:40 PM", 12-hour with
+   locale-default AM/PM, against the spec's own 24-hour example ("14:32 today"). Fixed with
+   `hour12: false`, added a test pinning it, rebuilt, re-screenshotted, confirmed "15:40".
+
+**Why it was done this way**
+- Checking `run-messy`'s actual gate variety against the task's description before building
+  anything is the same instinct as checking a spec against reality generally: a claim about
+  the data is itself a claim that needs a source, the same as anything that ends up on
+  screen.
+- The Disclosure keyboard test is deliberately honest about a tooling limitation instead of
+  either skipping keyboard coverage entirely or writing an assertion that happens to pass for
+  the wrong reason. A test that can't prove what it claims to prove is worse than no test,
+  because it looks like coverage that isn't there.
+- Screenshotting mattered more than usual here: the 24-hour bug was invisible to `tsc`,
+  `eslint`, and every unit test, because none of them rendered the actual formatted string
+  next to the spec's own example — they only checked internal logic in isolation. Reading
+  the code again would not have caught it either; the code was doing exactly what it said,
+  in a locale that happened not to be UTC/24-hour-default in this environment.
+
+**How to do this by hand**
+Read the fixture(s) a task names before trusting a claim about what they contain. When a
+component needs to derive text that isn't a distinct field in the data model (a "reason", an
+"explanation"), look for how the *existing* fixtures actually encode that information before
+inventing a new field — in this codebase that meant re-reading `run-blocked.ts` and
+`run-messy.ts`'s timeline `detail` strings. For any component built on a native HTML element
+with implicit behaviour (here, `<details>`/`<summary>`'s keyboard activation), check what the
+test environment actually simulates before writing the test, the same way you'd check a
+browser's real behaviour — `jsdom`'s DOM implementation is not the same thing as a browser's
+default-action handling. After a Storybook build succeeds, actually render at least one story
+of anything with computed/formatted text and look at it — a passing build only proves the
+code ran, not that what it produced is correct.
+
+**Verification**
+`npm run check` green after every commit (68 tests by the end, up from 27). `npx storybook
+build` succeeded and was actually rendered: a static build served locally, screenshotted with
+the environment's pre-installed global Playwright (no new project dependency) in both themes,
+which is what surfaced the 24-hour clock bug — not the build succeeding, not `tsc`, not a
+unit test. Contrast was not recomputed from scratch: every text usage in these components
+uses `text-text-primary`/`text-text-secondary` (already verified in the design-system
+session), and every status colour is used only as an icon or a border, never as text, per
+`docs/DECISIONS.md` 0006 — so no new colour/text pairing was introduced that the earlier
+computation doesn't already cover.
+
+**Open questions / next**
+- No automated accessibility check runs yet (`@storybook/addon-a11y`'s `test: 'error'` only
+  takes effect through Storybook's own test runner or interactive mode, neither of which is
+  wired into `npm run check`). Verification here was a real screenshot plus the structural
+  guarantee that status colour never touches text — worth an actual `axe`-driven check once
+  more components exist to justify the tooling.
+- `PolicyGateList`/`PolicyGateRow` are presentational only, as asked — nothing composes them
+  into a page yet, and there is no `RunReviewPage.tsx` to give the region its `<h2>Policy
+  checks</h2>` heading. Next per `AGENTS.md`: plan that composition, or the next region
+  (Timeline, which can reuse `Disclosure`).
+
+
 ### 2026-09-19 · Design system foundation: fonts, full colour palette, usage rules
 
 **Goal**

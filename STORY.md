@@ -44,7 +44,7 @@ The instructions in `AGENTS.md` are design work too. Deciding what a machine may
 not do here is the same kind of judgment as deciding what a screen may and may not claim.
 
 <One moment where my judgment changed the result: what the agent made, what was wrong,
-how I noticed, what I changed. Save this from docs/notes.md while it happens.>
+how I noticed, what I changed. Write this down while it happens — it is hard to reconstruct later.>
 
 ## What I learned  <!-- LATER -->
 

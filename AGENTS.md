@@ -54,7 +54,6 @@ docs/
   spec-review-screen.md   what is being built and why
   DECISIONS.md            choices with trade-offs
   WORKLOG.md              one entry per work session
-  notes.md                raw notes, material for STORY.md
 ```
 
 **Every folder under `src/` has a README.md** saying what belongs there and why. Read it
@@ -90,10 +89,10 @@ extractable into their own packages later, so they must not import from `feature
   what you did, in what order, which commands you ran, and why.
 - **Record decisions with trade-offs in `docs/DECISIONS.md`**, one short entry each:
   context, options considered, choice, consequence.
-- **At the end of every session, after the WORKLOG entry, ask the human one question:**
-  "Anything for `docs/notes.md` from this session — something that surprised you, something
-  I got wrong, or a decision you changed your mind about?" Append their answer under
-  today's date.
+- **At the end of every session, ask the human one question:** "Anything from this session
+  worth writing down — something that surprised you, something I got wrong, or a decision
+  you changed your mind about?" They keep their own notes; just ask and hand back their
+  answer, do not write it to a file.
 - Ask before adding a dependency, changing the stack, or restructuring folders.
 - Do not commit generated screenshots, `node_modules`, or `.env` files.
 - If something in this file turns out to be wrong or unhelpful, say so and propose a change
@@ -107,4 +106,4 @@ extractable into their own packages later, so they must not import from `feature
 - Empty, loading, error and "data is missing" states exist
 - Storybook story added for new components
 - Folder README still accurate
-- WORKLOG entry written, and `docs/notes.md` updated or explicitly skipped
+- WORKLOG entry written

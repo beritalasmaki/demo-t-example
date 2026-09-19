@@ -39,7 +39,118 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
-### 2026-09-19 · Scaffold the app: Vite, React 19, TypeScript, Tailwind, shadcn/ui, testing, lint
+### 2026-09-19 · Data layer: src/lib/types.ts, the three fixtures, src/lib/api.ts
+
+**Goal**
+Implement the data model from `docs/spec-review-screen.md` as `src/lib/types.ts`, build the
+three fixtures it calls for, and add `src/lib/api.ts` as the seam in front of them. No UI.
+
+**What changed**
+- `src/lib/types.ts` — `RunStatus`, `GateResult`, `PolicyGate`, `TimelineEvent`,
+  `ConfidenceArea`, `Decision`, `Run` from the spec's Data model, plus `DecisionInput` (not in
+  the spec, needed for `submitDecision`). Doc comments tie each `RunStatus`/`GateResult` value
+  to its exact Content rules label.
+- `docs/DECISIONS.md` — two new entries (0003, 0004) for the two places this work departed
+  from copying the spec's interfaces literally.
+- `src/fixtures/run-messy.ts`, `run-blocked.ts`, `run-clean.ts` (+ a test file each) and
+  `src/fixtures/index.ts` (the `runs` barrel).
+- `src/lib/api.ts` (+ test) — `getRun`, `submitDecision`, and four error classes.
+- Commits: `8883d8d` (types), `a7991ea` (run-messy), `0b79baa` (run-blocked), `9a94cb2`
+  (run-clean + barrel + a wording fix that landed across all three fixtures), `e99e204` (api).
+
+**Steps, in order**
+1. Read `docs/spec-review-screen.md` in full before writing anything, including the sections
+   Berit had added since the last session (Scenarios, Content rules, Hierarchy, Acceptance
+   criteria) — the task asked to align with Content rules specifically, so I needed the
+   current file, not the one from the scaffold session.
+2. Wrote `types.ts`. Two places the literal Data model section wasn't enough on its own:
+   `submitDecision`'s input shape (not defined anywhere in the spec), and the undo window
+   (described in three other sections of the same document, with no field for it anywhere).
+   Wrote both up as `docs/DECISIONS.md` entries rather than silently extending the interface
+   or silently ignoring the gap.
+3. Built the fixtures in the requested order (messy, blocked, clean), each as one
+   self-contained file — no shared gate-catalog module, since `fixtures/README.md` frames each
+   one as a standalone example a reader might open on its own.
+4. For each fixture, wrote a small test asserting every `evidenceIds` value resolves to a real
+   timeline event id. Nothing else in the toolchain would catch a typo'd id, and the whole
+   point of the evidence field is that it is trustworthy.
+5. Caught two inconsistencies by re-reading my own fixtures against the rules I'd just applied,
+   before running out the clock on the task: `run-clean`'s summary said "Two files changed"
+   against three actual `file_change` events (fixed to three, then to "3" — see next point);
+   and separately, realized "Two files changed" itself was copying Region 2's illustrative
+   sentence rather than following Content rules' own explicit later instruction — "'3 files
+   changed', not '3'" — which says digits, not words. Fixed all three fixtures' file/test-count
+   sentences to digits in the same pass (`9a94cb2`), leaving "One check failed: `<name>`"-style
+   sentences as word-form since those directly mirror Region 2's own phrasing rather than being
+   a bare count.
+6. Wrote `src/lib/api.ts` matching the sketch already in `lib/README.md` almost exactly
+   (including its exact class name, `NotFoundError`, rather than one I'd have picked myself),
+   plus what this task additionally asked for: `NetworkError`, `DecisionConflictError`,
+   `ValidationError`, and the `delayMs`/`simulateNetworkError`/`simulateConflict` options.
+7. Wrote `api.test.ts`. Found a real bug in the test design, not the code, while writing it: a
+   test asserting "approving needs no written reason" would have been the only test in the file
+   to leave `run-clean` with a recorded decision, which would have made two *other* tests
+   (expecting `ValidationError` for a missing reason) get `DecisionConflictError` instead if
+   vitest ever ran them in a different order than written. Deleted that test — the same
+   assertion is already covered by the "records who and when" test on `run-blocked`, which
+   never needed a reason in the first place — rather than leave a passing-but-order-dependent
+   test in the suite.
+8. `npm run check` after every file; `npx prettier --write` on each new/changed file before the
+   final check in that step.
+
+**Why it was done this way**
+- Two deviations from the literal spec (`DecisionInput`, and no field for the undo window) are
+  both logged in `DECISIONS.md` rather than either bolted on silently or left unresolved. This
+  is exactly the situation `AGENTS.md`'s "If something in this file turns out to be wrong or
+  unhelpful, say so and propose a change" line is for, just applied to the spec document
+  instead of `AGENTS.md` itself — the right move for a genuine gap is to name it, not route
+  around it.
+- The Content rules "digit, not word" fix is a small thing that would have been easy to miss
+  entirely (Region 2's own worked example uses the word form, and I had been treating it as the
+  canonical phrasing to reuse). It only surfaced because a test's assertion depended on an exact
+  digit substring match — a case where writing the test first, not after, caught a content bug
+  the checklist-reading pass alone had missed.
+- `run-messy`'s `acknowledgedGateIds` is empty despite approving a production release over two
+  unresolved checks. This is not an oversight — Content rules' sign-off rule is written to
+  cover only failed and waived gates — but it reads like a gap in the spec itself, and I did
+  not feel it was mine to close by inventing an unknown-gate acknowledgment rule that isn't
+  written down anywhere. Flagged in the run-messy commit message and again here.
+
+**How to do this by hand**
+Read the spec's Data model section and transcribe each interface as-is first; only then read
+the rest of the document (Scenarios, Content rules, Hierarchy, Acceptance criteria) looking
+specifically for anything the Data model section doesn't have a place for — an undo window, a
+sign-off tick, a specific display label — and decide, for each one, whether it is a type-level
+gap (needs a field or a whole new interface) or a display-level concern (belongs in a comment
+or in `format.ts` later, not in the type itself). Build the fixtures in whatever order gives
+the most awkward one first; writing the boring one (`run-clean`) first tends to hide exactly
+the layout and content problems the awkward ones are supposed to expose. For each fixture,
+manually walk every `evidenceIds` array against the `timeline` array and check that each id
+resolves — this is exactly what the per-fixture tests now do automatically.
+
+**Verification**
+`npm run check` green after every one of the five commits (27 tests passing by the end, up
+from 5). Each fixture has a test asserting internal consistency (evidence ids resolve, a
+waiver names who and why, the one error is followed by its retry, gate results are what the
+fixture claims). `api.test.ts` covers: not-found for an unknown id; a controllable delay via
+fake timers, so the "slow response" path is proven without an actual multi-second test;
+`getRun` returning a copy rather than a live reference; a successful decision persisting
+across a subsequent `getRun`; a simulated network failure; a real conflict (via `run-messy`,
+with no flag needed) and a simulated one (via `run-clean`); and the written-reason requirement
+for `changes_requested` and `rejected` but not `approved`.
+
+**Open questions / next**
+- Whether `run-messy`'s empty `acknowledgedGateIds` (approving into production over two
+  `unknown` gates with nothing to tick) should stay that way, or whether the sign-off rule in
+  Content rules should be widened to cover `unknown` gates too — this is Berit's call, not
+  mine to make unilaterally.
+- `src/lib/format.ts` is documented in `lib/README.md` but still does not exist. The
+  `RunStatus`/`GateResult` display labels this task added as doc comments in `types.ts` are
+  the natural seed for it, once UI work actually needs them turned into runtime strings.
+- No component, fixture consumer, or screen exists yet. Next task per `AGENTS.md`: plan the
+  first piece of `src/features/run/` against this data layer.
+
+
 
 **Goal**
 Turn the empty repository plus its instructions and spec into a runnable toolchain: Vite,

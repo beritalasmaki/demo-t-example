@@ -1,7 +1,10 @@
-# Agent run review
+# What is "Agent run review"?
 
-A single, production-quality screen: the **agent run review view**. An AI agent has produced
-a change to a customer's software. Before that change ships, a human reviewer needs to
+View the screen: https://demo-t-example.vercel.app/ 
+
+A single, production-quality screen called the **agent run review view**. 
+
+An AI agent has produced a change to a customer's software. Before that change ships, a human reviewer needs to
 understand what the agent did, see which policy gates passed or failed, judge how confident
 the model was and why, and then approve, request changes, or reject.
 

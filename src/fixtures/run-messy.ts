@@ -26,7 +26,7 @@ export const runMessy: Run = {
       evidenceIds: ['m5', 'm6'],
     },
     {
-      text: 'Six files changed, 164 tests passing.',
+      text: '6 files changed, 164 tests passing.',
       evidenceIds: ['m10', 'm11', 'm12'],
     },
     {

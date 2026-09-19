@@ -24,7 +24,7 @@ export const runBlocked: Run = {
       evidenceIds: ['t4', 't5'],
     },
     {
-      text: 'Two files changed, 14 tests added, all passing.',
+      text: '2 files changed, 14 tests added, all passing.',
       evidenceIds: ['t4', 't5', 't7'],
     },
     {

@@ -1,7 +1,8 @@
 # Decisions
 
-Short records of choices with a trade-off. Newest first. Format: context, options, choice,
-consequence. Four to eight lines each — if it needs more, it belongs in a spec.
+A record of choices where there was a real trade-off. Newest first.
+
+Each entry has four parts: the situation, the options, the choice, and what it means going forward.
 
 ---
 

@@ -1,0 +1,23 @@
+dist
+storybook-static
+playwright-report
+coverage
+package-lock.json
+
+# Hand-authored spec and instruction files, committed byte-for-byte by design
+# (see the "docs: project instructions, spec and folder documentation" commit).
+# Prettier would rewrite quote style and reflow the embedded TypeScript inside
+# these; nothing in this list should ever be passed to `prettier --write`.
+AGENTS.md
+CLAUDE.md
+STORY.md
+docs/spec-review-screen.md
+docs/DECISIONS.md
+docs/WORKLOG.md
+docs/notes.md
+src/app/README.md
+src/components/README.md
+src/features/run/README.md
+src/fixtures/README.md
+src/lib/README.md
+src/styles/README.md

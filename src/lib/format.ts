@@ -35,7 +35,13 @@ export function formatGateResultLabel(gate: PolicyGate): string {
  */
 export function formatDateTime(iso: string, now: Date = new Date()): string {
   const date = new Date(iso)
-  const time = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  // The spec's own example ("14:32") is 24-hour. Locale-default AM/PM would silently drift
+  // from that the moment this runs somewhere en-US isn't the assumed locale.
+  const time = date.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
   const isToday = date.toDateString() === now.toDateString()
 
   if (isToday) return `${time} today`

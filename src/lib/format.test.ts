@@ -41,6 +41,11 @@ describe('formatDateTime', () => {
     expect(formatDateTime('2026-03-04T14:11:00Z', now)).toMatch(/today$/)
   })
 
+  it('uses 24-hour clock time, matching the spec’s own "14:32" example — not locale-default AM/PM', () => {
+    const now = new Date('2026-03-04T18:00:00Z')
+    expect(formatDateTime('2026-03-04T14:11:00Z', now)).toBe('14:11 today')
+  })
+
   it('names the date when it is not today', () => {
     const now = new Date('2026-03-06T10:00:00Z')
     const result = formatDateTime('2026-03-04T14:11:00Z', now)

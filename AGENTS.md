@@ -54,6 +54,7 @@ docs/
   spec-review-screen.md   what is being built and why
   DECISIONS.md            choices with trade-offs
   WORKLOG.md              one entry per work session
+  notes.md                raw notes, material for STORY.md
 ```
 
 **Every folder under `src/` has a README.md** saying what belongs there and why. Read it
@@ -80,23 +81,21 @@ extractable into their own packages later, so they must not import from `feature
 
 ## How to work
 
-- **Plan before building.** For anything larger than a small fix, describe the plan and wait
-  for a human to accept it.
+- **Use Plan Mode for anything larger than a small fix.** Describe the plan, name any
+  judgment call explicitly, and wait for it to be accepted before writing code. The
+  `/task` command in `.claude/commands/` starts this for you.
+- **Check `.claude/skills/` before repeated task types.** `new-component` for any new
+  component, `worklog-entry` for the end of every session. Follow the skill rather than
+  reconstructing the steps from memory each time — that consistency is the point.
 - **Small commits.** One logical change per commit, conventional commit messages
   (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
-- **Update `docs/WORKLOG.md` at the end of every session**, using the template at the top
-  of that file. Write it for a designer who wants to learn how to do the same work by hand:
-  what you did, in what order, which commands you ran, and why.
+- **Update `docs/WORKLOG.md` at the end of every session** — see the `worklog-entry` skill.
 - **Record decisions with trade-offs in `docs/DECISIONS.md`**, one short entry each:
   context, options considered, choice, consequence.
-- **At the end of every session, ask the human one question:** "Anything from this session
-  worth writing down — something that surprised you, something I got wrong, or a decision
-  you changed your mind about?" They keep their own notes; just ask and hand back their
-  answer, do not write it to a file.
 - Ask before adding a dependency, changing the stack, or restructuring folders.
 - Do not commit generated screenshots, `node_modules`, or `.env` files.
-- If something in this file turns out to be wrong or unhelpful, say so and propose a change
-  rather than silently ignoring it.
+- If something in this file — or in a skill — turns out to be wrong or unhelpful, say so and
+  propose a change rather than silently ignoring it.
 
 ## Definition of done for any UI work
 
@@ -106,4 +105,4 @@ extractable into their own packages later, so they must not import from `feature
 - Empty, loading, error and "data is missing" states exist
 - Storybook story added for new components
 - Folder README still accurate
-- WORKLOG entry written
+- WORKLOG entry written, and `docs/notes.md` updated or explicitly skipped

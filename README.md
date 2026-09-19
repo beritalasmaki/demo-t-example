@@ -9,6 +9,8 @@ the model was and why, and then approve, request changes, or reject.
 This is a portfolio piece built to the standard of a real product surface, not a mockup. It
 is not affiliated with any company, and every run in it is fictional.
 
+Link to Vercel: https://demo-t-example.vercel.app/
+
 - **Why this exists:** [`STORY.md`](./STORY.md)
 - **What is being built, region by region:** [`docs/spec-review-screen.md`](./docs/spec-review-screen.md)
 - **The rules this repository is built to** (stack, folder structure, dependency direction,

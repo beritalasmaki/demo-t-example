@@ -23,5 +23,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "eslint.config.js", ".storybook/**/*.ts"]
+  "include": ["vite.config.ts", "eslint.config.js"]
 }

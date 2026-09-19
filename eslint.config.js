@@ -3,6 +3,7 @@ import js from '@eslint/js'
 import importPlugin from 'eslint-plugin-import'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
+import storybook from 'eslint-plugin-storybook'
 import tseslint from 'typescript-eslint'
 import globals from 'globals'
 
@@ -74,7 +75,7 @@ export default tseslint.config(
     settings: {
       'import/resolver': {
         typescript: {
-          project: ['./tsconfig.app.json', './tsconfig.node.json'],
+          project: ['./tsconfig.app.json', './tsconfig.node.json', './tsconfig.storybook.json'],
           noWarnOnMultipleProjects: true,
         },
         node: true,
@@ -127,6 +128,10 @@ export default tseslint.config(
     languageOptions: {
       globals: globals.node,
     },
+    rules: {
+      // These are Storybook/build config, not app code being fast-refreshed.
+      'react-refresh/only-export-components': 'off',
+    },
   },
   {
     // Test files are exempt from the strict type-checked ruleset's stricter
@@ -136,4 +141,5 @@ export default tseslint.config(
       globals: { ...globals.browser, ...globals.node },
     },
   },
+  storybook.configs['flat/recommended'],
 )

@@ -17,3 +17,5 @@ test-results/
 
 # OS
 .DS_Store
+
+*storybook.log

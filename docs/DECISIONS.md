@@ -6,6 +6,45 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0009 · Shadcn-bridge/token collisions are now checked by a script, not by memory
+
+**Context.** 0007 (`--color-accent`) and 0008 (`--color-border`) were the same bug found
+twice, six commits apart: `src/styles/index.css`'s `@theme inline` block declared a custom
+property under the exact name of one of our own semantic tokens, but pointed it at a
+different value. Because the bridge is `@import`ed after `tokens.css`, that declaration wins
+the cascade for every consumer of the name, everywhere in the app — not only inside shadcn
+components. Both were only found because a component happened to be the first thing to use
+that particular Tailwind class, and someone thought to run a probe build instead of trusting
+the source. Nothing stopped a third name from doing the same thing silently, forever, until
+something visibly broke.
+
+**Options.** (a) Keep relying on probe builds and code review to catch this by eye, now
+that it's a documented pattern to watch for. (b) Write an automated check for this specific
+class of bug — any bridge declaration that shares a token's name is only valid if it mirrors
+that token's value exactly — and run it as part of `npm run check`. (c) Avoid the possibility
+entirely by renaming either the bridge's or the tokens' vocabulary so the two can never share
+a name.
+
+**Choice.** (b): `scripts/check-theme-bridge.mjs`. (a) is what already failed twice — a
+pattern worth documenting is a pattern worth enforcing, not re-noticing. (c) would work but
+means giving up shadcn's fixed naming convention (`border`, `accent`, `ring`, …) or renaming
+our own tokens to dodge collisions that don't exist yet, which is a bigger, more disruptive
+change for a problem a small script already solves. The script reads both `@theme` blocks as
+text, matches declarations by name, and fails if a bridge value under a colliding name is
+anything other than `var(--that-name)` — the one form that provably carries the token's value
+through unchanged. Verified by temporarily reintroducing both the accent and the border bugs
+and confirming it fails on each, then confirming it passes clean on the current files.
+
+**Consequence.** A third collision like this now fails `npm run check` immediately, at the
+name level, before anyone needs to notice a wrong colour or think to probe-build. The check
+is deliberately narrow (a regex over two known blocks, not a real CSS parser) — it only knows
+about this one failure mode, not shadcn-bridge correctness in general, and it would need
+updating if the bridge or tokens file's structure changed shape enough to break the regex.
+That's an acceptable trade for how cheaply it runs and how exactly it targets the two bugs
+that already happened.
+
+---
+
 ## 0008 · Removed the shadcn bridge's `--color-border` override
 
 **Context.** `src/styles/index.css`'s shadcn bridge redeclared `--color-border` to equal

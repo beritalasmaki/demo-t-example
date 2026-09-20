@@ -39,6 +39,83 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-20 · Automated check for shadcn-bridge/token collisions
+
+**Goal**
+Stop finding shadcn-bridge/token collisions (0007 `--color-accent`, 0008 `--color-border`) by
+hand, one at a time, after something already used the colliding name. Add a check that fails
+`npm run check` if it happens a third time.
+
+**What changed**
+- `scripts/check-theme-bridge.mjs` (new) — reads `src/styles/tokens.css`'s `@theme` block and
+  `src/styles/index.css`'s `@theme inline` block, and fails if any bridge declaration shares a
+  token's name without mirroring its value exactly (`var(--that-name)`).
+- `package.json` — new `check:theme-bridge` script, added into the `check` chain between
+  `lint` and `test`.
+- `eslint.config.js` — `scripts/*.mjs` added alongside `eslint.config.js` to the
+  type-checked-rules exemption and `allowDefaultProject`, the same way the config file itself
+  already was; scripts aren't part of any `tsconfig` project.
+- `src/styles/index.css` — one line added to the bridge's existing comment, pointing at the
+  new check and DECISIONS 0009.
+- `docs/DECISIONS.md` — 0009, generalizing 0007 and 0008 as one class of bug instead of two
+  unrelated fixes.
+
+**Steps, in order**
+1. Read `src/styles/index.css` and `src/styles/tokens.css` fresh to confirm the exact current
+   shape of both `@theme` blocks (no assumptions from memory).
+2. Wrote `scripts/check-theme-bridge.mjs`: extract each `@theme` block's text by brace-matching
+   after the at-rule keyword, parse flat `--name: value;` declarations with a regex, then for
+   every bridge name that also exists in tokens.css, require the bridge's value to be exactly
+   `var(--that-name)` — anything else is reported as a collision.
+3. `node scripts/check-theme-bridge.mjs` against the current (already-fixed) files — passed.
+4. Temporarily reintroduced the exact 0008 bug (`--color-border: var(--color-border-subtle);`
+   back in the bridge) and re-ran the script — failed, naming `--color-border` and both values.
+5. Restored the clean file, then temporarily reintroduced the exact 0007 bug
+   (`--color-accent: var(--color-surface-raised);`) and re-ran — failed the same way. Restored
+   the clean file again and confirmed `git status` showed no diff from either experiment.
+6. Added `check:theme-bridge` to `package.json` and wired it into `check`.
+7. `npm run lint` failed on the new script: it isn't covered by any `tsconfig`, so
+   `typescript-eslint`'s type-aware rules couldn't parse it. Fixed the same way
+   `eslint.config.js` itself is already handled — added `scripts/*.mjs` to the
+   `disableTypeChecked` files list and `scripts/check-theme-bridge.mjs` to
+   `allowDefaultProject` (a `scripts/**/*.mjs` glob is rejected by `typescript-eslint` itself
+   as too wide, so it's listed by exact filename instead).
+8. `npm run check` green end to end.
+9. Wrote `docs/DECISIONS.md` 0009 and this entry.
+
+**Why it was done this way**
+Two instances of the identical bug, six commits apart, each found only because a component
+happened to be the first thing to use that specific Tailwind class, is a pattern, not a
+coincidence. Writing it down in DECISIONS.md the first two times documented it; it didn't stop
+it from happening again. The check is deliberately narrow — a text-level regex over two known
+blocks, not a general CSS correctness tool — because that's exactly the shape of the two bugs
+that actually occurred, and a narrower, obviously-correct check beats a broader one that's
+harder to trust. It was proven against both real historical bugs, not just the passing case,
+the same discipline the probe-build technique already established for this kind of problem.
+
+**How to do this by hand**
+Read both `@theme` blocks side by side. For every custom property name in the bridge that also
+appears in `tokens.css`, check that its value is literally `var(--that-same-name)` — anything
+else means the bridge is quietly deciding what that name means for the whole app, not just for
+shadcn.
+
+**Verification**
+`npm run check` (typecheck, lint, the new `check:theme-bridge` step, then the full test suite)
+green. The new check itself verified against failure, not just success: manually reintroduced
+both the 0007 and 0008 bugs one at a time and confirmed `node scripts/check-theme-bridge.mjs`
+exits non-zero and names the right property and both values each time; confirmed a clean exit
+0 on the real files after each restore, and that neither experiment left a git diff.
+
+**Open questions / next**
+- The check only understands `--name: value;` declarations with no fallback or nesting,
+  matching how the bridge is written today. If it ever needs `var(--x, fallback)` or similar,
+  the parser will need to grow with it rather than silently mis-parsing.
+- No shadcn component has ever actually been generated against this bridge (the registry is
+  still blocked from this session's egress policy) — this check guards the mapping's internal
+  consistency, not whether the mapping is what a real generated component would expect.
+
+---
+
 ### 2026-09-20 · Timeline (audit log): Timeline, TimelineEventRow, TimelineFilters
 
 **Goal**

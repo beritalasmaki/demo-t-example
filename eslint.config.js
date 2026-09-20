@@ -85,16 +85,20 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
-    // eslint.config.js is plain JS with no tsconfig of its own, so it cannot
-    // carry type-aware rules; it still gets the non-type-aware ones above.
-    files: ['eslint.config.js'],
+    // eslint.config.js and the check scripts are plain JS/ESM with no tsconfig
+    // of their own, so they cannot carry type-aware rules; they still get the
+    // non-type-aware ones above.
+    files: ['eslint.config.js', 'scripts/*.mjs'],
     extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      globals: globals.node,
+    },
   },
   {
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['eslint.config.js'],
+          allowDefaultProject: ['eslint.config.js', 'scripts/check-theme-bridge.mjs'],
         },
         tsconfigRootDir: import.meta.dirname,
       },

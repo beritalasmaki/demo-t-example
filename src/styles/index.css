@@ -31,6 +31,10 @@
  * Unverified: the shadcn registry (ui.shadcn.com) is blocked by this session's
  * egress policy, so no component has been generated against this mapping yet.
  * Check it when the first component is added.
+ *
+ * Both collisions above were found by hand, after the fact. `npm run check` now runs
+ * scripts/check-theme-bridge.mjs, which fails the build if any name in this block ever
+ * again shares a token's name without mirroring its value — see docs/DECISIONS.md 0009.
  */
 @theme inline {
   --color-background: var(--color-bg);

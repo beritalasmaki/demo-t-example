@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "check:theme-bridge": "node scripts/check-theme-bridge.mjs",
+    "check": "npm run typecheck && npm run lint && npm run check:theme-bridge && npm run test"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

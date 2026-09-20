@@ -39,6 +39,114 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-20 · Timeline (audit log): Timeline, TimelineEventRow, TimelineFilters
+
+**Goal**
+Build the audit log region against `run-messy` for length and `run-blocked` for the
+error/retry case, following `docs/spec-review-screen.md`'s Region 4 and its Hierarchy
+exactly: the shape of the run first, never a flat list; errors and retries never hidden by
+filters.
+
+**What changed**
+- `src/fixtures/run-messy.ts` (+ test) — extended the timeline from 20 to 200+ events.
+- `src/styles/index.css`, `docs/DECISIONS.md` — a real bug fix, unrelated to Timeline itself
+  but found while building it (see below).
+- `src/components/IconText.tsx`, `src/components/ToggleChip.tsx` (+ stories, tests).
+- `src/lib/timeline.ts` (+ test).
+- `src/features/run/TimelineEventRow.tsx`, `TimelineFilters.tsx`, `Timeline.tsx` (+ stories,
+  tests).
+- `src/features/run/README.md`, `src/lib/README.md` — corrected/extended file listings.
+- Commits: `fb1e481` (fixture), `5b53ae2` (border fix), `2bf3308` (IconText/ToggleChip),
+  `50a3faa` (lib/timeline.ts), `a711eaf` (TimelineEventRow), `eb1f104` (TimelineFilters),
+  `5a033d7` (Timeline), `a8f1c08` (README corrections).
+
+**Steps, in order**
+1. Read `AGENTS.md` and `docs/spec-review-screen.md` fresh, then checked `run-messy.ts`'s
+   actual timeline length before planning — 20 events, not 200+. Flagged it and extended the
+   fixture for real, per the task's own instruction not to fake the scale test in stories
+   only: the narrative reason (verifying a refund path against every shard in a sharded
+   payments system) came before the generation code, not after — 180 near-identical events
+   needed a real reason to be believable, not just a reason to exist.
+2. Wrote `lib/timeline.ts` before any component: `isRetry`/`isError`, `timelineShape`, and
+   `filterTimeline` — the last of these is where "never hidden by filters" actually lives,
+   not in row styling, so it could be tested in isolation before any UI existed to hide the
+   bug behind.
+3. Verified every new lucide-react icon name (7 event types) actually exists before writing
+   `TimelineEventRow`, same as the icon check from the previous PolicyGateRow session.
+4. Building `ToggleChip`, tried `border-border` for the first time anywhere in this codebase
+   and it silently resolved to the wrong colour. Traced it with a probe build (not assumed):
+   the shadcn bridge in `index.css` had been redeclaring `--color-border` to equal
+   `--color-border-subtle` since the design-system session, two sessions ago — the exact same
+   class of collision already caught and fixed for `--color-accent`, just missed for
+   `border` because nothing had used it directly until now. Fixed it, then deliberately
+   audited the rest of shadcn's bridge vocabulary (`primary`, `secondary`, `muted`,
+   `destructive`, `ring`, `input`) the same way — probe-built and checked the resolved value
+   — rather than assume `border` was the only one. It was; `primary` is the one other
+   exact-name overlap, and it isn't a collision, since both sides already agree on the value.
+5. Built `TimelineEventRow`. Deliberately did *not* wrap a detail-less event in a `Disclosure`
+   with an empty body — most of the 200 shard-check events have no detail at all, and an
+   expand arrow leading to nothing would be a small invented interaction with no real content
+   behind it. Gave the plain and the expandable row the same visual "card" treatment instead,
+   so a 200-event list reads as one consistent sequence.
+6. Built `TimelineFilters`, then `Timeline`, wiring `filterTimeline`'s forced-visible ids
+   through to a "Shown despite the active filters" note on the row, so an event surviving an
+   unchecked filter reads as intentional, not as a bug.
+7. Built a static Storybook bundle, served it locally, and screenshotted the `Messy`
+   (all 200 real events), `Filtered`, `Empty` and `Blocked` stories in both themes with the
+   environment's global Playwright CLI, the same verification pattern as the previous two
+   sessions. This is what confirmed the bounded scroll region actually clips the list rather
+   than just having the CSS class present, that the empty state matches Content rules'
+   example wording exactly, and that a severity-flagged failed `gate_eval` correctly counts
+   as an "error" in the shape summary alongside the one literal `error`-type event.
+8. Updated `features/run/README.md` (still said `TimelineEvent.tsx`; the real file is
+   `TimelineEventRow.tsx`, to avoid colliding with `lib/types.ts`'s own `TimelineEvent`) and
+   `lib/README.md` (didn't mention `timeline.ts` at all) — the `new-component` skill's "update
+   the folder README if the rule changed" step, done as its own small commit rather than
+   folded silently into the component commits.
+
+**Why it was done this way**
+- The `--color-border` bug is worth naming plainly: it is not a Timeline bug, and it existed
+  in already-shipped, already-tested code for two full sessions before anything happened to
+  use the one Tailwind utility name that triggered it. Nothing in `npm run check` — not
+  `tsc`, not `eslint`, not a single existing unit test — could have caught it, because none
+  of them render actual computed CSS and compare it to an expectation. Only trying to use the
+  token directly, and checking the *build output* rather than the *source*, surfaced it. This
+  is the same lesson as the 24-hour clock bug from the PolicyGateRow session, generalised:
+  reading tokens.css and index.css correctly, twice, was not enough.
+- Auditing the rest of the shadcn bridge immediately, rather than filing it as "worth doing
+  later," was a deliberate choice: the previous session's own `DECISIONS.md` entry for the
+  accent collision speculated that other collisions might exist without checking, and this
+  session found one it hadn't predicted (`border`, not one of the ones that seemed obviously
+  risky). A speculative "should audit sometime" note has a way of never actually happening.
+
+**How to do this by hand**
+Before trusting that a design-system token bridge is correct, don't just read both files side
+by side — build the app, add the exact Tailwind utility class you're about to rely on to a
+throwaway element, build again, and grep the *output* CSS for what it actually resolved to.
+Do this for every semantic token name your product happens to share with whatever
+third-party component vocabulary you're bridging to (here, shadcn's `background`, `border`,
+`ring`, `primary`, …), not just the one you're about to use — a silent override in a shared
+bridge file affects every future consumer of that name, not only the one that happens to
+reveal it first.
+
+**Verification**
+`npm run check` green after every commit (101 tests by the end, up from 90). `npx storybook
+build` succeeded and was actually rendered in both themes for the primary states, via a
+static build served locally and screenshotted with the environment's global Playwright.
+Confirmed the `--color-border` bug and its fix with before/after probe builds, not by reading
+the CSS source and assuming it was right.
+
+**Open questions / next**
+- No `RunReviewPage.tsx` exists yet, so "the run header" the acceptance criteria say must
+  stay visible alongside a scrolling Timeline is not a real, composed layout yet — this
+  session's `max-h-96` bound is Timeline's own internal scroll, not yet proven against an
+  actual page with a real header above it.
+- The `border`/`accent` shadcn-bridge collision pattern is now caught twice. Worth deciding,
+  before a real shadcn component is ever added, whether to rename our tokens away from
+  shadcn's exact vocabulary preemptively, or keep resolving collisions as they're found —
+  currently the latter, by default, not by an explicit decision.
+
+
 ### 2026-09-19 · PolicyGateList and PolicyGateRow, plus the lib helpers they need
 
 **Goal**

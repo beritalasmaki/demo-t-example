@@ -29,6 +29,9 @@ and `lib` can be tested on its own with no UI at all.
 - **`api.ts`** — the only place that fetches data. See below.
 - **`gates.ts`** — small domain helpers that are not UI, e.g. sorting gates so failed and
   waived come first, or deciding whether a run can still be decided on.
+- **`timeline.ts`** — the same kind of helper for the audit log: the shape of a run (step,
+  error and retry counts), and filtering that never actually hides an error or a retry, only
+  shrinks the count of what's genuinely excluded.
 - **`utils.ts`** — `cn()`, the class-name merger every shadcn/ui component expects at the
   `utils` alias in `components.json`. It lives here because that is where shadcn looks, and
   because `components/` is allowed to import from `lib`.

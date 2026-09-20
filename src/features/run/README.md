@@ -55,6 +55,8 @@ written the code: a compliance officer, a security lead, a product owner. Design
 - `useRun.ts` — loading, error and stale-data handling via `lib/api`
 - `RunHeader.tsx`, `RunSummary.tsx` — what this run is, in three to five sourced sentences
 - `PolicyGateList.tsx`, `PolicyGateRow.tsx` — gates, failed and waived first
-- `Timeline.tsx`, `TimelineEvent.tsx`, `TimelineFilters.tsx` — the audit trail
+- `Timeline.tsx`, `TimelineEventRow.tsx`, `TimelineFilters.tsx` — the audit trail. Named
+  `TimelineEventRow`, not `TimelineEvent` as originally planned here: that name already
+  belongs to `lib/types.ts`'s `TimelineEvent`, needed in the same file.
 - `ConfidencePanel.tsx` — confidence, reasoning, and what was not verified
 - `DecisionBar.tsx`, `DecisionDialog.tsx` — the decision, its reason and its consequences

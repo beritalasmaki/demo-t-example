@@ -6,6 +6,34 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0008 · Removed the shadcn bridge's `--color-border` override
+
+**Context.** `src/styles/index.css`'s shadcn bridge redeclared `--color-border` to equal
+`--color-border-subtle`, for shadcn's own fixed vocabulary. `--color-border` is also a real
+semantic token in `tokens.css`, a stronger border colour than the subtle one — the same name
+meaning two different things, the same collision already caught for `accent` (0007), just
+missed for `border` because nothing had used `border-border`/`bg-border`/`text-border`
+directly until building `ToggleChip` for the Timeline task. Verified with a probe build, not
+assumed: `border-border` was silently resolving to the subtle value.
+
+**Options.** (a) Leave it — nothing currently visible was wrong. (b) Rename our semantic
+token to avoid the collision. (c) Remove the bridge's override, same as 0007 did for accent.
+
+**Choice.** (c). Once removed, `--color-input` (which was already defined as
+`var(--color-border)`) automatically resolves to our real token via the normal CSS cascade,
+with no further change needed — a strictly better outcome than 0007's accent case, which is
+left with no value in the bridge at all until a real component supplies one.
+
+**Consequence.** `border-border`/`bg-border`/`text-border` now mean what `tokens.css` says
+they mean, everywhere, including inside any future shadcn component. Audited the rest of
+shadcn's bridge vocabulary the same way (probe-built and checked the resolved value, not
+just read the source) rather than assume this was the only one: `primary` is the one other
+exact-name overlap, and it isn't a collision — the bridge maps it to itself, which is only
+safe because both sides already agree on the value. `secondary`, `muted`, `destructive`,
+`ring` and `input` don't collide, because none of them is also one of our own token names.
+
+---
+
 ## 0007 · shadcn's `accent` bridge slot is dropped, not remapped
 
 **Context.** shadcn/ui components are written against a fixed vocabulary, including

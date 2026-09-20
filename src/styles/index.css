@@ -22,6 +22,12 @@
  * actually needs a hover surface should be patched by hand to use
  * --color-surface-raised instead of bg-accent/accent-foreground.
  *
+ * shadcn's own "border" is the same kind of collision, caught later (docs/DECISIONS.md,
+ * 0008): this block used to redeclare --color-border to equal --color-border-subtle,
+ * silently overriding tokens.css's own --color-border wherever anything used it —
+ * border-border/bg-border/text-border were all silently getting the subtle value
+ * instead of the real one. Not mapped here for the same reason as accent.
+ *
  * Unverified: the shadcn registry (ui.shadcn.com) is blocked by this session's
  * egress policy, so no component has been generated against this mapping yet.
  * Check it when the first component is added.
@@ -48,7 +54,6 @@
    * see the contrast numbers in src/styles/README.md. */
   --color-destructive-foreground: var(--color-primary-foreground);
 
-  --color-border: var(--color-border-subtle);
   --color-input: var(--color-border);
   --color-ring: var(--color-focus-ring);
 }

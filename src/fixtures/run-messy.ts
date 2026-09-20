@@ -1,8 +1,9 @@
 import type { Run } from '../lib/types'
 
 /**
- * Long run, released to production, with two checks that never ran and one confidence area
- * with no value at all. See docs/spec-review-screen.md, "Fixtures to build" (3. Messy).
+ * Long run (200 timeline events, on purpose — see `shardVerificationEvents` below), released
+ * to production, with two checks that never ran and one confidence area with no value at
+ * all. See docs/spec-review-screen.md, "Fixtures to build" (3. Messy).
  *
  * `decision.at` is computed relative to `Date.now()`, not a fixed past timestamp, so this
  * fixture keeps demonstrating "an undo window still active" (docs/DECISIONS.md, 0003: the
@@ -10,6 +11,27 @@ import type { Run } from '../lib/types'
  * whenever it is loaded, rather than only on the day it was written.
  */
 const decisionAt = new Date(Date.now() - 3 * 60 * 1000).toISOString()
+
+/**
+ * A payments system this size is sharded per merchant, so verifying a refund path change
+ * really does mean checking it against every shard's gateway config individually — a
+ * genuine reason a real run can produce 100+ near-identical events, rather than padding for
+ * the sake of it (docs/spec-review-screen.md, Acceptance criteria: "Long runs stay usable:
+ * 200+ events scroll without losing the header"). Generated, not hand-written, because 180
+ * hand-written near-duplicates would be harder to trust than 20 clearly-different ones —
+ * but every one is a real, believable tool_call the way the rest of this fixture's events
+ * are (Content rules: "realistic file paths... believable content is part of the design").
+ */
+const shardVerificationEvents = Array.from({ length: 180 }, (_, index) => {
+  const shard = String(index + 1).padStart(3, '0')
+  const at = new Date(Date.UTC(2026, 1, 11, 8, 58, 30 + index * 3))
+  return {
+    id: `ms${index + 1}`,
+    at: at.toISOString(),
+    type: 'tool_call' as const,
+    title: `Checked the gateway config for shard-${shard}.`,
+  }
+})
 
 export const runMessy: Run = {
   id: 'run-messy',
@@ -170,6 +192,7 @@ export const runMessy: Run = {
       detail: 'Unit tests for the new client, including a timeout case.',
       artefactIds: ['src/services/payments/gateway-client.test.ts'],
     },
+    ...shardVerificationEvents,
     {
       id: 'm11',
       at: '2026-02-11T09:10:00Z',

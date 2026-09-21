@@ -2,7 +2,7 @@
 
 View the screen: https://demo-t-example.vercel.app/ 
 
-NOTE! Design is still in process. We built the case first before the UI polishes. However, first tokens have been built already: colors, fonts and spacing. More coming soon :)
+NOTE! Design is still in process. I built the base first before the UI polishes. However, first tokens have been built already: colors, fonts and spacing. More coming soon :)
 
 ALSO Storybook view page coming soon!
 

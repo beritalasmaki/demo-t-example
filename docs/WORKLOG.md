@@ -39,6 +39,158 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · First real shadcn components (Button, Checkbox, Dialog); a self-referencing bridge bug that broke every focus ring in light theme
+
+**Goal**
+Add real shadcn/ui components (`npx shadcn@latest init` was blocked — see below) and, once
+building them surfaced a real bug in the existing shadcn bridge, fix it properly: audit for
+the same pattern elsewhere, fix the check that should have caught it, and correct the record.
+
+**What changed**
+- `src/components/ui/button.tsx`, `checkbox.tsx`, `dialog.tsx` (new) — fetched from
+  shadcn-ui/ui on GitHub, import paths rewritten to this project's aliases, `accent`/
+  `accent-foreground` hover states patched to `surface-raised`/`foreground` per 0007.
+- `package.json`/`package-lock.json` — `radix-ui` (the three components' primitive backend)
+  and `playwright` (devDependency, for `check-theme-bridge.mjs`'s runtime check below) added.
+- `src/styles/index.css` — added the global `border-color` preflight reset shadcn's own
+  components assume and this project didn't have (0013); removed the self-referencing
+  `--color-primary`/`--color-primary-foreground` bridge lines (0014); bridge comment
+  rewritten to record both.
+- `scripts/check-theme-bridge.mjs` — rewritten: the "safe if the bridge value mirrors the
+  token's name" exception is gone (any colliding name is now an unconditional error), and a
+  new runtime check builds the real CSS and verifies every semantic colour's `bg-*`/`text-*`
+  utility actually paints its own colour, in a real browser, across light and both dark paths.
+- `eslint.config.js` — `scripts/check-theme-bridge.mjs` given combined browser+node globals
+  (its `page.evaluate()` callbacks run in a real browser, not Node).
+- `README.md` — the one-time `npx playwright install chromium` the check now needs.
+- `docs/DECISIONS.md` — 0013 (the border-color reset), 0014 (the primary/focus-ring bug and
+  fix, correcting 0008), plus in-place correction notes appended to 0008 and 0009 themselves.
+- Commits: `c922fad` (the three components + border-color fix), `240b999` (the primary/
+  focus-ring fix + check rewrite).
+
+**Steps, in order**
+1. `npx shadcn@latest init` — blocked: `ui.shadcn.com` returns a 403 through this session's
+   egress proxy (confirmed with `curl`, then via the proxy's own `/__agentproxy/status`).
+   `raw.githubusercontent.com` is reachable, so fetched `dialog.tsx` and `checkbox.tsx`
+   directly from `shadcn-ui/ui`'s GitHub source instead, at the exact paths the CLI itself
+   would pull from (`apps/v4/registry/new-york-v4/ui/*.tsx`).
+2. Both fetched files import `cn` from a registry-internal alias (`"cn"`, not a real package)
+   and `dialog.tsx` additionally imports `Button` from a path (`@/registry/new-york-v4/ui/
+   button`) that only exists inside shadcn's own monorepo. Fetched `button.tsx` the same way
+   rather than stripping the dependency, and rewrote all three files' imports to this
+   project's real aliases (`@/lib/utils`, `@/components/ui/button`).
+3. `npm install`, `npm install radix-ui`, `npm run typecheck`/`build` — all green.
+4. Rendered the three components side by side in a throwaway harness (a temp file swapped
+   into `main.tsx`, reverted after) and screenshotted light/dark with the environment's
+   global Playwright: `bg-primary` (Button's `default` variant) painted nothing at all in
+   light theme, the default theme.
+5. Traced it to the compiled CSS, not assumed: `--color-primary` and `--color-primary-
+   foreground` in the bridge were self-referencing (`var(--color-primary)`), reasoned safe by
+   0008 as "mirrors the token." Tailwind merges an `@theme` name and a same-named `@theme
+   inline` one into one entry, the bridge's winning outright — so this was a genuine CSS
+   custom-property cycle, computing to nothing. `--color-focus-ring` (tokens.css: `var(--
+   color-primary)`) rode the same cycle, breaking `:focus-visible`'s outline colour site-wide
+   in light theme — confirmed with `getComputedStyle(...).getPropertyValue('--color-focus-
+   ring')` returning `""`.
+6. Reported the bug and stopped for a decision before touching shared, non-shadcn code — see
+   "Why" below.
+7. Fix: removed both self-referencing lines; re-audited every remaining bridge name against
+   every tokens.css name for the identical pattern (name collides, regardless of what value
+   it's given) — none of the rest do.
+8. Rewrote `check-theme-bridge.mjs`'s static rule to have no "mirrors the token" exception.
+   Tried a first runtime-verification design (raw `getComputedStyle(:root)` per custom-
+   property name) and it produced dozens of false positives: `@theme inline` bakes
+   non-colliding bridge names directly into each utility's own rule at build time
+   (`.bg-background{background-color:var(--color-bg)}`) rather than emitting a real
+   `--color-background` custom property at all, so checking for that property directly
+   flagged every one of them as "broken" when nothing was wrong. Redesigned around applying
+   the actual `bg-*`/`text-*` utility to a real element and reading what painted instead —
+   the same test that caught the original bug, generalized to every semantic colour.
+9. That redesign hit a second false-positive class: Tailwind's content scanner only
+   generates a utility class if it finds that literal class name as text somewhere in the
+   project, so colours nothing in the app currently uses (every status colour, `bg-card`, …)
+   simply weren't in the build output. Added a throwaway probe file (written before the
+   build, deleted in a `finally` right after) containing every `bg-<name> text-<name>` as
+   literal text, giving the scanner a real reason to generate each one.
+10. Verified the finished check against failure, not just success: reintroduced the exact
+    primary self-reference and confirmed the static check catches it immediately; separately
+    injected a synthetic mutual cycle between two *non-colliding* bridge names and confirmed
+    the runtime check catches that (the case the static rule structurally cannot see); then
+    restored the clean file and confirmed a clean pass both times.
+11. Lint failed on the rewritten script (`document`/`getComputedStyle` "not defined" inside
+    `page.evaluate()` callbacks — those run in the browser, not Node). Gave the script
+    combined browser+node globals in `eslint.config.js`, the same pattern test files already
+    use.
+12. Confirmed the actual fix, not just the check: tabbed into the real running app in light
+    theme and read the focused element's computed `outline-color` — `rgb(91, 79, 199)`,
+    exactly `--violet-light`/`--color-focus-ring`'s correct value — plus a screenshot showing
+    the visible violet ring.
+13. `npm run check` (with `PLAYWRIGHT_CHROMIUM_EXECUTABLE` set for this sandboxed session's
+    non-default browser path) green end to end. Corrected 0008 and 0009 in place (their
+    original reasoning is left as written, with a correction paragraph appended) and wrote
+    0014.
+
+**Why it was done this way**
+- **Stopped and asked before fixing the focus-ring bug.** It's a real, serious, pre-existing
+  bug, but it's in shared, non-shadcn code, unrelated to the two components actually asked
+  for — exactly the kind of thing AGENTS.md's "ask before... restructuring" is for. Reporting
+  it precisely (root cause, blast radius, a proposed fix) and waiting for a decision, rather
+  than unilaterally patching shared token/bridge files, matched how this repository's other
+  cross-cutting decisions (0007, 0008) were made — deliberately, not silently.
+- **No safe way to redeclare a colliding name in the bridge, mirrored or not.** 0008's
+  "primary is fine, it mirrors itself" reasoning read the *source* and judged the value
+  looked right; it never checked whether the property *resolved* to anything at runtime, which
+  is the only way a self-reference cycle shows up. There is no version of redeclaring a
+  colliding name that's provably safe — the fix, same as 0007/0008, is to not redeclare it.
+- **Corrected 0008/0009 in place rather than silently superseding them.** A wrong decision
+  quietly replaced by a later one looks, in hindsight, like nobody ever got it wrong — which
+  makes the same mistake easier to repeat. Leaving 0008's original paragraph intact with a
+  correction appended, and pointing to 0014 from both 0008 and 0009, keeps the actual history
+  legible.
+- **Utility-class checks, not raw custom-property checks.** Two rounds of false positives
+  (steps 8–9) taught the same lesson twice: Tailwind v4's `@theme inline` emission and its
+  content-scanning are both real mechanics that a naive "read `:root`'s computed value" check
+  doesn't model. Testing the thing that actually matters — does this Tailwind class, applied
+  to a real element, paint the colour it's supposed to — sidesteps needing to model either
+  mechanic correctly, and is exactly what the original bug looked like when it was found.
+
+**How to do this by hand**
+When a design-system bridge maps your own token names onto a third-party vocabulary (here,
+shadcn's `primary`/`border`/`accent`/…), a name that exists on *both* sides is never safe to
+redeclare in the bridge, no matter what value you give it — not a different value (silently
+wrong, 0007/0008's failure mode) and not the name's own value either (silently invalid, this
+session's failure mode). Drop it from the bridge and let the one real declaration through.
+To check any of this by hand: build the app, apply the exact utility class to a throwaway
+element, and read `getComputedStyle` — not `:root`'s custom property directly (a name can be
+real and correct without ever appearing there), and not by reading the CSS source and
+reasoning about what it should do.
+
+**Verification**
+`npm run check` (typecheck, lint, `check:theme-bridge`, 30 files / 170 tests) green after
+both commits. The rewritten `check-theme-bridge.mjs` verified against both failure and
+success: the real historical bug reintroduced and caught, a synthetic non-colliding mutual
+cycle reintroduced and caught, a clean pass confirmed after restoring. The actual fix verified
+independently of the check: `bg-primary`/`text-primary-foreground` screenshotted correctly in
+light and dark on the three new components; a real focusable element in the running app
+tabbed to and its computed `outline-color` read directly, plus a screenshot of the visible
+focus ring, in light theme.
+
+**Open questions / next**
+- `npm run check` now depends on a Chromium build Playwright can launch. Works with `npx
+  playwright install chromium` on an ordinary machine; this session's sandboxed browser cache
+  needed `PLAYWRIGHT_CHROMIUM_EXECUTABLE` pointed at its own non-default path instead. No CI
+  workflow exists yet in this repo to also wire this into — worth checking when one is added.
+- `Button`, `Checkbox`, `Dialog` are added and verified rendering correctly, but not yet used
+  anywhere in the actual product (`RunReviewPage` and friends), and have no stories or tests
+  of their own yet — `src/components/README.md`'s "every state gets a Storybook story" rule
+  wasn't applied to them this session, since the task was explicitly to verify them side by
+  side with the hand-written components first, not to adopt them yet.
+- This session pushed to a dedicated branch (`claude/serene-carson-7obhu8`) rather than
+  `main`, per this session's own environment configuration — see the reply in conversation for
+  what merging it requires.
+
+---
+
 ### 2026-09-21 · Explicit type scale and spacing scale, applied across RunReviewPage
 
 **Goal**

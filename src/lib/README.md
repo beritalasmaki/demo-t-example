@@ -46,6 +46,10 @@ and `lib` can be tested on its own with no UI at all.
 - **`actors.ts`** — `isSystemActor`, a heuristic (no dedicated data-model field exists) for
   telling a person's name from a system's name-and-version, used to choose a person/system
   icon next to `evaluatedBy`/`waiver.by`/`decision.by`.
+- **`confidence.ts`** — `resolveConfidenceAreas`, the same kind of helper `gates.ts` is for
+  gates: turns `Run.confidence` (which simply omits an area the model didn't report) into a
+  fixed, always-complete list, so a missing area renders as "Not checked" instead of silently
+  disappearing.
 
 ## What `api.ts` actually does
 

@@ -141,3 +141,12 @@ export function formatSignOffMessage(failedCount: number, waivedCount: number): 
   }
   return `I have seen ${clauses.join(' and ')}.`
 }
+
+/**
+ * Content rules, "Numbers": "No decimals: they would suggest a precision we do not have."
+ * `ConfidenceArea.value` is 0..1; this is the whole-percentage form every confidence value is
+ * shown as, always paired with its basis (`ConfidencePanel`), never shown alone.
+ */
+export function formatConfidencePercent(value: number): string {
+  return `${Math.round(value * 100)}%`
+}

@@ -52,9 +52,10 @@ written the code: a compliance officer, a security lead, a product owner. Design
 ## Files
 
 - `RunReviewPage.tsx` — composes the regions: loading, not-found and failed-load states, then
-  `RunHeader`, `RunSummary`, `PolicyGateList`, `Timeline` and `DecisionBar` once the run has
-  loaded. Holds the run in local state so a decision (or a conflict) updates the screen
-  immediately, without a refetch
+  `RunHeader`, `RunSummary`, `PolicyGateList`, `Timeline`, `ConfidencePanel` and `DecisionBar`
+  once the run has loaded, alongside `components/AnchorNav.tsx` (quick links to each region's
+  heading id). Holds the run in local state so a decision (or a conflict — or an undo) updates
+  the screen immediately, without a refetch
 - `useRun.ts` — loading, not-found and error handling via `lib/api`'s `getRun`. No
   stale-while-revalidating: nothing in `lib/api` yet signals that a run moved on during a
   read the way `submitDecision`'s `DecisionConflictError` does for a decision in flight
@@ -66,7 +67,10 @@ written the code: a compliance officer, a security lead, a product owner. Design
 - `Timeline.tsx`, `TimelineEventRow.tsx`, `TimelineFilters.tsx` — the audit trail. Named
   `TimelineEventRow`, not `TimelineEvent` as originally planned here: that name already
   belongs to `lib/types.ts`'s `TimelineEvent`, needed in the same file.
-- `ConfidencePanel.tsx` — confidence, reasoning, and what was not verified (not built yet)
+- `ConfidencePanel.tsx` — one row per area, from the fixed set in `lib/confidence.ts`'s
+  `ALL_CONFIDENCE_AREAS`: what the model could not verify and the value+basis always visible,
+  the longer rationale behind a disclosure, "Not checked" for an area the model omitted
+  entirely
 - `DecisionBar.tsx` — the three actions (no brand colour on any of them — Scenario S2), the
   sign-off tick for a failed or waived gate, and, once decided, who/when/revision and a live
   undo countdown. `DecisionDialog.tsx` — the confirm-or-reason modal behind each action:

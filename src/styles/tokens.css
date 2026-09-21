@@ -124,6 +124,41 @@
    */
   --font-heading: 'Raleway', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Type scale. Exact sizes, weights and fonts, decided once — see src/styles/README.md,
+   * "Type scale", for the worked example of each. `--text-*` is Tailwind's own font-size
+   * namespace, so each of these is also a real utility (`text-item-title`). A Tailwind
+   * utility can only carry a font-size, not a weight or family, so both are written here as
+   * a comment and applied alongside via `font-bold`/`font-semibold`/`font-normal` and
+   * `font-heading`/`font-body` wherever a size below is used — every component using one of
+   * these sizes uses the full combination, never the size alone.
+   */
+  --text-page-title: 28px; /* 700 · font-heading (Raleway) — the page identity element */
+  --text-section-heading: 18px; /* 600 · font-heading (Raleway) — one per region */
+  --text-item-title: 15px; /* 600 · font-body (Montserrat) — e.g. a gate's rule name */
+  --text-body: 14px; /* 400 · font-body (Montserrat) — descriptions, sentences */
+  --text-meta: 13px; /* 400 · font-body (Montserrat) — always --color-text-secondary */
+  --text-badge-label: 13px; /* 600 · font-heading (Raleway) — StatusBadge's label text */
+}
+
+/*
+ * Spacing scale — 4px base. Use only these eight values anywhere in the app; no literal px
+ * value or Tailwind's own numeric spacing utility (`gap-3`, `p-4`, ...) should appear in a
+ * component. Plain custom properties, not inside @theme, the same reasoning as the motion
+ * tokens below: `--space-*` isn't a namespace Tailwind's utility generator recognizes (that
+ * namespace is `--spacing-*`), so there is nothing to auto-generate here — these are consumed
+ * through Tailwind's arbitrary-value syntax instead, e.g. `gap-[var(--space-3)]`.
+ */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
 }
 
 /*

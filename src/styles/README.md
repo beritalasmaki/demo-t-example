@@ -23,6 +23,54 @@ Raleway (500/600/700) for headings, buttons and the wordmark — `--font-heading
 (400/500) for body text and table/data text — `--font-body`. Both load via Google Fonts (see
 `index.html`); neither varies by theme.
 
+## Type scale
+
+Exact sizes, weights and fonts, decided once — not a fresh judgment call per component.
+
+| Token                     | Size  | Weight | Font                 | Used for                                             |
+| ------------------------- | ----- | ------ | -------------------- | ----------------------------------------------------- |
+| `--text-page-title`       | 28px  | 700    | `font-heading`        | The page identity element — one per page              |
+| `--text-section-heading`  | 18px  | 600    | `font-heading`        | One per region: Policy gates, Audit log, Decision...  |
+| `--text-item-title`       | 15px  | 600    | `font-body`           | A row's own title — a gate's rule name, an event title |
+| `--text-body`             | 14px  | 400    | `font-body`           | Descriptions, sentences                               |
+| `--text-meta`             | 13px  | 400    | `font-body`, always `--color-text-secondary` | Timestamps, "Evaluated by", counts |
+| `--text-badge-label`      | 13px  | 600    | `font-heading`        | `StatusBadge`'s label text specifically               |
+
+Each `--text-*` value is a real Tailwind utility (`text-item-title`, ...) — that namespace is
+Tailwind's own for font-size. A single CSS property can't also carry a weight or a font, so
+every use combines it with the matching `font-bold`/`font-semibold`/`font-normal` and
+`font-heading`/`font-body` utility; a component never applies one of these sizes alone. `Tag`
+and `ToggleChip` are a deliberately different role from `StatusBadge` (`docs/DECISIONS.md`,
+0010) and keep Tailwind's ordinary sizing rather than `--text-badge-label`, which names
+`StatusBadge` specifically.
+
+## Spacing scale
+
+4px base. Use only these eight values anywhere in the app — no literal px value, and not
+Tailwind's own numeric spacing utilities (`gap-3`, `p-4`, ...) either, since nothing stops
+those from drifting to a value outside this list.
+
+| Token       | Value |
+| ----------- | ----- |
+| `--space-1` | 4px   |
+| `--space-2` | 8px   |
+| `--space-3` | 12px  |
+| `--space-4` | 16px  |
+| `--space-5` | 24px  |
+| `--space-6` | 32px  |
+| `--space-7` | 48px  |
+| `--space-8` | 64px  |
+
+Unlike the type scale, these are plain custom properties, not inside `@theme`: Tailwind's own
+spacing namespace is `--spacing-*`, not `--space-*`, so nothing here auto-generates a utility.
+Consumed through Tailwind's arbitrary-value syntax instead — `gap-[var(--space-3)]`,
+`p-[var(--space-4)]` — the same way the motion tokens below already are. Common relationships:
+
+- Between regions: `--space-7`
+- A region's heading to its content, and between items in a list (two policy gates, two
+  timeline events): `--space-3`
+- Inside one item, part to part — icon to text, title to body to meta: `--space-2`
+
 ## Usage rules
 
 - **Primary and accent are never used on Approve, Request changes or Reject.** Those three

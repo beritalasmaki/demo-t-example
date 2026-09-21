@@ -1,7 +1,12 @@
-# What is "Agent run review"?
 
-View the screen: https://demo-t-example.vercel.app/ 
 
+👀 View the screen: https://demo-t-example.vercel.app/ 
+
+☝️ 21/9/2026: NOTE! Design is still in process. I built the base first before the UI polishes. However, first tokens have been built already: colors, fonts and spacing. More coming soon 😁
+
+☝️ ALSO Storybook view page coming soon!
+
+# What is "Agent run review" aka. demo-t-example?
 A single, production-quality screen called the **agent run review view**. 
 
 An AI agent has produced a change to a customer's software. Before that change ships, a human reviewer needs to
@@ -45,5 +50,8 @@ npm run build-storybook   # static Storybook build
 ## Status
 
 Scaffolding stage: the toolchain, design tokens and dependency-direction lint rule are in
-place; the review screen itself (`src/features/run/`) is not built yet. `docs/WORKLOG.md` has
-a session-by-session account of what has been done and why.
+place. 
+
+Design is still in process. Iteration going on currently. Storybook view page in planning too.
+
+

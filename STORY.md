@@ -2,60 +2,78 @@
 
 ## Why I built this
 
-Most talk about AI and software is about speed. I am more interested in what happens next.
-Someone has to look at what the machine made and decide if it can be released. That person
-usually did not write the code. But their name is on the decision.
+There is a lot of talk about AI and software speed. I am more interested in what happens
+next. Someone has to look at what the machine made. That person decides if it can be
+released. They usually did not write the code. But their name is on the decision.
 
-In healthcare, finance, defence and manufacturing, that decision carries real weight. The
-screen where it happens is not the last bit of polish. It either earns trust or loses it.
+In healthcare, finance, defence and manufacturing, that decision matters a lot. The screen
+where it happens is not just polish. It builds trust, or it loses it.
 
-I had not worked on agent supervision before. I picked this problem because I wanted to
-understand it. Building something is how I learn.
+I had not worked on agent supervision before. I picked this problem to understand it.
+Building something is how I learn.
 
 ## The question
 
-**Can someone who did not write the code decide, in ten minutes, if it is safe to release —
-and know exactly what they are signing?**
+**Can someone who did not write the code decide, in ten minutes, if it is safe to release?
+Can they know exactly what they are approving?**
 
-The data is mostly there already: what the agent did, which rules it was checked against, the
-tests, how sure the model was. What is missing is a screen that turns all of it into a decision
-a person can defend later.
+Most of the data already exists. What the agent did. Which rules it was checked against.
+The tests. How sure the model was. What is missing is a screen that turns this into a
+decision a person can explain later.
 
 Show too little, and approval becomes a rubber stamp. Show everything, and people skim.
-The design work sits in that gap. It is mostly about order, language and evidence.
+Good design sits between these two. It is mostly about order, plain language, and evidence.
 
 ## What I wanted to show
 
-- **I design by building.** I make the design decisions — tokens, components, states, flow —
-  and ship them as working code.
-- **I design the hard cases.** Blocked runs, missing data, low confidence, a decision made by
-  someone else while you read the screen. The clean run is the easy part.
-- **Design can be written as a system.** Named tokens and documented components, not
-  screenshots. A person and a machine can both read them.
-- **Restraint is a choice.** This looks calm and document-like on purpose. The reader does
-  not want to be impressed. They want something they can defend.
+- **I design by building.** I make the design decisions. Tokens, components, states, flow.
+  Then I ship them as working code.
+- **I design the hard cases first.** A blocked run. Missing data. Low confidence. A decision
+  made by someone else while you read the screen. The clean, easy run is simple to design.
+  The hard cases are not.
+- **Design can be written as a system.** Named tokens and documented components. Not just
+  screenshots. Both a person and a machine can read them.
+- **Restraint is a choice.** This screen looks calm and plain on purpose. The reader does not
+  want to be impressed. They want something they can trust and explain later.
 
-## How I worked  <!-- LATER -->
+## How I worked
 
-I made the design decisions and reviewed everything the agent wrote. The agent did the
-implementation work that is not my strength.
+I made the design decisions. I reviewed everything the agent wrote. The agent worked as my
+pair on implementation, and wrote the code.
 
-The instructions in `AGENTS.md` are design work too. Deciding what a machine may and may
-not do here is the same kind of judgment as deciding what a screen may and may not claim.
+I worked in stages. Each one has a reason it exists. One stage I left out on purpose.
 
-<One moment where my judgment changed the result: what the agent made, what was wrong,
-how I noticed, what I changed. Write this down while it happens — it is hard to reconstruct later.>
+1. **Spec.** Decide what the screen needs to do, and why, before writing any code. What a
+   reviewer needs to know, in what order. The exact words for every state. Writing
+   `AGENTS.md` belongs here too: deciding what a machine may and may not do is the same
+   kind of judgment as deciding what a screen may and may not claim.
+2. **System.** Colour tokens, fonts, and rules for how things should look and behave.
+   Decided once, used everywhere after.
+3. **Build, thin.** A basic working version of every part: header, checks, audit log,
+   confidence, decision. States, content and tests, end to end.
+4. **Compose.** Put every part together into one real page. Test it as a whole, not as
+   separate pieces.
+5. **Iterate.** Fix what only shows up once everything exists together. Page hierarchy.
+   Navigation. Bugs that only appear in the real, composed screen.
+6. **Skipped: user testing.** User testing is normally part of my process. Here, there were
+   no real reviewers to test with, so I made the changes based on my own understanding of
+   the problem instead. What "success" means in each scenario is my own assumption,
+   written down and marked as one. It is not a finding from real people, and I want that
+   to stay visible rather than hidden.
+
+<!-- LATER: add one concrete example here — a moment where the agent got something
+wrong, how I noticed, and what I changed. -->
 
 ## What I learned  <!-- LATER -->
 
-<Two or three things. Include one that surprised me, or that I got wrong first.>
+<Two or three things. Include one that surprised me, or one I got wrong at first.>
 
 ## What I would do next  <!-- LATER -->
 
-<Three bullets: what is missing, what I would test with real reviewers, what I would build
-second.>
+<Three points: what is missing, what I would test with real reviewers, what I would build
+next.>
 
 ---
 
-**Scope.** This is my own exercise. It is not connected to any company and uses no real
-customer data. Every run, rule and person in the sample data is invented.
+**Scope.** This is my own project. It is not connected to any company. It uses no real
+customer data. Every run, rule and person in the sample data is made up.

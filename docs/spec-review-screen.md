@@ -362,4 +362,4 @@ already decided by someone else while this reviewer was reading.
 
 ## Out of scope
 
-Multi-run dashboards, settings, authentication, mobile layouts, real backend.
+Multi-run dashboards (filtering, search, aggregate stats), settings, authentication, mobile layouts, real backend. A minimal list of sample runs, for navigation only, is in scope — see DECISIONS.md.

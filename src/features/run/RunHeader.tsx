@@ -73,7 +73,10 @@ export function RunHeader({ run }: RunHeaderProps) {
     <RegionCard as="header" className="flex flex-col gap-[var(--space-3)]">
       {/* First tier — never scrolled to, never hidden behind a disclosure. */}
       <div className="flex flex-wrap items-center gap-[var(--space-3)]">
-        <h2 className="text-section-heading font-semibold text-text-primary">
+        <h2
+          id="run-header-heading"
+          className="text-section-heading font-semibold text-text-primary"
+        >
           <IconText icon={TargetIcon}>
             <span className="font-normal text-text-secondary">Target: </span>
             {run.target.system}

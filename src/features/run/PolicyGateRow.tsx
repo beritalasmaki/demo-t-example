@@ -1,8 +1,8 @@
 import { Bot, User } from 'lucide-react'
 import type { StatusBadgeTone } from '../../components/StatusBadge'
 import { StatusBadge } from '../../components/StatusBadge'
+import { ActorIcon } from '../../components/ActorIcon'
 import { Disclosure } from '../../components/Disclosure'
-import { IconText } from '../../components/IconText'
 import { isSystemActor } from '../../lib/actors'
 import { explanationFor, resolveEvidence } from '../../lib/gates'
 import { formatDateTime, formatGateResultLabel } from '../../lib/format'
@@ -32,6 +32,15 @@ export interface PolicyGateRowProps {
  * by icon too, not just by the shape of the string. See lib/actors.ts. */
 function actorIcon(name: string) {
   return isSystemActor(name) ? Bot : User
+}
+
+function ActorName({ name }: { name: string }) {
+  return (
+    <span className="inline-flex items-center gap-[var(--space-2)]">
+      <ActorIcon icon={actorIcon(name)} />
+      {name}
+    </span>
+  )
 }
 
 export function PolicyGateRow({ gate, timeline, defaultOpen = false }: PolicyGateRowProps) {
@@ -66,7 +75,7 @@ export function PolicyGateRow({ gate, timeline, defaultOpen = false }: PolicyGat
               <p className="text-body font-normal font-body text-text-primary">
                 Exception granted by{' '}
                 <span className="font-semibold">
-                  <IconText icon={actorIcon(gate.waiver.by)}>{gate.waiver.by}</IconText>
+                  <ActorName name={gate.waiver.by} />
                 </span>{' '}
                 on {formatDateTime(gate.waiver.at)}.
               </p>
@@ -77,8 +86,7 @@ export function PolicyGateRow({ gate, timeline, defaultOpen = false }: PolicyGat
           )}
 
           <p className="text-meta font-normal font-body text-text-secondary">
-            Evaluated by{' '}
-            <IconText icon={actorIcon(gate.evaluatedBy)}>{gate.evaluatedBy}</IconText> —{' '}
+            Evaluated by <ActorName name={gate.evaluatedBy} /> —{' '}
             {formatDateTime(gate.evaluatedAt)}
           </p>
 

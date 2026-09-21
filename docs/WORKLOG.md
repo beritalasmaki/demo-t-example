@@ -39,6 +39,139 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · Confidence region (all six built), real local undo, summary hierarchy, and five design fixes
+
+**Goal**
+Build Confidence (Region 5) — the last unbuilt region — and add real local-only undo, a
+visual headline for the first summary sentence with per-sentence icons, and five smaller
+design fixes: a circular person/system icon, an icon/text alignment audit, region
+descriptions, an in-page anchor nav, and a restyled filter-chips label.
+
+**What changed**
+- `src/lib/confidence.ts` (+ test) — `resolveConfidenceAreas`: `Run.confidence`'s four fixed
+  areas, always all four, "missing" (no invented reason) for one the model didn't report.
+- `src/lib/format.ts` — `formatConfidencePercent` (whole percentage, no decimals).
+- `src/features/run/ConfidencePanel.tsx` (+ stories, + test) — one `Disclosure` row per area:
+  what couldn't be verified and the value+basis always visible, the longer rationale behind
+  the disclosure, "Not checked" (status-unknown tone) for a missing area. Composed into
+  `RunReviewPage.tsx` between Audit log and Decision.
+- `DecisionBar.tsx`'s `DecidedView` — a real "Undo" button while the window is active
+  (`onRunUpdated({ ...run, decision: undefined, status: 'awaiting_review' })`, the same
+  mechanism the page already uses for a live decision or an S5 conflict); a
+  previously-nonexistent "The undo window for this decision has closed." message once it
+  expires. `docs/DECISIONS.md` 0017.
+- `src/lib/summary.ts` (+ test) — `classifySummarySentence`: a sentence naming a specific
+  gate outcome (failed/exception/not run/does not apply) is classified as that exact
+  `GateResult`; a count/all-clear sentence as `'outcome'`; anything else as `'change'`.
+  `RunSummary.tsx` — the first rendered sentence gets `text-item-title font-semibold` as the
+  card's headline; every sentence gets an icon, reusing `PolicyGateRow.tsx`'s own
+  icon/colour per `GateResult` for the four gate-outcome kinds, a neutral icon otherwise.
+- `src/components/ActorIcon.tsx` (+ story, + test) — a small circular badge around the
+  existing person/system icon; wired into `PolicyGateRow.tsx` and `DecisionBar.tsx` in place
+  of the bare icon.
+- `src/components/AnchorNav.tsx` (+ story, + test) — a sticky, generic list of in-page anchor
+  links; `RunReviewPage.tsx` supplies the six region entries (`RunHeader.tsx` gained a fixed
+  `id="run-header-heading"` to match every other region) and composes it alongside the region
+  stack. `App.tsx`'s container widened `max-w-4xl` → `max-w-5xl` to fit it.
+- `PolicyGateList.tsx`, `DecisionBar.tsx` — one description line each under the heading, same
+  pattern `Timeline.tsx` already used.
+- `TimelineFilters.tsx` — the "Filter logs" label restyled uppercase with a `Filter` icon,
+  distinct from the paragraph text around it.
+- `features/run/README.md`, `lib/README.md` — updated for every new file above.
+
+**Steps, in order**
+1. Read `AGENTS.md` and `docs/spec-review-screen.md` fresh. The request combined a
+   spec-completeness item (Confidence, undo, summary hierarchy) with five follow-up design
+   fixes from a screenshot review — used `EnterPlanMode`: read every file the plan would
+   touch (all five existing regions, `lib/summary.ts`, `lib/types.ts`'s `ConfidenceArea`,
+   both fixtures' real `confidence` arrays, `PolicyGateRow.tsx`'s `TONE_BY_RESULT`,
+   `IconText`/`RegionCard`/`ToggleChip`), verified every candidate lucide icon name exists,
+   and read every real summary sentence across all three fixtures before proposing the
+   sentence classifier. Named ten judgment calls explicitly in the plan (confidence area
+   order, undo's target status, the "window closed" message not actually existing yet, the
+   summary classifier's exact keyword rules, the person icon's circular treatment, nav as a
+   generic component, etc.) and flagged the nav panel up front as the one real structural
+   change here, not just a polish pass. Got the plan approved via `ExitPlanMode` before
+   writing code.
+2. Built the Confidence region first, in isolation, verified with its own tests (including a
+   keyboard-opened-disclosure test) before touching anything else.
+3. Wired real undo through `DecisionBar`'s existing `onRunUpdated` callback — no new prop, no
+   new state mechanism. Fixed the two existing undo tests to match the new DOM (a real
+   button now present) rather than leaving them passing against stale behaviour.
+4. Built `classifySummarySentence` and verified it against literally every summary sentence
+   in `run-clean`, `run-blocked` and `run-messy` — not a representative sample — before
+   wiring it into `RunSummary.tsx`.
+5. Built `ActorIcon` and swapped it into both existing call sites, then ran the full test
+   suite (not just the two touched files) — a DOM-structure change like this broke an
+   existing assertion in a similar spot two sessions ago, so checked broadly rather than
+   assuming only the obviously-related tests would notice.
+6. Added the two region descriptions and the filter-label restyle — small, independent
+   changes, each `npm run typecheck`ed immediately rather than batched.
+7. Built `AnchorNav`, added the missing heading id to `RunHeader.tsx`, composed the nav into
+   `RunReviewPage.tsx`, widened `App.tsx`. Deliberately left out a scroll-spy highlight and a
+   responsive collapse — the plan named both as complexity beyond what was asked, and mobile
+   layouts are already out of scope (AGENTS.md).
+8. `npm run check` green, then a full visual pass on the real dev server at a wide viewport,
+   specifically to alignment-audit the new icon-heavy layout rather than assume `IconText`'s
+   existing `items-center` handled every new case: found one real bug this way —
+   `ActorIcon`'s circle used `bg-surface-raised` as its fill, which is the exact background
+   of two of its three actual usage sites (the waiver callout, the decided-decision panel),
+   so the circle was nearly invisible, only a faint border showing. Fixed by dropping the
+   fill entirely and using the stronger `border-border` for the ring, verified by
+   re-screenshotting the same spot.
+9. Full keyboard pass on the real running app: tab order starts with the six nav links (all
+   six `href`s correct), flows continuous into the page content with nothing skipped; a nav
+   link click changes the URL hash to the right section; the new Undo button is reachable
+   and activatable by Enter, and correctly puts `DecisionBar` back into its undecided view.
+10. Before/after screenshots of the full composed `RunReviewPage` (`run-messy` — exercises
+    the missing-confidence-area case and an active undo window), light and dark, at the same
+    viewport as the "before" shots for a direct comparison.
+
+**Why it was done this way**
+- **Confidence always shows all four areas, never just what's in the array.** Matches how
+  Policy gates already shows its fixed result vocabulary, and is exactly what Acceptance
+  criteria asks for ("An area with no value shows 'Not checked'") — the alternative (render
+  only what's present) would silently drop `run-messy`'s missing `security` area instead of
+  surfacing it, the opposite of "Never hidden: an area with no confidence value at all."
+- **Undo reuses `onRunUpdated` rather than adding a new mechanism**, and stays explicitly
+  local-only (docs/DECISIONS.md 0017) rather than inventing backend semantics (an audit
+  trail entry for the undo itself, who's allowed to undo someone else's decision) this
+  fixture-backed demo has no real answer for.
+- **The summary-sentence classifier reuses `PolicyGateRow`'s own `GateResult` icons/colours**
+  for a sentence naming a gate outcome, rather than inventing a second visual language for
+  the same claim — a failed-check sentence and a failed-check gate row should look like the
+  same kind of fact, because they are.
+- **Alignment audit was a real screenshot check, not a documentation-only claim.** The plan
+  named this as a judgment call precisely so it wouldn't be skipped, and it caught a real bug
+  (`ActorIcon`'s invisible-on-its-own-background circle) that reading the source would not
+  have shown — the same lesson this codebase's own probe-build discipline keeps re-teaching.
+
+**How to do this by hand**
+For a new component whose icon or badge sits on a variable background (a row, a callout, a
+decided-state panel — anywhere the same piece renders in more than one place), don't assume a
+background-based fill will read correctly everywhere it's used — check by screenshotting each
+real usage site, or prefer a border-only treatment that doesn't depend on contrasting with
+whatever's behind it. For any new sentence-classification or actor-classification heuristic
+(this session added a second one, `classifySummarySentence`, alongside the existing
+`isSystemActor`), verify it against every real value the fixtures actually contain, not a
+plausible-looking sample — and say so in the code comment, so the next person knows exactly
+what it's been checked against.
+
+**Verification**
+`npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, 36 files / 198
+tests) green. Keyboard pass and before/after screenshots (light + dark) as described above.
+
+**Open questions / next**
+- All six spec regions are now built. `AnchorNav` has no scroll-spy and no responsive
+  collapse, both deliberately out of scope this session (see judgment call 8 in the session's
+  plan) — worth reconsidering if this app's audience ever includes a narrow viewport.
+- The summary-sentence classifier (`classifySummarySentence`) and the actor heuristic
+  (`isSystemActor`) are both string-pattern guesses, verified against everything the fixtures
+  contain today but not proven correct for sentences or names this app has never generated —
+  same open question as docs/DECISIONS.md 0016 already raises for the older heuristic.
+
+---
+
 ### 2026-09-21 · Region boundaries, heading icons, content clarity, locale fix, filter clarity, demo label
 
 **Goal**

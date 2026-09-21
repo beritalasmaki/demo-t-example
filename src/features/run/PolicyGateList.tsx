@@ -17,9 +17,14 @@ export interface PolicyGateListProps {
 }
 
 const HEADING = (
-  <h2 id="policy-gates-heading" className="text-section-heading font-semibold text-text-primary">
-    <IconText icon={ShieldCheck}>Policy gates</IconText>
-  </h2>
+  <>
+    <h2 id="policy-gates-heading" className="text-section-heading font-semibold text-text-primary">
+      <IconText icon={ShieldCheck}>Policy gates</IconText>
+    </h2>
+    <p className="text-meta font-normal font-body text-text-secondary">
+      The checks this change must pass before release, run automatically or by a person.
+    </p>
+  </>
 )
 
 export function PolicyGateList({ gates, timeline, isLoading = false }: PolicyGateListProps) {

@@ -1,3 +1,5 @@
+import { Filter } from 'lucide-react'
+import { IconText } from '../../components/IconText'
 import { ToggleChip } from '../../components/ToggleChip'
 import type { TimelineEvent } from '../../lib/types'
 
@@ -34,8 +36,11 @@ export function TimelineFilters({ activeTypes, onActiveTypesChange }: TimelineFi
 
   return (
     <div className="flex flex-col gap-[var(--space-2)]">
-      <span id="filter-logs-label" className="text-meta font-normal font-body text-text-secondary">
-        Filter logs
+      <span
+        id="filter-logs-label"
+        className="text-meta font-semibold font-body uppercase tracking-wide text-text-secondary"
+      >
+        <IconText icon={Filter}>Filter logs</IconText>
       </span>
       <div
         role="group"

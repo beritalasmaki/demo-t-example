@@ -43,8 +43,7 @@ implementation work that is not my strength.
 The instructions in `AGENTS.md` are design work too. Deciding what a machine may and may
 not do here is the same kind of judgment as deciding what a screen may and may not claim.
 
-<One moment where my judgment changed the result: what the agent made, what was wrong,
-how I noticed, what I changed. Write this down while it happens — it is hard to reconstruct later.>
+One moment where my judgment changed the result: Claude built DecisionDialog, everything passed in isolation: 170 tests, every story screenshotted. But it insisted on also running the real composed app in a real browser before calling it done, and found two bugs that nothing else had caught: dialogs that closed themselves immediately after opening, and a submit button that could hang forever. Neither would have shipped if "tests pass" had been the bar.
 
 ## What I learned  <!-- LATER -->
 

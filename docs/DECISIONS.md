@@ -6,6 +6,37 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0013 · Added the shadcn bridge's missing `border-color` preflight reset
+
+**Context.** Adding the first real shadcn components (Button, Checkbox, Dialog — fetched
+directly from shadcn-ui/ui on GitHub, since ui.shadcn.com is blocked by this session's egress
+policy) exposed a gap the bridge comment had flagged as unverified: Tailwind v4's preflight
+sets bare `border`/`border-*` width utilities with `border-color: currentColor`, not any theme
+token. Every fetched component uses bare `border` assuming shadcn's own classic
+`* { @apply border-border }` reset, which this project never had — so `DialogContent`'s and
+Button's `outline` variant's border would have rendered as `currentColor` (matching text)
+instead of `--color-border`.
+
+**Options.** (a) Add the missing global reset (`*, ::after, ::before { border-color:
+var(--color-border); }`) to `index.css`'s existing `@layer base` block, matching shadcn's own
+convention. (b) Patch only the three new files to use the explicit `border-border` utility
+instead of bare `border`, leaving no site-wide change. (c) Leave it and accept the wrong
+border colour until it's visibly noticed.
+
+**Choice.** (a). This is exactly the kind of cross-cutting shadcn-compatibility concern the
+bridge file exists to own, and the bridge comment already anticipated needing this fix once a
+real component landed. Scoping the fix to only the three new files (b) would leave the same
+gap for every future shadcn component to hit again.
+
+**Consequence.** Any element anywhere in the app that uses a bare Tailwind `border` utility
+now gets `--color-border` by default instead of `currentColor`. Verified with a probe build:
+the compiled CSS shows the reset before any component styles, and `bg-surface-raised`/
+`hover:text-foreground` are what the three new files reference instead of shadcn's
+`accent`/`accent-foreground` (dropped from the bridge by 0007), per that decision's own
+instruction to patch call sites by hand.
+
+---
+
 ## 0012 · Passive detection of a conflicting decision is out of scope for v1
 
 **Context.** Scenario S5 ("Run decided by another reviewer during review") describes two

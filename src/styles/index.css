@@ -28,9 +28,19 @@
  * border-border/bg-border/text-border were all silently getting the subtle value
  * instead of the real one. Not mapped here for the same reason as accent.
  *
- * Unverified: the shadcn registry (ui.shadcn.com) is blocked by this session's
- * egress policy, so no component has been generated against this mapping yet.
- * Check it when the first component is added.
+ * Verified against the first three real components (Button, Checkbox, Dialog — fetched
+ * directly from the shadcn-ui/ui GitHub source, since ui.shadcn.com itself is blocked by
+ * this session's egress policy). Two more things turned up, beyond the accent/border name
+ * collisions above:
+ *
+ * - Tailwind v4's preflight sets bare `border`/`border-*` width utilities with no colour
+ *   of their own (`border: 0 solid`), so without a colour they render as `currentColor`,
+ *   not any theme token. shadcn's own template papers over this with a global
+ *   `* { @apply border-border }` reset; this project didn't have one, so it's added below.
+ * - shadcn's fixed `accent`/`accent-foreground` vocabulary (dropped from this bridge in
+ *   0007) is used by real components for hover surfaces (Button's outline/ghost variants,
+ *   Dialog's close button). Each occurrence was hand-patched to `surface-raised`/
+ *   `foreground`, per 0007's own instruction, rather than left pointing at nothing.
  *
  * Both collisions above were found by hand, after the fact. `npm run check` now runs
  * scripts/check-theme-bridge.mjs, which fails the build if any name in this block ever
@@ -65,6 +75,17 @@
 @layer base {
   html {
     color-scheme: light dark;
+  }
+
+  /*
+   * Tailwind v4 preflight leaves border-width utilities with no colour of their own
+   * (border-color: currentColor). Every bare `border` in a shadcn component assumes the
+   * classic reset this restores — see the shadcn/ui bridge comment above.
+   */
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-border);
   }
 
   body {

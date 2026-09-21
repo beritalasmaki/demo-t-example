@@ -38,8 +38,8 @@ Good design sits between these two. It is mostly about order, plain language, an
 
 ## How I worked
 
-I made the design decisions. I reviewed everything the agent wrote. The agent did the
-implementation work. That part is not my strength, so I leaned on it there.
+I made the design decisions. I reviewed everything the agent wrote. The agent worked as my
+pair on implementation, and wrote the code.
 
 I worked in stages. Each one has a reason it exists. One stage I left out on purpose.
 

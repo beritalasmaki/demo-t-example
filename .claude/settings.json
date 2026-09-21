@@ -1,0 +1,13 @@
+cat > .claude/settings.json << 'EOF'
+{
+  "sandbox": {
+    "network": {
+      "allowedDomains": [
+        "registry.npmjs.org",
+        "ui.shadcn.com",
+        "raw.githubusercontent.com"
+      ]
+    }
+  }
+}
+EOF

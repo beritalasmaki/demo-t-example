@@ -182,7 +182,7 @@ function DecidedView({
         Revision {decision.revision}
       </p>
       {undo.active ? (
-        <div className="flex flex-wrap items-center gap-[var(--space-3)]">
+        <div className="flex flex-col items-start gap-[var(--space-2)]">
           <p className="text-meta font-normal font-body text-text-secondary" aria-live="polite">
             You can undo this for {formatDuration(undo.remainingMs)} more.
           </p>

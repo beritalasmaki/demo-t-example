@@ -17,7 +17,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "check:theme-bridge": "node scripts/check-theme-bridge.mjs",
-    "check": "npm run typecheck && npm run lint && npm run check:theme-bridge && npm run test"
+    "check:format-locale": "node scripts/check-format-locale.mjs",
+    "check": "npm run typecheck && npm run lint && npm run check:theme-bridge && npm run check:format-locale && npm run test"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

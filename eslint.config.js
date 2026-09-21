@@ -107,7 +107,11 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['eslint.config.js', 'scripts/check-theme-bridge.mjs'],
+          allowDefaultProject: [
+            'eslint.config.js',
+            'scripts/check-theme-bridge.mjs',
+            'scripts/check-format-locale.mjs',
+          ],
         },
         tsconfigRootDir: import.meta.dirname,
       },

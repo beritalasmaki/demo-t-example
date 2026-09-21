@@ -1,9 +1,20 @@
-import { FileText } from 'lucide-react'
+import {
+  CircleCheckBig,
+  CircleHelp,
+  CircleMinus,
+  CircleX,
+  FileText,
+  PencilLine,
+  TriangleAlert,
+} from 'lucide-react'
+import type { ComponentType } from 'react'
 import { EvidenceLink } from '../../components/EvidenceLink'
 import { IconText } from '../../components/IconText'
 import { RegionCard } from '../../components/RegionCard'
-import { resolveSummarySentences } from '../../lib/summary'
+import { classifySummarySentence, resolveSummarySentences } from '../../lib/summary'
+import type { SummarySentenceKind } from '../../lib/summary'
 import type { Run, TimelineEvent } from '../../lib/types'
+import { cn } from '../../lib/utils'
 
 /**
  * Region 2: three to five plain sentences, each linked to its evidence. See
@@ -15,11 +26,50 @@ import type { Run, TimelineEvent } from '../../lib/types'
  * The evidence link points into the Timeline region (via the anchor id
  * `TimelineEventRow` sets on each row), now that the page composes both regions together —
  * before that, there was nothing for a summary sentence to actually link to.
+ *
+ * The first (rendered) sentence is the card's headline — bigger, semibold — the rest stay
+ * body text. Every sentence gets an icon for its kind (`classifySummarySentence`); a sentence
+ * naming a specific gate outcome (failed/exception/not run/does not apply) reuses that exact
+ * `GateResult`'s own icon and colour from `PolicyGateRow.tsx`'s `TONE_BY_RESULT`, not a new
+ * visual language for the same claim.
  */
 export interface RunSummaryProps {
   summary: Run['summary']
   timeline: TimelineEvent[]
   isLoading?: boolean
+}
+
+/**
+ * `iconClassName` colours only the icon (neutral kinds get a quiet secondary-text icon, the
+ * same weight as any other inline icon on the page); `textClassName` is unset (falls back to
+ * the sentence's own text-primary/headline styling) for the two neutral kinds, and matches
+ * `iconClassName` for the four that reuse a `GateResult`'s own status colour — the request's
+ * "uses --color-status-unknown for its icon and text," extended the same way to the other
+ * three gate-outcome kinds this app's real sentences also produce.
+ */
+const KIND_STYLE: Record<
+  SummarySentenceKind,
+  { icon: ComponentType<{ className?: string }>; iconClassName: string; textClassName?: string }
+> = {
+  change: { icon: PencilLine, iconClassName: 'text-text-secondary' },
+  outcome: { icon: CircleCheckBig, iconClassName: 'text-text-secondary' },
+  pass: { icon: CircleCheckBig, iconClassName: 'text-text-secondary' },
+  fail: { icon: CircleX, iconClassName: 'text-status-fail', textClassName: 'text-status-fail' },
+  waived: {
+    icon: TriangleAlert,
+    iconClassName: 'text-status-waived',
+    textClassName: 'text-status-waived',
+  },
+  not_applicable: {
+    icon: CircleMinus,
+    iconClassName: 'text-status-not-applicable',
+    textClassName: 'text-status-not-applicable',
+  },
+  unknown: {
+    icon: CircleHelp,
+    iconClassName: 'text-status-unknown',
+    textClassName: 'text-status-unknown',
+  },
 }
 
 const HEADING = (
@@ -55,18 +105,35 @@ export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryP
     <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {HEADING}
       <ul className="flex flex-col gap-[var(--space-3)]">
-        {sentences.map((sentence) => (
-          <li key={sentence.text} className="flex flex-wrap items-baseline gap-x-[var(--space-2)]">
-            <span className="text-body font-normal font-body text-text-primary">
-              {sentence.text}
-            </span>
-            <EvidenceLink
-              href={`#timeline-event-${sentence.events[0].id}`}
-              label="Evidence"
-              count={sentence.events.length}
-            />
-          </li>
-        ))}
+        {sentences.map((sentence, index) => {
+          const kind = classifySummarySentence(sentence.text)
+          const { icon, iconClassName, textClassName } = KIND_STYLE[kind]
+          const isHeadline = index === 0
+
+          return (
+            <li
+              key={sentence.text}
+              className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-1)]"
+            >
+              <IconText icon={icon} iconClassName={iconClassName}>
+                <span
+                  className={cn(
+                    'font-body',
+                    isHeadline ? 'text-item-title font-semibold' : 'text-body font-normal',
+                    textClassName ?? 'text-text-primary',
+                  )}
+                >
+                  {sentence.text}
+                </span>
+              </IconText>
+              <EvidenceLink
+                href={`#timeline-event-${sentence.events[0].id}`}
+                label="Evidence"
+                count={sentence.events.length}
+              />
+            </li>
+          )
+        })}
       </ul>
     </RegionCard>
   )

@@ -1,5 +1,5 @@
 import { resolveEvidenceIds } from './timeline'
-import type { Run, TimelineEvent } from './types'
+import type { GateResult, Run, TimelineEvent } from './types'
 
 /**
  * Small domain helpers for the summary (Region 2) — not UI. See src/lib/README.md.
@@ -9,6 +9,32 @@ export interface ResolvedSummarySentence {
   text: string
   /** The sentence's `evidenceIds` resolved to real timeline events, in the order given. */
   events: TimelineEvent[]
+}
+
+/**
+ * What kind of thing a summary sentence is reporting — used to pick an icon in
+ * `RunSummary.tsx`, the same way `PolicyGateRow.tsx`'s `TONE_BY_RESULT` picks one for a
+ * `GateResult`; this only returns the classification, never an icon or a class name (`lib`
+ * knows nothing about the interface — see src/lib/README.md).
+ *
+ * `Run.summary` has no field saying what kind a sentence is, so this is a heuristic over the
+ * text itself, the same category of trade-off as `actors.ts`'s `isSystemActor`: verified
+ * against every real sentence across all three fixtures (see summary.test.ts), not proven
+ * correct for text this app has never generated. A sentence naming a specific gate outcome
+ * reuses that exact `GateResult` value, so it can reuse `PolicyGateRow`'s own icon/colour for
+ * that result rather than inventing a second visual language for the same claim. `'change'`
+ * (what was done) and `'outcome'` (a count or an all-clear) aren't gate results, so they're
+ * not in that type — they're this app's two other sentence shapes.
+ */
+export type SummarySentenceKind = GateResult | 'change' | 'outcome'
+
+export function classifySummarySentence(text: string): SummarySentenceKind {
+  if (/\bnot run\b/i.test(text)) return 'unknown'
+  if (/\bdoes not apply\b/i.test(text)) return 'not_applicable'
+  if (/\bexception\b/i.test(text)) return 'waived'
+  if (/\bfailed\b/i.test(text)) return 'fail'
+  if (/\b(passed|passing)\b/i.test(text)) return 'outcome'
+  return 'change'
 }
 
 /**

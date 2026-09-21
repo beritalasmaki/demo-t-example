@@ -6,6 +6,69 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0016 · Person-vs-system actor icons are a string heuristic, not a data-model field
+
+**Context.** A screenshot review asked for a small icon distinguishing a person's name from a
+system's name-and-version next to `PolicyGate.evaluatedBy`, `PolicyGate.waiver.by` and
+`Decision.by` (docs/spec-review-screen.md, Content rules, "Who did what": "a person by name,
+or a system by name and version"). The data model has no field saying which one a given
+string is — adding one was explicitly out of scope for this task.
+
+**Options.** (a) A heuristic over the string itself: every system name in this app's fixtures
+ends in a version tag ("policy-engine v2.3"), no person's name does. (b) Add a real
+`PolicyGate.evaluatedByKind: 'person' | 'system'` (and the equivalent for `waiver`/
+`Decision`) field to the data model. (c) Skip the icon distinction entirely until a real field
+exists.
+
+**Choice.** (a), `src/lib/actors.ts`'s `isSystemActor`. Verified against every actual
+`evaluatedBy`/`waiver.by`/`decision.by` value across all three fixtures (7 distinct values: 4
+system, 3 person) — correct on all of them. (b) is the more correct long-term answer but was
+out of scope tonight; (c) would have left the request half-done for no real reason, since (a)
+is cheap, reversible, and doesn't touch anything (b) would later need to replace.
+
+**Consequence.** This is a text-pattern guess, not a real distinction: a future system name
+that doesn't end in a version tag, or a person whose name coincidentally does, would be
+misclassified. It is verified correct on every value that exists today, not proven correct in
+general. If a system evaluator is ever named without a version suffix (or a gate/decision
+gains a real `evaluatedByKind`-style field for another reason), `isSystemActor` should be
+replaced, not extended with more pattern cases.
+
+---
+
+## 0015 · `format.ts`'s locale is now pinned, and checked, not left to the runtime default
+
+**Context.** Relative-time strings (`formatRelativeTime`) rendered in Finnish
+("7 kuukautta sitten") instead of English, on a machine whose browser/OS reported that
+locale. Every `Intl`/`toLocale*` call in `src/lib/format.ts` passed `undefined` for locale,
+which means "follow the runtime's default" — not a deliberate choice, just left unset. This
+is the second time a bug in this exact file has come from the same root cause: the first was
+12-hour vs. 24-hour clock time (`docs/WORKLOG.md`, 2026-09-19), fixed with `hour12: false`
+but without addressing the *other* locale-dependent calls in the same file, which is exactly
+why this one was still open to find.
+
+**Options.** (a) Pin every locale-sensitive call in `format.ts` to a single explicit
+constant (`'en'`), and rely on code review to keep it that way. (b) Same fix, plus a narrow
+automated check (matching `scripts/check-theme-bridge.mjs`'s precedent, 0009) that fails
+`npm run check` if any locale-sensitive call in that file omits an explicit locale again.
+(c) Leave it locale-dependent, and instead force a consistent locale at the app's root (e.g.
+an `<html lang>`-driven i18n setup).
+
+**Choice.** (b), `scripts/check-format-locale.mjs`. (a) alone is what was already true for the
+12-hour-clock fix — it held for exactly the one call that got fixed, not the others in the
+same file, which is how this happened a second time. (c) is real internationalization
+infrastructure this app doesn't have and doesn't need yet (it has no other language content;
+Content rules' wording is fixed English throughout) — pinning one file's own calls is a much
+smaller, sufficient fix for the actual problem. Verified the same way 0009's check was:
+reintroduced the exact bug, confirmed the new check fails and names the offending call, then
+confirmed a clean pass after restoring.
+
+**Consequence.** `format.ts` can no longer regress to the runtime's default locale without
+`npm run check` failing immediately and naming the exact call. The check is deliberately
+narrow — a regex over one file's known call shapes — and would need updating if a
+locale-sensitive call were added elsewhere in the app or written in an unrecognized shape.
+
+---
+
 ## 0014 · `--color-primary`/`--color-primary-foreground` were a self-reference cycle, not a safe mirror — correcting 0008
 
 **Context.** 0008 audited every bridge name against tokens.css and found one other exact-name

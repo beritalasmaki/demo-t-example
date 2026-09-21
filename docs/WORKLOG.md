@@ -39,6 +39,134 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · Region boundaries, heading icons, content clarity, locale fix, filter clarity, demo label
+
+**Goal**
+Fix a real locale bug in `lib/format.ts` (relative-time strings rendering in Finnish) for the
+second time, this time with a regression check. Give every region on `RunReviewPage` a
+visible container and a heading icon (currently spacing-only). Add several small
+content-clarity fixes surfaced by a plain-state report and a shared screenshot earlier this
+session: a "Target:" clarification in the run header, an audit-log subtitle, person-vs-system
+icons on actor names, a "Filter logs" label with stronger active/inactive filter contrast, and
+a "Demo" label on the page identity. Confidence (Region 5) and a real undo action stayed
+explicitly out of scope.
+
+**What changed**
+- `src/lib/format.ts` — pinned `LOCALE = 'en'`, used everywhere an `Intl`/`toLocale*` call
+  previously passed `undefined`.
+- `scripts/check-format-locale.mjs` (new) — fails `npm run check` if `format.ts` has a
+  locale-sensitive call with no explicit locale again; wired in via `check:format-locale`.
+- `src/components/RegionCard.tsx` (+ story + test) — the shared visible container
+  (`border-border-subtle`/`bg-surface`/`rounded-md`/`p-[space-4]`) every region now sits in,
+  applied to every return branch (loading/empty/happy-path) of `RunHeader`, `RunSummary`,
+  `PolicyGateList`, `Timeline`, `DecisionBar`.
+- Each region's `<h2>` wrapped in `IconText` with a matching lucide icon: `Target` (Run
+  header), `FileText` (Summary), `ShieldCheck` (Policy gates), `History` (Audit log),
+  `CheckSquare` (Decision).
+- `RunHeader.tsx` — the system-name heading now reads "Target: `<system>`", the label
+  de-emphasized ahead of the name.
+- `Timeline.tsx` — "What the agent did during this run." under the heading.
+- `src/lib/actors.ts` (new, + test) — `isSystemActor`, a string heuristic distinguishing a
+  person's name from a system's name-and-version (docs/DECISIONS.md 0016). Wired into
+  `PolicyGateRow.tsx` (`evaluatedBy`, the waiver callout) and `DecisionBar.tsx`'s
+  `DecidedView` (`decision.by`) via `IconText` with `User`/`Bot`.
+- `TimelineFilters.tsx` — a visible "Filter logs" label, wired to the chip group via
+  `aria-labelledby` (replacing the invisible `aria-label` it had instead). `ToggleChip.tsx` —
+  `font-semibold` added to the pressed state, so active/inactive isn't colour-only.
+- `index.html`'s `<title>` and `App.tsx`'s `<h1>` both get a de-emphasized "— Demo" suffix.
+- `docs/DECISIONS.md` — 0015 (the locale-check pattern) and 0016 (the actor-icon heuristic).
+
+**Steps, in order**
+1. Read `AGENTS.md` and `docs/spec-review-screen.md` fresh, per the task. Since the request
+   named six distinct areas of change across five region components plus shared components,
+   used `EnterPlanMode`: explored every file that would be touched (all five region
+   components, `format.ts` + its existing tests, `IconText`/`ToggleChip`/`TimelineFilters`,
+   `tokens.css`), enumerated every real `evaluatedBy`/`waiver.by`/`decision.by` value across
+   all three fixtures to validate the person/system heuristic before proposing it, and
+   verified every candidate lucide icon name actually exists in the installed version.
+   Wrote the plan to name every judgment call explicitly (heading icon choices, where
+   "Target:" goes, actor-icon scope, `RegionCard` as a new shared component vs. a repeated
+   class string) and got it approved via `ExitPlanMode` before writing any code.
+2. Fixed the locale bug first, in isolation: pinned `LOCALE = 'en'` in `format.ts`, wrote
+   `scripts/check-format-locale.mjs` (a narrow regex check, the same shape as
+   `scripts/check-theme-bridge.mjs`), and proved it against failure before moving on —
+   temporarily reverted one call back to `undefined`, confirmed the check failed and named
+   the exact call, restored, confirmed a clean pass.
+3. Built `RegionCard` (component + story + test, per the `new-component` skill) before
+   touching any region, then applied it to all five region components' root elements, in
+   every return branch each one has — not just the populated state.
+4. Added each region's heading icon and the content-clarity changes together, file by file
+   (same lines were already being touched for the region-card wrap), then `npm run
+   typecheck` after every file to catch JSX/import mistakes immediately rather than at the
+   end.
+5. Built `lib/actors.ts`'s `isSystemActor` and its test against the real fixture values
+   already enumerated in step 1, then wired the icon into the three named call sites.
+6. Filter clarity: swapped the filter group's `aria-label` for a visible label + `aria-
+   labelledby` (matching the `<h2>`/`aria-labelledby` pattern already used elsewhere on the
+   page), and added `font-semibold` to `ToggleChip`'s pressed state — confirmed the existing
+   fill/outline treatment already did most of what was asked, so didn't invent a new colour.
+7. `npm run test` — one real failure: `PolicyGateRow.test.tsx` asserted the waiver line as
+   one contiguous text node (`/Exception granted by Owen Baptiste/`), which no longer holds
+   now that the name is wrapped in its own `IconText` element. Fixed by checking the
+   surrounding `<p>`'s full `textContent` instead of a single text-node match, and added a
+   new test asserting the right icon (`.lucide-user` vs. `.lucide-bot`) renders for a person
+   vs. a system `evaluatedBy`.
+8. `npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, tests)
+   green.
+9. Keyboard pass and before/after screenshots against the real dev server (same
+   Playwright-via-environment technique used earlier this session): tabbed through the whole
+   page (32 stops, nothing skipped or trapped), confirmed a filter chip still toggles via
+   Enter, and confirmed the filter group's accessible name resolves to "Filter logs" through
+   the new `aria-labelledby`. Screenshotted `run-messy`, light and dark, before any change and
+   after everything landed.
+
+**Why it was done this way**
+- **Fixed the locale bug with a mechanical check this time, not just a fix.** The 12-hour
+  clock fix (2026-09-19) addressed one call in this file; the same file still had four more
+  calls with the identical unset-locale problem, which is exactly how a second, related bug
+  surfaced from the same root cause. A check that fails the build is what actually stops a
+  third occurrence — see docs/DECISIONS.md 0015.
+- **`RegionCard` as a real component, not a repeated class string.** Four of the five regions
+  have multiple return branches that all need the identical container — writing the class
+  string 3–4 times per file across 5 files is exactly the kind of duplication this codebase's
+  own `Disclosure`/`StatusBadge`/`Tag` precedent avoids. One component, one place to change
+  the container later.
+- **Person/system icon is a heuristic, named as one.** No field in the data model says which
+  kind of actor a given string is, and adding one was out of scope tonight. Verified against
+  every real value rather than assumed correct from the pattern alone — see
+  docs/DECISIONS.md 0016 for the trade-off this leaves open.
+- **Kept `ToggleChip`'s existing fill/outline treatment.** Reading the actual source before
+  changing it showed the filled-vs-outline distinction the request described was already
+  built; screenshotted to confirm it reads clearly, and added `font-semibold` rather than
+  inventing a new colour pairing for a distinction that was already mostly there.
+
+**How to do this by hand**
+For any new top-level region on this screen, reach for `RegionCard` (`src/components/
+RegionCard.tsx`) as the outer container rather than writing `rounded-md border
+border-border-subtle bg-surface p-[var(--space-4)]` again — and apply it in every state a
+region can render (loading, empty, populated), not only the happy path, or the boundary will
+flicker in and out depending on what's on screen. For a new actor-name field, reuse
+`lib/actors.ts`'s `isSystemActor` rather than re-deriving the person/system distinction by
+eye — and if it ever misclassifies a real value, that's the signal to replace it with a real
+data-model field (docs/DECISIONS.md 0016), not to add another pattern case.
+
+**Verification**
+`npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, 32 files / 178
+tests) green. `check-format-locale.mjs` verified against both failure and success, the same
+way `check-theme-bridge.mjs` was. Keyboard pass on the real running app: full tab sweep with
+nothing skipped or trapped, a filter chip toggles via Enter, the filter group's accessible
+name resolves to "Filter logs". Before/after screenshots of the full composed `RunReviewPage`
+(`run-messy`), light and dark, via the real dev server.
+
+**Open questions / next**
+- The person/system actor icon is a string heuristic (docs/DECISIONS.md 0016), not backed by
+  a real field — worth revisiting if a real `evaluatedByKind`-style field is ever added to the
+  data model for other reasons.
+- Confidence (Region 5) and a real undo action remain unbuilt, unchanged from before this
+  session — both were explicitly out of scope tonight.
+
+---
+
 ### 2026-09-21 · First real shadcn components (Button, Checkbox, Dialog); a self-referencing bridge bug that broke every focus ring in light theme
 
 **Goal**

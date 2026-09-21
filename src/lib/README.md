@@ -27,8 +27,11 @@ and `lib` can be tested on its own with no UI at all.
   percentage, and an unknown value is shown as the word unknown" live here, not in a
   component.
 - **`api.ts`** — the only place that fetches data. See below.
-- **`gates.ts`** — small domain helpers that are not UI, e.g. sorting gates so failed and
-  waived come first, or deciding whether a run can still be decided on.
+- **`gates.ts`** — small domain helpers that are not UI: sorting gates so failed and waived
+  come first, and `gateAcknowledgement`, the counts and ids behind the Decision region's
+  sign-off tick.
+- **`decision.ts`** — the undo window: a fixed policy computed from `Decision.at`
+  (docs/DECISIONS.md, 0003), not stored data.
 - **`timeline.ts`** — the same kind of helper for the audit log: the shape of a run (step,
   error and retry counts), filtering that never actually hides an error or a retry, only
   shrinks the count of what's genuinely excluded, and `resolveEvidenceIds`, which both

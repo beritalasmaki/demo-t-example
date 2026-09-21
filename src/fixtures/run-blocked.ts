@@ -13,6 +13,7 @@ export const runBlocked: Run = {
   id: 'run-blocked',
   initiative: 'Add rate limiting to the public booking API',
   requestedBy: 'Priya Natarajan',
+  revision: '7d4e1b',
   target: { system: 'booking-service', environment: 'staging' },
   agent: { name: 'Kestrel', version: '4.2.1', model: 'kestrel-code-12b' },
   startedAt: '2026-03-04T14:02:00Z',

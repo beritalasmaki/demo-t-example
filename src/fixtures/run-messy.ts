@@ -37,6 +37,8 @@ export const runMessy: Run = {
   id: 'run-messy',
   initiative: 'Move refund processing to the new payment gateway',
   requestedBy: 'Leah Fontaine',
+  // Matches decision.revision below: nothing has moved on since this run was approved.
+  revision: 'e91a4c',
   target: { system: 'payments-service', environment: 'production' },
   agent: { name: 'Kestrel', version: '4.3.0', model: 'kestrel-code-14b' },
   startedAt: '2026-02-11T08:02:00Z',

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { PolicyGate } from './types'
-import { formatDateTime, formatGateResultLabel, formatRelativeTime } from './format'
+import {
+  formatDateTime,
+  formatDuration,
+  formatGateResultLabel,
+  formatRelativeTime,
+  formatSignOffMessage,
+} from './format'
 
 function gate(overrides: Partial<PolicyGate> & Pick<PolicyGate, 'result'>): PolicyGate {
   return {
@@ -63,5 +69,34 @@ describe('formatRelativeTime', () => {
   it('reports days for a difference of several days', () => {
     const now = new Date('2026-03-10T00:00:00Z')
     expect(formatRelativeTime('2026-03-04T00:00:00Z', now)).toMatch(/6 days ago/)
+  })
+})
+
+describe('formatDuration', () => {
+  it('uses the largest sensible unit, matching the spec’s own "4 min 12 s" example', () => {
+    expect(formatDuration(4 * 60_000 + 12_000)).toBe('4 min 12 s')
+  })
+
+  it('omits minutes entirely under a minute', () => {
+    expect(formatDuration(45_000)).toBe('45 s')
+  })
+
+  it('never goes negative', () => {
+    expect(formatDuration(-5_000)).toBe('0 s')
+  })
+})
+
+describe('formatSignOffMessage', () => {
+  it('matches the Content rules example exactly for one of each', () => {
+    expect(formatSignOffMessage(1, 1)).toBe('I have seen 1 failed check and 1 exception.')
+  })
+
+  it('pluralizes both halves', () => {
+    expect(formatSignOffMessage(2, 3)).toBe('I have seen 2 failed checks and 3 exceptions.')
+  })
+
+  it('omits a zero-count half instead of naming it', () => {
+    expect(formatSignOffMessage(0, 2)).toBe('I have seen 2 exceptions.')
+    expect(formatSignOffMessage(1, 0)).toBe('I have seen 1 failed check.')
   })
 })

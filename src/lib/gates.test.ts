@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PolicyGate, TimelineEvent } from './types'
-import { explanationFor, resolveEvidence, sortGates } from './gates'
+import { explanationFor, gateAcknowledgement, resolveEvidence, sortGates } from './gates'
 
 function gate(overrides: Partial<PolicyGate> & Pick<PolicyGate, 'id' | 'result'>): PolicyGate {
   return {
@@ -103,5 +103,30 @@ describe('explanationFor', () => {
   it('is undefined when no resolved evidence has a detail', () => {
     const g = gate({ id: 'a', result: 'fail', evidenceIds: ['t1'] })
     expect(explanationFor(g, timeline)).toBeUndefined()
+  })
+})
+
+describe('gateAcknowledgement', () => {
+  it('counts nothing and requires nothing when every gate passed', () => {
+    const gates = [gate({ id: 'a', result: 'pass' }), gate({ id: 'b', result: 'not_applicable' })]
+    expect(gateAcknowledgement(gates)).toEqual({
+      failedCount: 0,
+      waivedCount: 0,
+      requiredGateIds: [],
+    })
+  })
+
+  it('counts failed and waived separately, and does not count unknown or not_applicable', () => {
+    const gates = [
+      gate({ id: 'fail-1', result: 'fail' }),
+      gate({ id: 'waived-1', result: 'waived' }),
+      gate({ id: 'unknown-1', result: 'unknown' }),
+      gate({ id: 'na-1', result: 'not_applicable' }),
+    ]
+    expect(gateAcknowledgement(gates)).toEqual({
+      failedCount: 1,
+      waivedCount: 1,
+      requiredGateIds: ['fail-1', 'waived-1'],
+    })
   })
 })

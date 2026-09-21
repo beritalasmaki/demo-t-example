@@ -123,6 +123,12 @@ export interface Run {
   id: string
   initiative: string
   requestedBy: string
+  /** The revision currently under review — what "Approve and release" would actually release,
+   * and what a recorded `Decision.revision` should match if nothing has moved on since. Not
+   * part of the spec's own data model (docs/spec-review-screen.md only gives `Decision` a
+   * `revision`); added because the approve confirmation ("Release revision X to Y") needs a
+   * real, sourced value to show before any decision exists — see docs/DECISIONS.md. */
+  revision: string
   target: { system: string; environment: 'dev' | 'staging' | 'production' }
   agent: { name: string; version: string; model: string }
   /** ISO timestamp. */

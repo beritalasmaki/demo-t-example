@@ -45,3 +45,28 @@ export function explanationFor(gate: PolicyGate, timeline: TimelineEvent[]): str
   if (gate.result === 'pass') return undefined
   return resolveEvidence(gate, timeline).find((event) => event.detail)?.detail
 }
+
+export interface GateAcknowledgement {
+  failedCount: number
+  waivedCount: number
+  /** The failed and waived gates' ids, in that order — what the sign-off tick's
+   * `acknowledgedGateIds` should be once ticked (Content rules, "Sign-off tick"). Empty means
+   * nothing needs acknowledging: approval isn't blocked. */
+  requiredGateIds: string[]
+}
+
+/**
+ * Region 6 (Decision): "Approving requires the reviewer to confirm they have seen any failed
+ * or waived gate." `unknown` and `not_applicable` are deliberately not counted — the rule as
+ * written only extends to fail and waived (see `Decision.acknowledgedGateIds`'s own doc
+ * comment in lib/types.ts).
+ */
+export function gateAcknowledgement(gates: PolicyGate[]): GateAcknowledgement {
+  const failed = gates.filter((gate) => gate.result === 'fail')
+  const waived = gates.filter((gate) => gate.result === 'waived')
+  return {
+    failedCount: failed.length,
+    waivedCount: waived.length,
+    requiredGateIds: [...failed, ...waived].map((gate) => gate.id),
+  }
+}

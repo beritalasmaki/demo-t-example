@@ -103,3 +103,31 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
   }
   return relativeTimeFormat.format(Math.round(diffMs / 1000), 'second')
 }
+
+/** Content rules, "Time": "Durations use the largest sensible unit: '4 min 12 s'." Used for
+ * the undo window's countdown, which never runs long enough to need an hour. */
+export function formatDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+
+  if (minutes === 0) return `${seconds} s`
+  return `${minutes} min ${seconds} s`
+}
+
+/**
+ * Content rules, "Sign-off tick": "I have seen 1 failed check and 1 exception." A count of
+ * zero for one half is left out rather than spelled out ("0 failed checks") — the sentence
+ * still names what's being acknowledged and why it's hard to skip, it just doesn't claim to
+ * have seen zero of something.
+ */
+export function formatSignOffMessage(failedCount: number, waivedCount: number): string {
+  const clauses: string[] = []
+  if (failedCount > 0) {
+    clauses.push(`${failedCount} failed ${failedCount === 1 ? 'check' : 'checks'}`)
+  }
+  if (waivedCount > 0) {
+    clauses.push(`${waivedCount} ${waivedCount === 1 ? 'exception' : 'exceptions'}`)
+  }
+  return `I have seen ${clauses.join(' and ')}.`
+}

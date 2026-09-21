@@ -9,6 +9,7 @@ export const runClean: Run = {
   id: 'run-clean',
   initiative: 'Add a CSV export to the appointment history page',
   requestedBy: 'Sana Iqbal',
+  revision: 'f3a9c2',
   target: { system: 'patient-portal', environment: 'staging' },
   agent: { name: 'Kestrel', version: '4.2.1', model: 'kestrel-code-12b' },
   startedAt: '2026-03-06T10:15:00Z',

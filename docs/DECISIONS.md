@@ -6,6 +6,48 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0018 · Disclosure's open/close animation: CSS grid-rows, not a measured-height overshoot
+
+**Context.** The request asked for a springy overshoot easing on open (`cubic-bezier(0.34,
+1.56, 0.64, 1)`) with an explicit constraint: "no bounce/scale/rotation — the personality
+comes from the easing curve, not from extra movement." Native `<details>` can't be animated
+directly (the browser applies `display: none` to its children the instant `open` goes false,
+before any transition can run), so this needed a real technique, not just adding
+`transition`.
+
+**Options.** (a) A single-track CSS Grid (`grid-template-rows: 0fr` ↔ `1fr`), transitioning
+that property with the spring easing — no JS state, `<details>` stays exactly as
+uncontrolled as it already was. (b) Measure the content's real pixel height (a ref +
+`scrollHeight`, or a `ResizeObserver`) and animate an explicit `height` (or `max-height`) to
+that value in React state — more moving parts, and a component whose own doc comment
+currently says "native `<details>`/`<summary>` rather than custom JS."
+
+**Choice.** (a) — implemented and verified: the computed `transition-duration` and
+`transition-timing-function` on open genuinely match the spring token, and the row's real
+height interpolates through it (confirmed via `getComputedStyle` mid-transition in a real
+browser, not assumed from the CSS alone). **But it doesn't produce a literally visible
+overshoot.** A CSS Grid track sized in `fr` units has nothing to overshoot *into*: with only
+one flexible track, the row always claims exactly the space the content needs, at every
+point in the curve, including the portion of the curve past `1.0` — there's no pixel value
+for the row to briefly exceed and settle back from, the way a `scale` or a fixed-pixel
+`height` animation could. (b) would have made a genuine overshoot possible (an explicit pixel
+height briefly exceeding the content's natural height *is* visible, as a small extra gap that
+closes), but only by giving up the "no custom JS" property this component has had since it
+was built, for a request that also explicitly ruled out the other way overshoot is usually
+made visible (`scale`). Given the explicit "no scale" constraint, (a) is what's implementable
+within it — the curve genuinely runs at the exact tokens specified, it just expresses as an
+unusually fast-then-settling *rate* of opening rather than a visible bounce past the final
+size.
+
+**Consequence.** `--motion-duration-open`/`-close`/`--motion-ease-spring`/`--motion-ease-in`
+are real, used tokens, and the transition timing is verified correct. If a literally visible
+overshoot bounce turns out to matter more than keeping `Disclosure` free of JS state and
+`transform`/`scale`, option (b) is the concrete alternative — a small, contained change
+(a ref, a measured height, React `open` state synced from the native `toggle` event) — not a
+redesign.
+
+---
+
 ## 0017 · Undo is real, but local-only — there is nothing to reverse it on
 
 **Context.** The undo window (0003) was, until now, a countdown with nothing to click: real

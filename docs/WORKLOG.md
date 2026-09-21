@@ -39,6 +39,94 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · Disclosure open/close animation
+
+**Goal**
+Add a real open/close animation to `Disclosure` (policy gate rows, "Run details", timeline
+event rows): a springy overshoot on open, a quick plain close, reduced-motion respected,
+scoped to disclosure/accordion interactions only.
+
+**What changed**
+- `src/styles/tokens.css` — four new Motion tokens: `--motion-duration-open` (220ms),
+  `--motion-duration-close` (160ms), `--motion-ease-spring`
+  (`cubic-bezier(0.34, 1.56, 0.64, 1)`), `--motion-ease-in` (`cubic-bezier(0.4, 0, 1, 1)`,
+  same value as the already-declared, still-unused `--motion-ease-exit` — added under its own
+  name rather than repurposing that one). Both new durations collapse to `1ms` under
+  `prefers-reduced-motion: reduce`, same pattern as the existing three.
+- `src/components/Disclosure.tsx` — the body wrapper is now a single-track CSS Grid
+  (`grid-template-rows: 0fr` ↔ `1fr`, keyed off the existing `details[open] &` selector — the
+  same selector the chevron rotation already used), with an `overflow-hidden` inner div doing
+  the actual clipping. No React state added.
+
+**Steps, in order**
+1. Read the request fresh — precise values already given (durations, exact
+   `cubic-bezier(...)` curves, which property combination, the reduced-motion requirement,
+   and an explicit scope exclusion: not `DecisionBar` or anything status/decision-related).
+   Read `Disclosure.tsx` and the existing Motion block in `tokens.css` before planning:
+   confirmed `Disclosure` is currently fully uncontrolled (native `<details>`, zero JS state,
+   even the chevron rotation is pure CSS via a `details[open] &` selector) and that
+   `--motion-ease-exit`/`--motion-ease-standard`/`--motion-duration-base` are all declared but
+   currently unused anywhere in the app.
+2. Used `EnterPlanMode`: native `<details>` can't be animated by adding `transition` alone —
+   the browser hides its children instantly on close, before any transition runs. Weighed two
+   real techniques (a CSS-only `grid-template-rows` trick that keeps `Disclosure` free of JS
+   state vs. a JS-measured explicit-height animation) and chose the CSS-only one, named as the
+   plan's one real judgment call, since it keeps the component's own "no custom JS"
+   design intact and doesn't add a browser-support gamble. Got the plan approved via
+   `ExitPlanMode`.
+3. Added the four tokens (+ reduced-motion overrides), then the grid wrapper in
+   `Disclosure.tsx`.
+4. `npm run check` green, including `Disclosure`'s own existing tests, unchanged — nothing
+   about open/close semantics or focus changed, only how the height gets there.
+5. Verified against the real running app, not just the CSS source: read
+   `getComputedStyle` mid-transition in a real browser and confirmed the open state's
+   `transition-duration`/`transition-timing-function` matched the spring token exactly, the
+   close state matched the ease-in token, and a real intermediate `grid-template-rows` pixel
+   value was captured (not stuck at the start or end value) — then repeated with Playwright's
+   `reducedMotion: 'reduce'` emulation and confirmed both durations collapsed to `1ms`.
+6. While verifying visually, worked through whether the overshoot would actually be
+   *perceptible*: a single `fr`-unit grid track can't be pushed past the space its content
+   needs, so there's no pixel value for the row to overshoot into and settle back from, the
+   way `scale` could — and `scale`/`transform` were explicitly ruled out by the request. The
+   easing curve and timing are genuinely correct and verified; a literally visible bounce in
+   height is not achievable within the "no scale" constraint using this technique. Wrote this
+   up as `docs/DECISIONS.md` 0018 rather than silently shipping something that might not match
+   what "settles with a small overshoot" was picturing, with the concrete alternative (a
+   measured-height, small-JS-state version) named if that turns out to matter more than
+   keeping `Disclosure` free of JS/transform.
+
+**Why it was done this way**
+The CSS grid-rows technique was chosen specifically to avoid adding React state and a
+browser-support gamble (the newer `@starting-style`/`allow-discrete` CSS, purpose-built for
+animating `<details>` directly, is too recent to trust for a check this app already treats as
+load-bearing — `scripts/check-theme-bridge.mjs` renders real CSS in a real browser and
+asserts on computed values). The trade-off that technique carries (no literal overshoot
+possible without `scale`) was worth surfacing rather than guessing whether it matters more
+than the constraints that ruled out the alternative — see docs/DECISIONS.md 0018.
+
+**How to do this by hand**
+For any future `<details>`-based reveal, don't reach for `transition: height` directly — it
+won't run, because the browser un-renders the content before a transition on a `display:
+none` change ever fires. Use the `grid-template-rows: 0fr` ↔ `1fr` pattern with an
+`overflow-hidden` inner wrapper instead, keyed off `details[open] &` the same way this
+component's chevron rotation already was. If a literally visible overshoot bounce is wanted
+on the way open, that specifically requires measuring a real pixel height (or using
+`transform: scale`) — a single flexible grid track cannot produce one on its own.
+
+**Verification**
+`npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, 36 files / 198
+tests) green. Computed-style verification in a real browser (open state's timing-function and
+duration, close state's, a genuine mid-transition height sample, and reduced-motion collapsing
+both durations to `1ms`) as described above. Screenshots of a gate row closed and settled-open,
+light and dark.
+
+**Open questions / next**
+- docs/DECISIONS.md 0018: if the springy *feel* (not just the correct easing curve) turns out
+  to matter, the concrete next step is a measured-height version of `Disclosure`, not a
+  redesign — everything else about the component stays the same.
+
+---
+
 ### 2026-09-21 · Confidence region (all six built), real local undo, summary hierarchy, and five design fixes
 
 **Goal**

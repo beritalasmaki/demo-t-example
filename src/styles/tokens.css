@@ -231,6 +231,16 @@
   --motion-duration-base: 220ms;
   --motion-ease-standard: cubic-bezier(0.2, 0, 0.13, 1);
   --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /*
+   * Disclosure open/close only (Disclosure.tsx) — "playful but restrained": opening gets a
+   * small, snappy overshoot, closing stays quick and plain. Deliberately not reused for
+   * status/decision motion, which stays on the calm tokens above.
+   */
+  --motion-duration-open: 220ms;
+  --motion-duration-close: 160ms;
+  --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -238,5 +248,7 @@
     --motion-duration-instant: 1ms;
     --motion-duration-fast: 1ms;
     --motion-duration-base: 1ms;
+    --motion-duration-open: 1ms;
+    --motion-duration-close: 1ms;
   }
 }

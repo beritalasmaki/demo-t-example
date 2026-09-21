@@ -1,7 +1,8 @@
 # What is "Agent run review"?
 
 View the screen: https://demo-t-example.vercel.app/ 
-Also Storybook page coming soon!
+
+Also Storybook view page coming soon!
 
 A single, production-quality screen called the **agent run review view**. 
 

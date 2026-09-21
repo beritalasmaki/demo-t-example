@@ -8,9 +8,12 @@ import {
   OctagonAlert,
   Rocket,
   RotateCcw,
+  Target as TargetIcon,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { Disclosure } from '../../components/Disclosure'
+import { IconText } from '../../components/IconText'
+import { RegionCard } from '../../components/RegionCard'
 import { Tag } from '../../components/Tag'
 import {
   formatDateTime,
@@ -67,11 +70,14 @@ export function RunHeader({ run }: RunHeaderProps) {
   const zone = formatTimeZoneLabel()
 
   return (
-    <header className="flex flex-col gap-[var(--space-3)]">
+    <RegionCard as="header" className="flex flex-col gap-[var(--space-3)]">
       {/* First tier — never scrolled to, never hidden behind a disclosure. */}
       <div className="flex flex-wrap items-center gap-[var(--space-3)]">
         <h2 className="text-section-heading font-semibold text-text-primary">
-          {run.target.system}
+          <IconText icon={TargetIcon}>
+            <span className="font-normal text-text-secondary">Target: </span>
+            {run.target.system}
+          </IconText>
         </h2>
         <Tag icon={ENVIRONMENT_ICON[run.target.environment]}>
           {ENVIRONMENT_LABEL[run.target.environment]}
@@ -125,6 +131,6 @@ export function RunHeader({ run }: RunHeaderProps) {
           </dd>
         </dl>
       </Disclosure>
-    </header>
+    </RegionCard>
   )
 }

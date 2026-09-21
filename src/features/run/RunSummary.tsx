@@ -1,4 +1,7 @@
+import { FileText } from 'lucide-react'
 import { EvidenceLink } from '../../components/EvidenceLink'
+import { IconText } from '../../components/IconText'
+import { RegionCard } from '../../components/RegionCard'
 import { resolveSummarySentences } from '../../lib/summary'
 import type { Run, TimelineEvent } from '../../lib/types'
 
@@ -21,19 +24,19 @@ export interface RunSummaryProps {
 
 const HEADING = (
   <h2 id="summary-heading" className="text-section-heading font-semibold text-text-primary">
-    Summary
+    <IconText icon={FileText}>Summary</IconText>
   </h2>
 )
 
 export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryProps) {
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-[var(--space-3)]">
+      <RegionCard className="flex flex-col gap-[var(--space-3)]">
         {HEADING}
         <p role="status" className="text-body font-normal font-body text-text-secondary">
           Loading the summary…
         </p>
-      </div>
+      </RegionCard>
     )
   }
 
@@ -41,15 +44,15 @@ export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryP
 
   if (sentences.length === 0) {
     return (
-      <div className="flex flex-col gap-[var(--space-3)]">
+      <RegionCard className="flex flex-col gap-[var(--space-3)]">
         {HEADING}
         <p className="text-body font-normal font-body text-text-secondary">No summary available.</p>
-      </div>
+      </RegionCard>
     )
   }
 
   return (
-    <div className="flex flex-col gap-[var(--space-3)]">
+    <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {HEADING}
       <ul className="flex flex-col gap-[var(--space-3)]">
         {sentences.map((sentence) => (
@@ -65,6 +68,6 @@ export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryP
           </li>
         ))}
       </ul>
-    </div>
+    </RegionCard>
   )
 }

@@ -70,7 +70,10 @@ describe('PolicyGateRow', () => {
     })
 
     expect(screen.getByText('Exception by Owen Baptiste')).toBeVisible()
-    expect(screen.getByText(/Exception granted by Owen Baptiste/)).toBeVisible()
+    // The name sits next to a person/system icon (lib/actors.ts), so it's its own element —
+    // check the surrounding sentence and the name each separately, not as one text node.
+    const waiverParagraph = screen.getByText(/Exception granted by/).closest('p')!
+    expect(waiverParagraph).toHaveTextContent('Exception granted by Owen Baptiste on')
     expect(screen.getByText('"Already cleared under ticket LGL-4471."')).toBeVisible()
   })
 
@@ -95,6 +98,24 @@ describe('PolicyGateRow', () => {
     renderRow({ ...baseGate, result: 'pass', evidenceIds: ['t1', 't2'] })
     expect(screen.getByText('Changed a file')).toBeVisible()
     expect(screen.getByText('Evaluated')).toBeVisible()
+  })
+
+  it('shows a person icon for a person evaluatedBy and a system icon for a system one', () => {
+    const { container: personContainer } = renderRow({
+      ...baseGate,
+      result: 'pass',
+      evaluatedBy: 'Dana Whitfield',
+    })
+    expect(personContainer.querySelector('.lucide-user')).not.toBeNull()
+    expect(personContainer.querySelector('.lucide-bot')).toBeNull()
+
+    const { container: systemContainer } = renderRow({
+      ...baseGate,
+      result: 'pass',
+      evaluatedBy: 'policy-engine v2.3',
+    })
+    expect(systemContainer.querySelector('.lucide-bot')).not.toBeNull()
+    expect(systemContainer.querySelector('.lucide-user')).toBeNull()
   })
 
   it('opens and closes by keyboard-reachable click, and keeps focus on the toggle', async () => {

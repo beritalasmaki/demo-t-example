@@ -33,20 +33,25 @@ export function TimelineFilters({ activeTypes, onActiveTypesChange }: TimelineFi
   }
 
   return (
-    <div
-      role="group"
-      aria-label="Filter by event type"
-      className="flex flex-wrap gap-[var(--space-3)]"
-    >
-      {ALL_TYPES.map((type) => (
-        <ToggleChip
-          key={type}
-          pressed={activeTypes.has(type)}
-          onPressedChange={(pressed) => setTypeActive(type, pressed)}
-        >
-          {TYPE_LABEL[type]}
-        </ToggleChip>
-      ))}
+    <div className="flex flex-col gap-[var(--space-2)]">
+      <span id="filter-logs-label" className="text-meta font-normal font-body text-text-secondary">
+        Filter logs
+      </span>
+      <div
+        role="group"
+        aria-labelledby="filter-logs-label"
+        className="flex flex-wrap gap-[var(--space-3)]"
+      >
+        {ALL_TYPES.map((type) => (
+          <ToggleChip
+            key={type}
+            pressed={activeTypes.has(type)}
+            onPressedChange={(pressed) => setTypeActive(type, pressed)}
+          >
+            {TYPE_LABEL[type]}
+          </ToggleChip>
+        ))}
+      </div>
     </div>
   )
 }

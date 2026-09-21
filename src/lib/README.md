@@ -43,6 +43,9 @@ and `lib` can be tested on its own with no UI at all.
 - **`utils.ts`** — `cn()`, the class-name merger every shadcn/ui component expects at the
   `utils` alias in `components.json`. It lives here because that is where shadcn looks, and
   because `components/` is allowed to import from `lib`.
+- **`actors.ts`** — `isSystemActor`, a heuristic (no dedicated data-model field exists) for
+  telling a person's name from a system's name-and-version, used to choose a person/system
+  icon next to `evaluatedBy`/`waiver.by`/`decision.by`.
 
 ## What `api.ts` actually does
 

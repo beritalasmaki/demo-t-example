@@ -1,5 +1,9 @@
+import { Bot, CheckSquare, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Checkbox } from '../../components/Checkbox'
+import { IconText } from '../../components/IconText'
+import { RegionCard } from '../../components/RegionCard'
+import { isSystemActor } from '../../lib/actors'
 import type { SubmitDecisionOptions } from '../../lib/api'
 import { undoWindow } from '../../lib/decision'
 import {
@@ -32,7 +36,7 @@ const BUTTON_CLASSNAME =
 
 const HEADING = (
   <h2 id="decision-heading" className="text-section-heading font-semibold text-text-primary">
-    Decision
+    <IconText icon={CheckSquare}>Decision</IconText>
   </h2>
 )
 
@@ -58,10 +62,10 @@ export function DecisionBar({
 
   if (run.decision) {
     return (
-      <div className="flex flex-col gap-[var(--space-3)]">
+      <RegionCard className="flex flex-col gap-[var(--space-3)]">
         {HEADING}
         <DecidedView decision={run.decision} />
-      </div>
+      </RegionCard>
     )
   }
 
@@ -70,7 +74,7 @@ export function DecisionBar({
   const canApprove = !needsAcknowledgement || acknowledged
 
   return (
-    <div className="flex flex-col gap-[var(--space-3)]">
+    <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {HEADING}
       <div className="flex flex-col gap-[var(--space-2)]">
         {needsAcknowledgement && (
@@ -124,7 +128,7 @@ export function DecisionBar({
           submitDecisionOptions={submitDecisionOptions}
         />
       )}
-    </div>
+    </RegionCard>
   )
 }
 
@@ -141,7 +145,8 @@ function DecidedView({ decision }: { decision: Decision }) {
   return (
     <div className="flex flex-col gap-[var(--space-2)] rounded-md border border-border-subtle bg-surface-raised p-[var(--space-4)]">
       <p className="text-item-title font-semibold font-body text-text-primary">
-        <span className="font-semibold">{outcomeVerb(decision.outcome)}</span> by {decision.by} —{' '}
+        <span className="font-semibold">{outcomeVerb(decision.outcome)}</span> by{' '}
+        <IconText icon={isSystemActor(decision.by) ? Bot : User}>{decision.by}</IconText> —{' '}
         {formatDateTime(decision.at)} ({formatRelativeTime(decision.at)})
       </p>
       <p className="text-meta font-normal font-body text-text-secondary">

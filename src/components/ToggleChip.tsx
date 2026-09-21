@@ -24,7 +24,7 @@ export function ToggleChip({ pressed, onPressedChange, children, className }: To
         'inline-flex items-center gap-[var(--space-2)] rounded-full border px-[var(--space-3)] py-[var(--space-1)] text-sm font-medium transition-colors',
         `duration-[var(--motion-duration-fast)]`,
         pressed
-          ? 'border-primary bg-primary text-primary-foreground'
+          ? 'border-primary bg-primary font-semibold text-primary-foreground'
           : 'border-border bg-surface text-text-secondary hover:border-text-secondary',
         className,
       )}

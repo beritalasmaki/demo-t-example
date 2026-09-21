@@ -17,7 +17,7 @@ export default function App() {
        * lives here rather than in RunReviewPage. font-heading comes from the h1 tag itself
        * (src/styles/index.css's base layer), so only the size and weight need stating. */}
       <h1 className="text-page-title mb-[var(--space-7)] font-bold text-text-primary">
-        Agent run review
+        Agent run review <span className="font-normal text-text-secondary">— Demo</span>
       </h1>
       <RunReviewPage runId={currentRunId()} />
     </main>

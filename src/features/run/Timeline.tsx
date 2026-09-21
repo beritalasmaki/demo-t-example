@@ -1,4 +1,7 @@
+import { History } from 'lucide-react'
 import { useState } from 'react'
+import { IconText } from '../../components/IconText'
+import { RegionCard } from '../../components/RegionCard'
 import { formatRelativeTime } from '../../lib/format'
 import { filterTimeline, timelineShape } from '../../lib/timeline'
 import type { TimelineEvent } from '../../lib/types'
@@ -51,30 +54,35 @@ export function Timeline({
   )
 
   const heading = (
-    <h2 id="audit-log-heading" className="text-section-heading font-semibold text-text-primary">
-      Audit log
-    </h2>
+    <>
+      <h2 id="audit-log-heading" className="text-section-heading font-semibold text-text-primary">
+        <IconText icon={History}>Audit log</IconText>
+      </h2>
+      <p className="text-meta font-normal font-body text-text-secondary">
+        What the agent did during this run.
+      </p>
+    </>
   )
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-[var(--space-3)]">
+      <RegionCard className="flex flex-col gap-[var(--space-3)]">
         {heading}
         <p role="status" className="text-body font-normal font-body text-text-secondary">
           Loading the audit log…
         </p>
-      </div>
+      </RegionCard>
     )
   }
 
   if (events.length === 0) {
     return (
-      <div className="flex flex-col gap-[var(--space-3)]">
+      <RegionCard className="flex flex-col gap-[var(--space-3)]">
         {heading}
         <p className="text-body font-normal font-body text-text-secondary">
           No events yet. This run started {formatRelativeTime(startedAt)}.
         </p>
-      </div>
+      </RegionCard>
     )
   }
 
@@ -82,7 +90,7 @@ export function Timeline({
   const { visible, forcedVisibleIds, hiddenCount } = filterTimeline(events, activeTypes)
 
   return (
-    <div className="flex flex-col gap-[var(--space-3)]">
+    <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {heading}
       <p className="text-meta font-normal font-body text-text-secondary">
         {shape.total} {pluralize(shape.total, 'step')} · {shape.errors}{' '}
@@ -106,6 +114,6 @@ export function Timeline({
           />
         ))}
       </ul>
-    </div>
+    </RegionCard>
   )
 }

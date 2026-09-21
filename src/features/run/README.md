@@ -51,9 +51,15 @@ written the code: a compliance officer, a security lead, a product owner. Design
 
 ## Files
 
-- `RunReviewPage.tsx` — composes the regions, owns the view state
-- `useRun.ts` — loading, error and stale-data handling via `lib/api`
-- `RunHeader.tsx`, `RunSummary.tsx` — what this run is, in three to five sourced sentences
+- `RunReviewPage.tsx` — composes the regions: loading, not-found and failed-load states, then
+  `RunHeader`, `RunSummary`, `PolicyGateList` and `Timeline` once the run has loaded
+- `useRun.ts` — loading, not-found and error handling via `lib/api`'s `getRun`. No
+  stale-while-revalidating: nothing in `lib/api` yet signals that a run moved on during a
+  read the way `submitDecision`'s `DecisionConflictError` does for a decision in flight
+- `RunHeader.tsx` — what this run is: system, environment and status always visible;
+  initiative and requester below that; agent, model, run id and time zone behind a disclosure
+- `RunSummary.tsx` — three to five sourced sentences; a sentence whose evidence doesn't
+  resolve to a real timeline event is dropped, not shown empty (see `lib/summary.ts`)
 - `PolicyGateList.tsx`, `PolicyGateRow.tsx` — gates, failed and waived first
 - `Timeline.tsx`, `TimelineEventRow.tsx`, `TimelineFilters.tsx` — the audit trail. Named
   `TimelineEventRow`, not `TimelineEvent` as originally planned here: that name already

@@ -72,13 +72,20 @@ export function TimelineEventRow({
   )
 
   const hasDetail = Boolean(event.detail) || Boolean(event.artefactIds?.length)
+  // A stable anchor target, so anything that cites this event as evidence (e.g. RunSummary)
+  // can link straight to it instead of just naming it.
+  const anchorId = `timeline-event-${event.id}`
 
   if (!hasDetail) {
-    return <li className={ROW_CLASSNAME}>{summary}</li>
+    return (
+      <li id={anchorId} className={ROW_CLASSNAME}>
+        {summary}
+      </li>
+    )
   }
 
   return (
-    <li>
+    <li id={anchorId}>
       {/* No className passed — Disclosure's own default (rounded-md border border-border-subtle
        * bg-surface) is exactly ROW_CLASSNAME; passing it again would just be redundant. */}
       <Disclosure defaultOpen={defaultOpen} summary={summary}>

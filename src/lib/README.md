@@ -30,8 +30,13 @@ and `lib` can be tested on its own with no UI at all.
 - **`gates.ts`** — small domain helpers that are not UI, e.g. sorting gates so failed and
   waived come first, or deciding whether a run can still be decided on.
 - **`timeline.ts`** — the same kind of helper for the audit log: the shape of a run (step,
-  error and retry counts), and filtering that never actually hides an error or a retry, only
-  shrinks the count of what's genuinely excluded.
+  error and retry counts), filtering that never actually hides an error or a retry, only
+  shrinks the count of what's genuinely excluded, and `resolveEvidenceIds`, which both
+  `gates.ts` and `summary.ts` use to turn a list of evidence ids into the real timeline events
+  they point to.
+- **`summary.ts`** — resolves the run summary's sentences against the timeline and drops any
+  sentence whose evidence doesn't resolve to a real event, per docs/spec-review-screen.md's
+  "a sentence with no evidence does not render."
 - **`utils.ts`** — `cn()`, the class-name merger every shadcn/ui component expects at the
   `utils` alias in `components.json`. It lives here because that is where shadcn looks, and
   because `components/` is allowed to import from `lib`.

@@ -1,4 +1,4 @@
-import type { GateResult, PolicyGate } from './types'
+import type { GateResult, PolicyGate, RunStatus } from './types'
 
 /**
  * How values are turned into text. See src/lib/README.md and
@@ -26,6 +26,33 @@ export function formatGateResultLabel(gate: PolicyGate): string {
     return `Exception by ${gate.waiver.by}`
   }
   return GATE_RESULT_LABEL[gate.result]
+}
+
+/** Content rules, "Status names" — Run header's own status vocabulary: "Running · Blocked ·
+ * Awaiting review · Approved · Changes requested · Rejected." These exact labels, everywhere. */
+const RUN_STATUS_LABEL: Record<RunStatus, string> = {
+  running: 'Running',
+  blocked: 'Blocked',
+  awaiting_review: 'Awaiting review',
+  approved: 'Approved',
+  changes_requested: 'Changes requested',
+  rejected: 'Rejected',
+}
+
+export function formatRunStatusLabel(status: RunStatus): string {
+  return RUN_STATUS_LABEL[status]
+}
+
+/**
+ * Content rules, "Time": "Show the time zone once, in the run header." A short abbreviation
+ * (e.g. "UTC"), not the full IANA name — that's shown in the header's own hidden detail
+ * instead, since it's not needed at a glance every time a clock time is shown.
+ */
+export function formatTimeZoneLabel(now: Date = new Date()): string {
+  const part = new Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
+    .formatToParts(now)
+    .find((p) => p.type === 'timeZoneName')
+  return part?.value ?? ''
 }
 
 /**

@@ -18,6 +18,18 @@ export function isError(event: TimelineEvent): boolean {
   return event.type === 'error' || event.severity === 'error'
 }
 
+/**
+ * Resolves a list of evidence ids (a `PolicyGate.evidenceIds` or a summary sentence's
+ * `evidenceIds` — both point into the timeline the same way) to the actual events. Shared by
+ * `lib/gates.ts` and `lib/summary.ts` rather than duplicated, since it's the identical lookup
+ * both regions need. An id that doesn't resolve to a real event is silently dropped — a
+ * dangling id is a data problem to fix in the fixture, not something to explain to a reviewer.
+ */
+export function resolveEvidenceIds(ids: string[], timeline: TimelineEvent[]): TimelineEvent[] {
+  const byId = new Map(timeline.map((event) => [event.id, event]))
+  return ids.map((id) => byId.get(id)).filter((event): event is TimelineEvent => event != null)
+}
+
 export interface TimelineShape {
   total: number
   errors: number

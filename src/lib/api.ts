@@ -62,10 +62,16 @@ export interface GetRunOptions {
   /** Overrides the default artificial delay, in ms. Pass a large value to hold a story or
    * test in its loading state on purpose. */
   delayMs?: number
+  /** Throws `NetworkError` instead of completing, to test failure handling — see Content
+   * rules, "Empty and error states": "Could not load this run. The connection timed out.
+   * Retry." Mirrors `SubmitDecisionOptions.simulateNetworkError` below. */
+  simulateNetworkError?: boolean
 }
 
 export async function getRun(id: string, options: GetRunOptions = {}): Promise<Run> {
   await delay(options.delayMs ?? DEFAULT_DELAY_MS)
+
+  if (options.simulateNetworkError) throw new NetworkError()
 
   const run = store[id]
   if (!run) throw new NotFoundError(id)

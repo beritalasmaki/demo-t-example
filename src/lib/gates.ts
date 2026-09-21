@@ -1,3 +1,4 @@
+import { resolveEvidenceIds } from './timeline'
 import type { GateResult, PolicyGate, TimelineEvent } from './types'
 
 /**
@@ -28,15 +29,11 @@ export function sortGates(gates: PolicyGate[]): PolicyGate[] {
  * "links into the timeline or artefacts"). This resolves them to the actual events, which is
  * what "what broke it", the reason a gate is `unknown`, and the evidence list itself all turn
  * out to be — the fixtures encode all three as a linked timeline event's `detail`, not as a
- * separate field on `PolicyGate`. Ids that don't resolve to a real event are silently dropped
- * rather than surfaced as an error: a dangling id is a data problem to fix in the fixture, not
- * something to explain to a reviewer.
+ * separate field on `PolicyGate`. See `resolveEvidenceIds` in `lib/timeline.ts` for how
+ * dangling ids are handled.
  */
 export function resolveEvidence(gate: PolicyGate, timeline: TimelineEvent[]): TimelineEvent[] {
-  const byId = new Map(timeline.map((event) => [event.id, event]))
-  return gate.evidenceIds
-    .map((id) => byId.get(id))
-    .filter((event): event is TimelineEvent => event != null)
+  return resolveEvidenceIds(gate.evidenceIds, timeline)
 }
 
 /**

@@ -39,6 +39,127 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · Decision: DecisionBar, DecisionDialog
+
+**Goal**
+Build Region 6 — the three actions, the sign-off tick, submit validation, a failed submit, and
+Scenario S5's conflict — composed into `RunReviewPage`.
+
+**What changed**
+- `src/features/run/DecisionBar.tsx` (+ stories + test) — the three actions (equal visual
+  weight, no brand colour), the sign-off checkbox, and the post-decision view with a live
+  undo countdown.
+- `src/features/run/DecisionDialog.tsx` (+ stories + test) — the confirm/reason modal:
+  approve's confirmation text, the reason prompt and its validation for the other two,
+  submit's error state, and the conflict state.
+- `src/components/Modal.tsx`, `src/components/Checkbox.tsx` (+ stories + tests) — generic
+  pieces `DecisionBar`/`DecisionDialog` are built from.
+- `src/lib/decision.ts` (+ test) — `undoWindow`, the fixed 10-minute policy from
+  docs/DECISIONS.md 0003, finally given code.
+- `src/lib/gates.ts` — `gateAcknowledgement`; `src/lib/format.ts` — `formatDuration`,
+  `formatSignOffMessage`.
+- `src/lib/types.ts`, the three fixtures — `Run.revision` (docs/DECISIONS.md, 0011).
+- `src/lib/api.ts` — unchanged; `submitDecision`'s existing `simulateNetworkError`/
+  `simulateConflict` options were exactly what this needed.
+- `src/features/run/RunReviewPage.tsx` — composes `DecisionBar`; holds the run in local state
+  so a decision or a conflict updates the screen immediately, without a refetch.
+- `docs/DECISIONS.md` 0011 (the revision field) and 0012 (S5 scoping, as asked).
+
+**Steps, in order**
+1. Read `AGENTS.md`, `docs/spec-review-screen.md`, `lib/api.ts`, `lib/types.ts`, `lib/gates.ts`
+   and the fixtures fresh; found `Run` had no `revision` field to show in the confirmation
+   text, and no existing helper for the undo window or the sign-off counts. Presented a plan
+   naming these as judgment calls and got it approved before writing code.
+2. Built the `lib` layer first: `Run.revision` (+ fixture values), `gateAcknowledgement`,
+   `formatDuration`, `formatSignOffMessage`, `lib/decision.ts`'s `undoWindow` — each with its
+   own test before touching any component.
+3. Built `Modal` and `Checkbox` in `components/`. `Modal`'s tests needed a rewrite mid-way:
+   jsdom has no `HTMLDialogElement` methods at all (`showModal`/`close`/`show` are all
+   `undefined` — confirmed directly with a throwaway jsdom script), so `Modal` feature-detects
+   them and sets the `open` attribute directly as a fallback (otherwise a closed `<dialog>` has
+   no accessible role in jsdom, and every test render would throw before that even mattered).
+4. Built `DecisionDialog`, then `DecisionBar`, then composed `DecisionBar` into
+   `RunReviewPage`, each with tests written against real `lib/api.ts` calls (`delayMs: 0`,
+   `simulateNetworkError`, `simulateConflict`) rather than a mocked module — the same choice
+   `RunReviewPage`'s own tests already made.
+5. `npm run check` — fixed two `react-hooks` lint errors in `useRun.ts`-adjacent code:
+   `react-hooks/set-state-in-effect` on a synchronous `setState` inside `handleSubmit`'s
+   effect-adjacent code, and a misused-promise warning from passing an `async` function
+   straight to `onClick` (wrapped in `() => void handleSubmit()`).
+6. Storybook stories for every listed state (`DecisionBar`: no/unticked/ticked
+   acknowledgement, decided; `DecisionDialog`: approve, request-changes and reject each empty
+   and filled, network failure, conflict) — screenshotted via a built Storybook served
+   locally, light and dark. The failure/conflict states use a new `initialState` prop
+   (and `initialReason` for the filled ones) so they render declaratively, the same "mainly
+   for stories and tests" pattern as `Timeline.defaultActiveTypes`.
+7. Ran the real app (`npm run dev`) and drove it with Playwright/Node scripts — and this is
+   where it stopped being a formality. See "Why" below: two real bugs, invisible to every test
+   and every story so far, only showed up here.
+8. Fixed both (see below), re-ran `npm run check` (still green — neither fix changed any
+   test-observable behavior, since RTL's `render` doesn't use `StrictMode` and jsdom's
+   `<dialog>` never really closes itself), then re-ran the full click-through verification
+   clean: sign-off gate, approve, request changes (empty blocked, then filled), the
+   already-decided view, Escape-to-close, and focus moving into the dialog on open.
+
+**Why it was done this way**
+- **Two bugs only a real, `StrictMode`-wrapped browser could catch.** `src/main.tsx` wraps the
+  app in `<StrictMode>`, which double-invokes every effect's mount/cleanup/mount in
+  development — something React Testing Library's `render` does not do, and something jsdom's
+  nonexistent `HTMLDialogElement` couldn't have exercised even if it did. Both bugs were real,
+  not test artifacts:
+  1. `Modal`'s cleanup called `dialog.close()` to reset state before `StrictMode`'s replayed
+     mount. `close()` fires its own `'close'` event as a separately queued task, confirmed by
+     patching `HTMLDialogElement.prototype` before load and logging every call: the queued
+     event from the *first* mount's cleanup arrived *after* the second mount had already
+     attached a fresh listener, so the teardown's own artificial close was mistaken for a real
+     one — every dialog closed itself immediately after opening. Fixed by setting the `open`
+     attribute directly in cleanup instead, which resets the same state without dispatching
+     the event.
+  2. `DecisionDialog` tracked "am I still mounted" with `mountedRef.current = false` set only
+     in an effect's cleanup. Under `StrictMode`'s replay, that cleanup fires once right after
+     the first mount and is never undone, leaving the flag permanently `false` — so every real
+     `submitDecision` result was silently discarded by the `if (!mountedRef.current) return`
+     guard meant to protect against exactly the opposite situation (a real unmount). Confirmed
+     by watching the submit button reach its disabled "submitting" state and then simply never
+     leave it. Fixed by also setting the ref back to `true` at the start of the same effect.
+  Neither bug could have been caught by the unit tests, the Storybook screenshots, or even a
+  careful code review — both needed an actual click, in an actual browser, with `StrictMode`
+  actually on. This is the same lesson `--color-border`'s probe-build and the shadcn-bridge
+  check already taught twice: verify by actually running it, not by reading the source and
+  reasoning that it should work.
+- **`Tag`/`StatusBadge` precedent extended without change.** Neither action button nor the
+  decided-view text needed a new token — everything here is neutral (`border-border`,
+  `surface-raised`, `text-primary`), same reasoning as 0010.
+- **Real `lib/api.ts` calls in stories and tests, not a mock.** Consistent with every prior
+  session's choice for this codebase; see `DecisionDialog.stories.tsx`'s own comment for why
+  the plain success path isn't one of the committed stories.
+
+**How to do this by hand**
+Same shape as prior sessions: read the spec section, list every state, build bottom-up
+(`lib` → `components` → `features/run`), a story per state. The one genuinely new step this
+session: after everything passes in isolation, actually run the real app in a real browser
+with React's Strict Mode on (the default for `npm run dev`) and click every path end to end —
+don't stop at "the tests pass and the screenshots look right."
+
+**Verification**
+`npm run check` (30 files, 170 tests) green throughout; `prettier --check .` clean except the
+pre-existing, unrelated `README.md` warning (not touched this session). Storybook screenshots
+for every listed state, light and dark. Real dev-server + Playwright verification, after fixing
+the two bugs above: sign-off tick correctly blocks and unblocks Approve on `run-blocked`'s real
+gates; a full approve round trip on `run-blocked` and a full request-changes round trip
+(empty-blocked, then filled) on `run-clean` both actually complete and show the decided view;
+`run-messy`'s pre-existing decision shows its live countdown; Escape closes the dialog and
+focus moves into it on open (both native `<dialog>` behaviors no jsdom test could confirm).
+
+**Open questions / next**
+- Confidence (Region 5) is the only region left unbuilt.
+- The full (passive) form of Scenario S5 is deliberately out of scope — see
+  docs/DECISIONS.md, 0012.
+- `Run.revision` is currently fixed per fixture; nothing yet models it changing after a
+  decision (the deeper staleness question 0012 also scopes out).
+
+---
+
 ### 2026-09-21 · Page composition: RunReviewPage, RunHeader, RunSummary, useRun
 
 **Goal**

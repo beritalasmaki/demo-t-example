@@ -6,6 +6,64 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0012 · Passive detection of a conflicting decision is out of scope for v1
+
+**Context.** Scenario S5 ("Run decided by another reviewer during review") describes two
+different moments a conflict can be caught: passively, while a reviewer is just reading the
+screen and someone else decides in the background; and actively, at the moment this reviewer
+tries to submit their own decision and finds one is already recorded. `lib/api.ts` only
+supports the second: `submitDecision` throws `DecisionConflictError` if `run.decision` is
+already set. There is nothing to poll or subscribe to that would let `RunReviewPage` notice a
+conflict while a reviewer is doing nothing but reading.
+
+**Options.** (a) Build only the active form (`DecisionDialog`'s conflict state), leaving the
+passive form for later. (b) Add polling to `useRun` (re-`getRun` on an interval, compare
+`decision`) so a background change surfaces even without a submit attempt. (c) Add a fake
+real-time channel (e.g. an event emitter in `lib/api.ts`) purely to simulate what a real
+backend's websocket or long-poll would eventually do.
+
+**Choice.** (a). (b) and (c) are both real, buildable features, but they're a distinct piece
+of work — deciding how often to poll, whether to interrupt a reviewer mid-read, how to surface
+a change that isn't a conflict yet (the run simply moved on) — and the task that motivated this
+session asked specifically for the conflict `submitDecision` already simulates. Building the
+passive form now, unasked, would be scope creep into a feature this app doesn't have the
+believable backend semantics for yet (AGENTS.md: "ask before... restructuring").
+
+**Consequence.** A reviewer who never clicks Approve/Request changes/Reject while someone else
+decides in the background sees nothing change on their screen until they act — at which point
+`DecisionDialog` catches it, exactly as the lighter form already does. The full S5 (a banner or
+similar appearing unprompted while reading) is genuinely unbuilt, not just untested; it belongs
+with whatever `useRun` needs when a real backend can push or be polled for changes.
+
+---
+
+## 0011 · `Run.revision` added to the data model
+
+**Context.** The approve confirmation ("Release revision *x* to *y*") and the post-decision
+view both need a real, sourced revision string. The spec's own data model only puts `revision`
+on `Decision` — set once a decision exists, too late for a confirmation dialog that has to
+show it *before* the reviewer decides anything. Non-negotiable 3 ("No claim without a source")
+rules out putting an unsourced or made-up value in that dialog.
+
+**Options.** (a) Add `revision: string` to `Run` itself. (b) Derive something revision-shaped
+from existing fields (e.g. `Run.id`) instead of adding one. (c) Leave the confirmation text
+without a concrete revision until a real backend supplies one.
+
+**Choice.** (a). (b) would show something in the revision's place that isn't actually a
+revision identifier — a different flavor of the same "invented" problem non-negotiable 3
+warns against, just one level removed. (c) fails Scenario S6 and the Buttons content rule
+outright, both of which give a concrete revision in their own example text. This mirrors
+0004's precedent exactly: `DecisionInput` needed a field the spec's `Decision` didn't have, and
+the fix there was the same — a small, deliberate, documented addition, not a workaround.
+
+**Consequence.** Every fixture now carries a `revision`; `run-messy`'s matches its already-
+recorded `decision.revision` exactly (`e91a4c`), since nothing has moved on since it was
+approved. A future run that changes revision after a decision was already made — the deeper
+form of staleness 0012 above scopes out — would need `Run.revision` and `Decision.revision` to
+be allowed to differ; nothing here prevents that, but nothing depends on it either yet.
+
+---
+
 ## 0010 · Run status and environment get a neutral `Tag`, not `StatusBadge`
 
 **Context.** `RunHeader` needs to show `RunStatus` (running/blocked/awaiting_review/approved/

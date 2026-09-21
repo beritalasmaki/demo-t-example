@@ -39,6 +39,116 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · Explicit type scale and spacing scale, applied across RunReviewPage
+
+**Goal**
+Replace the earlier vague "establish a type scale" / "consistent spacing rhythm" instructions
+with exact values, and apply them across every region `RunReviewPage` composes.
+
+**What changed**
+- `src/styles/tokens.css` — six `--text-*` tokens (page-title/section-heading/item-title/
+  body/meta/badge-label; font-size only, each documented with the weight and font it always
+  pairs with) inside `@theme`, so each is also a real Tailwind utility. Eight `--space-1`
+  through `--space-8` (4px base) as plain custom properties outside `@theme`, consumed via
+  arbitrary-value syntax — the same reasoning as the existing motion tokens.
+- `src/styles/README.md` — both scales documented with their values and the three named
+  spacing relationships (between regions, heading-to-content/between-list-items,
+  inside-one-item).
+- `src/app/App.tsx` — a literal `<h1>Agent run review</h1>` at `--text-page-title`, the page's
+  own constant identity (not data about a specific run, so it lives here, not in
+  `RunReviewPage`).
+- A `<h2 className="text-section-heading">` added to every region that didn't have one:
+  `RunSummary` ("Summary"), `PolicyGateList` ("Policy gates"), `Timeline` ("Audit log"),
+  `DecisionBar` ("Decision", in both its pre- and post-decision views). `RunHeader`'s system
+  name is now a real `<h2>` too, at the same size it already was. `RunReviewPage`'s `<section>`
+  wrappers use `aria-labelledby` pointing at these headings instead of a separate `aria-label`
+  — one place for each region's name, not two.
+- Every spacing value in every component `RunReviewPage` composes (including the shared
+  `components/` atoms it renders) — `gap`, `padding`, `margin` — replaced with a
+  `var(--space-N)` reference: `--space-7` between regions, `--space-3` for heading-to-content
+  and between list items, `--space-2` inside one item between its parts.
+- Every content text node in that same tree given one of the six type-scale roles, per the
+  mapping in `src/styles/README.md`. `StatusBadge` alone gets `--text-badge-label`; `Tag` and
+  `ToggleChip` keep their existing sizing (docs/DECISIONS.md, 0010 already treats them as a
+  different role from a status claim). Button and link labels are left alone too — none of
+  the six roles is "interactive control," and the closest, `--text-body`, is 400 weight
+  against every button's existing 500.
+
+**Steps, in order**
+1. Read `AGENTS.md`, `docs/spec-review-screen.md`, `src/styles/README.md`, `tokens.css`, and
+   every component under `RunReviewPage`'s tree. Presented a plan (which headings, which
+   spacing rule applies where, the two flagged judgment calls) and got it approved before
+   writing code.
+2. Added both token blocks to `tokens.css`, then verified Tailwind actually generates the six
+   `text-*` utilities and resolves the arbitrary-value `--space-*` references, the same
+   probe-build technique used for the shadcn-bridge work: a throwaway `src/tw-probe.tsx`
+   temporarily imported into `main.tsx`, `vite build`, grep the built CSS for
+   `.text-item-title{font-size:var(--text-item-title)}` and `gap:var(--space-3)`, then
+   deleted the probe and reverted `main.tsx`.
+3. Documented both scales in `src/styles/README.md`.
+4. Worked bottom-up through the composed tree: `App.tsx` (page title), then each region
+   component (heading + its own internal spacing/type), then the shared `components/` atoms
+   each region depends on (`Disclosure`, `IconText`, `Tag`, `StatusBadge`, `ToggleChip`,
+   `Checkbox`, `EvidenceLink`, `Modal`).
+5. `npm run check` — one real test failure: `RunReviewPage.test.tsx` queried
+   `getByRole('region', { name: 'Timeline' })`, which no longer matches now that the region's
+   accessible name comes from its own heading ("Audit log") instead of the old `aria-label`.
+   Updated the test to the new name.
+6. `npx prettier --write` on every touched file; `npm run check` green again.
+7. Screenshotted the composed `RunReviewPage` (`run-messy`) before and after, light and dark,
+   against the real dev server — plus `run-blocked` with a gate's disclosure open, to check
+   the evidence bullet list still renders correctly now that its `<ul>` is `flex flex-col`
+   (needed for the `--space-2` item gap; bullets are a property of each `<li>`'s own
+   `list-item` display, unaffected by the parent's `display: flex`, confirmed by looking, not
+   assumed).
+
+**Why it was done this way**
+- **Type tokens inside `@theme`, spacing tokens outside it.** `--text-*` is Tailwind's own
+  real font-size namespace, so putting the six sizes there gets clean utility classes
+  (`text-item-title`) for free. `--space-*` is not a namespace Tailwind recognizes (that one
+  is `--spacing-*`) — inventing a different prefix just to get auto-generated utilities would
+  have meant not using the exact names given ("use these, not your own judgment"), so these
+  stay plain custom properties consumed via arbitrary-value syntax, exactly like the existing
+  motion tokens already do for the identical reason.
+- **A token can't carry a weight or a font, only a component's class list can.** Every one of
+  the six sizes is documented with the weight/font it always pairs with, and every use in code
+  applies the full combination — never the size alone — so "decided once" actually holds
+  instead of silently drifting per instance.
+- **Pill padding rounded, not left alone.** `StatusBadge`/`Tag`/`ToggleChip`'s `px-2.5 py-1`
+  didn't match any of the eight values. The task states "no literal px values anywhere in
+  components" as a blanket rule, not scoped to just the four named relationships, so this was
+  rounded to `space-3`/`space-1` rather than left as a Tailwind number — a real, if small
+  (2px), visual change to three already-shipped, previously-screenshotted components, flagged
+  in the plan before making it.
+- **`Disclosure`'s evidence/artefact lists became `flex flex-col`.** They needed a
+  `--space-2` gap between items, which `gap` can't provide on a plain block list — verified
+  the bullet markers still render (a `display: flex` container doesn't affect its children's
+  own `list-item` display) by actually opening a gate's disclosure and looking, not by
+  assuming the CSS behaves as expected.
+
+**How to do this by hand**
+Read `src/styles/README.md`'s two new tables. For any new text, pick the role by what the
+words *are* (a region name → section-heading, a row's own title → item-title, a sentence →
+body, incidental detail → meta), not by what looks visually close to an existing size. For any
+new gap, pick by the *relationship* (between regions, region-to-content/list-to-list,
+part-to-part within one item), not by eyeballing a pixel value.
+
+**Verification**
+`npm run check` (30 files, 170 tests) green; `prettier --check .` clean except the
+pre-existing, unrelated `README.md` warning (not touched this session). Tailwind's utility
+generation verified with a probe build, not assumed. Before/after screenshots of the full
+composed `RunReviewPage`, light and dark, plus a gate's open disclosure to confirm the
+evidence bullet list survived becoming a flex container.
+
+**Open questions / next**
+- Confidence (Region 5) is still the only region left unbuilt — it will need its own
+  `--text-section-heading` from the start rather than retrofitted.
+- The type scale has no explicit role for interactive controls (buttons, links); they were
+  deliberately left on Tailwind's ordinary sizing this session. Worth a seventh named token if
+  a future session finds itself inventing ad hoc button sizes again.
+
+---
+
 ### 2026-09-21 · Decision: DecisionBar, DecisionDialog
 
 **Goal**

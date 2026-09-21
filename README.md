@@ -50,5 +50,8 @@ npm run build-storybook   # static Storybook build
 ## Status
 
 Scaffolding stage: the toolchain, design tokens and dependency-direction lint rule are in
-place; the review screen itself (`src/features/run/`) is not built yet. `docs/WORKLOG.md` has
-a session-by-session account of what has been done and why.
+place. 
+
+Design is still in process. Iteration going on currently. Storybook view page in planning too.
+
+

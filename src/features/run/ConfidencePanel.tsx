@@ -80,9 +80,18 @@ export function ConfidencePanel({ confidence, isLoading = false }: ConfidencePan
               <Disclosure
                 summary={
                   <div className="flex flex-col gap-[var(--space-2)]">
-                    <span className="text-item-title font-semibold font-body text-text-primary">
-                      {AREA_LABEL[area.area]}
-                    </span>
+                    <div className="flex items-center justify-between gap-[var(--space-3)]">
+                      <span className="text-item-title font-semibold font-body text-text-primary">
+                        {AREA_LABEL[area.area]}
+                      </span>
+                      {/* An at-a-glance addition, not a replacement for the full "Confidence
+                       * X% — basis" sentence below — same value, shown twice on purpose.
+                       * Neutral surface/border tokens, not a status colour: this isn't a
+                       * pass/fail claim, so it must not borrow StatusBadge's vocabulary. */}
+                      <span className="shrink-0 rounded-full border border-border-subtle bg-surface-raised px-[var(--space-3)] py-[var(--space-1)] text-meta font-normal font-body text-text-secondary">
+                        {formatConfidencePercent(area.value)}
+                      </span>
+                    </div>
                     {area.unverified.length > 0 && (
                       <div className="flex flex-col gap-[var(--space-1)]">
                         <span className="text-meta font-semibold font-body text-text-secondary">

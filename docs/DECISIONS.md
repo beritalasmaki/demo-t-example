@@ -6,6 +6,35 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0019 · Smooth scroll for section nav: CSS `scroll-behavior`, not `scrollIntoView`
+
+**Context.** AnchorNav's links (`#run-header-heading` etc.) jumped instantly. The ask was a
+smooth scroll on click, reduced-motion respected, plus `scroll-margin-top` on each heading if
+any sticky/fixed element would otherwise cover it after scrolling.
+
+**Options.** (a) `scroll-behavior: smooth` on `html` via CSS, gated behind
+`@media (prefers-reduced-motion: no-preference)`, relying on the browser's native anchor
+navigation. (b) A click handler per link calling
+`element.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })`.
+
+**Choice.** (a). AnchorNav's links are plain `<a href="#id">` with no other click behaviour —
+there is nothing for a handler to do that the browser doesn't already do given the CSS
+property, and no other programmatic scroll exists anywhere in the app for the site-wide
+`html` selector to affect unintentionally. The reduced-motion branch falls out of the media
+query for free (the property is simply never set, so the browser's own instant jump runs,
+not an animation that's merely shortened) rather than needing a JS `matchMedia` check.
+
+**Consequence — no `scroll-margin-top` added.** The one *conditional* part of the ask
+("if any nav/header element is sticky/fixed...") turned out not to apply: `AnchorNav` is
+sticky, but it's a side rail next to the content column (`flex items-start` in
+`RunReviewPage.tsx`), not a bar stacked above it — scrolling never tucks a region heading
+underneath it. Verified in a real browser (Playwright): `getComputedStyle(html).scrollBehavior`
+reads `smooth` under `no-preference` and `auto` under `reduce`, and a keyboard-activated
+(Enter, not click) nav link scrolls the page either way. If a fixed header is ever added
+above the content column, this is the entry to revisit.
+
+---
+
 ## 0018 · Disclosure's open/close animation: CSS grid-rows, not a measured-height overshoot
 
 **Context.** The request asked for a springy overshoot easing on open (`cubic-bezier(0.34,

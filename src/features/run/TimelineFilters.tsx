@@ -33,7 +33,11 @@ export function TimelineFilters({ activeTypes, onActiveTypesChange }: TimelineFi
   }
 
   return (
-    <div role="group" aria-label="Filter by event type" className="flex flex-wrap gap-2">
+    <div
+      role="group"
+      aria-label="Filter by event type"
+      className="flex flex-wrap gap-[var(--space-3)]"
+    >
       {ALL_TYPES.map((type) => (
         <ToggleChip
           key={type}

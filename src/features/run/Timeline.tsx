@@ -50,19 +50,31 @@ export function Timeline({
     new Set(defaultActiveTypes ?? ALL_TYPES),
   )
 
+  const heading = (
+    <h2 id="audit-log-heading" className="text-section-heading font-semibold text-text-primary">
+      Audit log
+    </h2>
+  )
+
   if (isLoading) {
     return (
-      <p role="status" className="text-text-secondary">
-        Loading the audit log…
-      </p>
+      <div className="flex flex-col gap-[var(--space-3)]">
+        {heading}
+        <p role="status" className="text-body font-normal font-body text-text-secondary">
+          Loading the audit log…
+        </p>
+      </div>
     )
   }
 
   if (events.length === 0) {
     return (
-      <p className="text-text-secondary">
-        No events yet. This run started {formatRelativeTime(startedAt)}.
-      </p>
+      <div className="flex flex-col gap-[var(--space-3)]">
+        {heading}
+        <p className="text-body font-normal font-body text-text-secondary">
+          No events yet. This run started {formatRelativeTime(startedAt)}.
+        </p>
+      </div>
     )
   }
 
@@ -70,8 +82,9 @@ export function Timeline({
   const { visible, forcedVisibleIds, hiddenCount } = filterTimeline(events, activeTypes)
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm text-text-secondary">
+    <div className="flex flex-col gap-[var(--space-3)]">
+      {heading}
+      <p className="text-meta font-normal font-body text-text-secondary">
         {shape.total} {pluralize(shape.total, 'step')} · {shape.errors}{' '}
         {pluralize(shape.errors, 'error')} · {shape.retries}{' '}
         {pluralize(shape.retries, 'retry', 'retries')}
@@ -80,11 +93,11 @@ export function Timeline({
       <TimelineFilters activeTypes={activeTypes} onActiveTypesChange={setActiveTypes} />
 
       {/* Acceptance criteria: "Filters state what is hidden and how many items that is." */}
-      <p aria-live="polite" className="text-sm text-text-secondary">
+      <p aria-live="polite" className="text-meta font-normal font-body text-text-secondary">
         {hiddenCount} {pluralize(hiddenCount, 'event')} hidden by the active filters.
       </p>
 
-      <ul className="flex max-h-96 flex-col gap-2 overflow-y-auto">
+      <ul className="flex max-h-96 flex-col gap-[var(--space-3)] overflow-y-auto">
         {visible.map((event) => (
           <TimelineEventRow
             key={event.id}

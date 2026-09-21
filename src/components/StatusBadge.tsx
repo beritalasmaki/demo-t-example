@@ -37,7 +37,7 @@ export function StatusBadge({ tone, label, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border bg-surface-raised px-2.5 py-1 text-sm font-medium text-text-primary',
+        'text-badge-label inline-flex items-center gap-[var(--space-2)] rounded-full border bg-surface-raised px-[var(--space-3)] py-[var(--space-1)] font-semibold font-heading text-text-primary',
         toneClassName,
         className,
       )}

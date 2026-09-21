@@ -27,8 +27,14 @@ import type { DecisionAction } from './DecisionDialog'
 const DEFAULT_REVIEWER = 'Jordan Ellis'
 
 const BUTTON_CLASSNAME =
-  'rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-text-primary ' +
+  'rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-2)] text-sm font-medium text-text-primary ' +
   'hover:border-text-secondary disabled:cursor-not-allowed disabled:opacity-50'
+
+const HEADING = (
+  <h2 id="decision-heading" className="text-section-heading font-semibold text-text-primary">
+    Decision
+  </h2>
+)
 
 export interface DecisionBarProps {
   run: Run
@@ -51,7 +57,12 @@ export function DecisionBar({
   const [acknowledged, setAcknowledged] = useState(defaultAcknowledged)
 
   if (run.decision) {
-    return <DecidedView decision={run.decision} />
+    return (
+      <div className="flex flex-col gap-[var(--space-3)]">
+        {HEADING}
+        <DecidedView decision={run.decision} />
+      </div>
+    )
   }
 
   const { failedCount, waivedCount, requiredGateIds } = gateAcknowledgement(run.gates)
@@ -59,36 +70,39 @@ export function DecisionBar({
   const canApprove = !needsAcknowledgement || acknowledged
 
   return (
-    <div className="flex flex-col gap-3">
-      {needsAcknowledgement && (
-        <Checkbox checked={acknowledged} onCheckedChange={setAcknowledged}>
-          {formatSignOffMessage(failedCount, waivedCount)}
-        </Checkbox>
-      )}
+    <div className="flex flex-col gap-[var(--space-3)]">
+      {HEADING}
+      <div className="flex flex-col gap-[var(--space-2)]">
+        {needsAcknowledgement && (
+          <Checkbox checked={acknowledged} onCheckedChange={setAcknowledged}>
+            {formatSignOffMessage(failedCount, waivedCount)}
+          </Checkbox>
+        )}
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() => setOpenAction('approved')}
-          disabled={!canApprove}
-          className={BUTTON_CLASSNAME}
-        >
-          Approve and release
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpenAction('changes_requested')}
-          className={BUTTON_CLASSNAME}
-        >
-          Request changes
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpenAction('rejected')}
-          className={BUTTON_CLASSNAME}
-        >
-          Reject run
-        </button>
+        <div className="flex flex-wrap gap-[var(--space-3)]">
+          <button
+            type="button"
+            onClick={() => setOpenAction('approved')}
+            disabled={!canApprove}
+            className={BUTTON_CLASSNAME}
+          >
+            Approve and release
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpenAction('changes_requested')}
+            className={BUTTON_CLASSNAME}
+          >
+            Request changes
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpenAction('rejected')}
+            className={BUTTON_CLASSNAME}
+          >
+            Reject run
+          </button>
+        </div>
       </div>
 
       {openAction && (
@@ -125,14 +139,16 @@ function DecidedView({ decision }: { decision: Decision }) {
   }, [undo.active])
 
   return (
-    <div className="flex flex-col gap-1 rounded-md border border-border-subtle bg-surface-raised p-4">
-      <p className="text-sm text-text-primary">
-        <span className="font-medium">{outcomeVerb(decision.outcome)}</span> by {decision.by} —{' '}
+    <div className="flex flex-col gap-[var(--space-2)] rounded-md border border-border-subtle bg-surface-raised p-[var(--space-4)]">
+      <p className="text-item-title font-semibold font-body text-text-primary">
+        <span className="font-semibold">{outcomeVerb(decision.outcome)}</span> by {decision.by} —{' '}
         {formatDateTime(decision.at)} ({formatRelativeTime(decision.at)})
       </p>
-      <p className="text-sm text-text-secondary">Revision {decision.revision}</p>
+      <p className="text-meta font-normal font-body text-text-secondary">
+        Revision {decision.revision}
+      </p>
       {undo.active && (
-        <p className="text-sm text-text-secondary" aria-live="polite">
+        <p className="text-meta font-normal font-body text-text-secondary" aria-live="polite">
           You can undo this for {formatDuration(undo.remainingMs)} more.
         </p>
       )}

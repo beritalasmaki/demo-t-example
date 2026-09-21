@@ -26,7 +26,7 @@ export function Disclosure({ summary, children, defaultOpen = false, className }
     >
       <summary
         className={cn(
-          'flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3',
+          'flex cursor-pointer list-none items-center justify-between gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)]',
           '[&::-webkit-details-marker]:hidden',
         )}
       >
@@ -36,7 +36,9 @@ export function Disclosure({ summary, children, defaultOpen = false, className }
           className="h-4 w-4 shrink-0 text-text-secondary transition-transform duration-[var(--motion-duration-fast)] [details[open]_&]:rotate-180"
         />
       </summary>
-      <div className="border-t border-border-subtle px-4 py-3">{children}</div>
+      <div className="border-t border-border-subtle px-[var(--space-4)] py-[var(--space-3)]">
+        {children}
+      </div>
     </details>
   )
 }

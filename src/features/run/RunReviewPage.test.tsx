@@ -17,7 +17,7 @@ describe('RunReviewPage', () => {
     expect(await screen.findByText(runClean.target.system)).toBeVisible()
     expect(screen.getByRole('region', { name: 'Summary' })).toBeVisible()
     expect(screen.getByRole('region', { name: 'Policy gates' })).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Timeline' })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'Audit log' })).toBeVisible()
     expect(screen.getByRole('region', { name: 'Decision' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Approve and release' })).toBeVisible()
   })

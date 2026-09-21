@@ -19,7 +19,7 @@ export function EvidenceLink({ href, label, count, className }: EvidenceLinkProp
     <a
       href={href}
       className={cn(
-        'text-sm text-primary underline decoration-1 underline-offset-2 hover:text-primary-hover',
+        'text-body font-normal font-body text-primary underline decoration-1 underline-offset-2 hover:text-primary-hover',
         className,
       )}
     >

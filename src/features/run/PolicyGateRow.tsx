@@ -34,38 +34,48 @@ export function PolicyGateRow({ gate, timeline, defaultOpen = false }: PolicyGat
       <Disclosure
         defaultOpen={defaultOpen}
         summary={
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-2)]">
             <StatusBadge tone={TONE_BY_RESULT[gate.result]} label={formatGateResultLabel(gate)} />
-            <span className="font-medium text-text-primary">{gate.name}</span>
-            <span className="text-sm text-text-secondary">{gate.plainLanguage}</span>
+            <span className="text-item-title font-semibold font-body text-text-primary">
+              {gate.name}
+            </span>
+            <span className="text-body font-normal font-body text-text-secondary">
+              {gate.plainLanguage}
+            </span>
           </div>
         }
       >
-        <div className="flex flex-col gap-3 text-sm">
+        <div className="flex flex-col gap-[var(--space-2)]">
           {/* The badge above already says "Failed" / "Not run" / etc. — this is the "why", not
            * a restatement of the "what". */}
-          {explanation && <p className="text-text-primary">{explanation}</p>}
+          {explanation && (
+            <p className="text-body font-normal font-body text-text-primary">{explanation}</p>
+          )}
 
           {gate.result === 'waived' && gate.waiver && (
-            <div className="rounded-md border border-status-waived bg-surface-raised p-3">
-              <p className="text-text-primary">
-                <span className="font-medium">Exception granted by {gate.waiver.by}</span> on{' '}
+            <div className="rounded-md border border-status-waived bg-surface-raised p-[var(--space-3)]">
+              <p className="text-body font-normal font-body text-text-primary">
+                <span className="font-semibold">Exception granted by {gate.waiver.by}</span> on{' '}
                 {formatDateTime(gate.waiver.at)}.
               </p>
-              <p className="mt-1 text-text-primary">"{gate.waiver.reason}"</p>
+              <p className="text-body mt-[var(--space-1)] font-normal font-body text-text-primary">
+                "{gate.waiver.reason}"
+              </p>
             </div>
           )}
 
-          <p className="text-text-secondary">
+          <p className="text-meta font-normal font-body text-text-secondary">
             Evaluated by {gate.evaluatedBy} — {formatDateTime(gate.evaluatedAt)}
           </p>
 
-          <div>
-            <p className="font-medium text-text-primary">Evidence</p>
+          <div className="flex flex-col gap-[var(--space-2)]">
+            <p className="text-item-title font-semibold font-body text-text-primary">Evidence</p>
             {evidence.length === 0 ? (
-              <p className="text-text-secondary">No evidence available.</p>
+              <p className="text-body font-normal font-body text-text-secondary">
+                No evidence available.
+              </p>
             ) : (
-              <ul className="mt-1 list-disc pl-5 text-text-secondary">
+              <ul className="text-body flex list-disc flex-col gap-[var(--space-2)] pl-5 font-normal font-body text-text-secondary">
                 {evidence.map((event) => (
                   <li key={event.id}>{event.title}</li>
                 ))}

@@ -17,7 +17,7 @@ export interface IconTextProps {
 
 export function IconText({ icon: Icon, children, iconClassName, className }: IconTextProps) {
   return (
-    <span className={cn('inline-flex items-center gap-1.5', className)}>
+    <span className={cn('inline-flex items-center gap-[var(--space-2)]', className)}>
       <Icon aria-hidden className={cn('h-4 w-4 shrink-0', iconClassName)} />
       {children}
     </span>

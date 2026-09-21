@@ -21,7 +21,7 @@ export function ToggleChip({ pressed, onPressedChange, children, className }: To
       aria-pressed={pressed}
       onClick={() => onPressedChange(!pressed)}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-medium transition-colors',
+        'inline-flex items-center gap-[var(--space-2)] rounded-full border px-[var(--space-3)] py-[var(--space-1)] text-sm font-medium transition-colors',
         `duration-[var(--motion-duration-fast)]`,
         pressed
           ? 'border-primary bg-primary text-primary-foreground'

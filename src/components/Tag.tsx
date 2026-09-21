@@ -20,7 +20,7 @@ export function Tag({ icon, children, className }: TagProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface-raised px-2.5 py-1 text-sm font-medium text-text-primary',
+        'inline-flex items-center gap-[var(--space-2)] rounded-full border border-border-subtle bg-surface-raised px-[var(--space-3)] py-[var(--space-1)] text-sm font-medium text-text-primary',
         className,
       )}
     >

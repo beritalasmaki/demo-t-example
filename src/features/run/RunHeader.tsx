@@ -67,10 +67,12 @@ export function RunHeader({ run }: RunHeaderProps) {
   const zone = formatTimeZoneLabel()
 
   return (
-    <header className="flex flex-col gap-3">
+    <header className="flex flex-col gap-[var(--space-3)]">
       {/* First tier — never scrolled to, never hidden behind a disclosure. */}
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-lg font-semibold text-text-primary">{run.target.system}</span>
+      <div className="flex flex-wrap items-center gap-[var(--space-3)]">
+        <h2 className="text-section-heading font-semibold text-text-primary">
+          {run.target.system}
+        </h2>
         <Tag icon={ENVIRONMENT_ICON[run.target.environment]}>
           {ENVIRONMENT_LABEL[run.target.environment]}
         </Tag>
@@ -79,12 +81,15 @@ export function RunHeader({ run }: RunHeaderProps) {
 
       {/* Second tier — a separate row from the first, so a long initiative name can truncate
        * without any risk of clipping the environment or status above it. */}
-      <div className="flex min-w-0 flex-col gap-1 text-sm text-text-secondary">
-        <p className="min-w-0 truncate" title={run.initiative}>
+      <div className="flex min-w-0 flex-col gap-[var(--space-2)]">
+        <p
+          className="text-body min-w-0 truncate font-normal font-body text-text-secondary"
+          title={run.initiative}
+        >
           <span className="text-text-primary">{run.initiative}</span> — requested by{' '}
           {run.requestedBy}
         </p>
-        <p>
+        <p className="text-meta font-normal font-body text-text-secondary">
           Started {formatDateTime(run.startedAt)} ({formatRelativeTime(run.startedAt)})
           {zone && ` ${zone}`}
           {run.finishedAt && (
@@ -96,9 +101,16 @@ export function RunHeader({ run }: RunHeaderProps) {
         </p>
       </div>
 
-      {/* Hidden until opened. */}
-      <Disclosure summary={<span className="text-sm text-text-secondary">Run details</span>}>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+      {/* Hidden until opened. --text-item-title, not a larger size — must not visually
+       * compete with real content when collapsed. */}
+      <Disclosure
+        summary={
+          <span className="text-item-title font-semibold font-body text-text-secondary">
+            Run details
+          </span>
+        }
+      >
+        <dl className="text-meta grid grid-cols-[auto_1fr] gap-x-[var(--space-2)] gap-y-[var(--space-3)] font-normal font-body">
           <dt className="text-text-secondary">Agent</dt>
           <dd className="text-text-primary">
             {run.agent.name} {run.agent.version}

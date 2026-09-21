@@ -13,24 +13,41 @@ export interface PolicyGateListProps {
   isLoading?: boolean
 }
 
+const HEADING = (
+  <h2 id="policy-gates-heading" className="text-section-heading font-semibold text-text-primary">
+    Policy gates
+  </h2>
+)
+
 export function PolicyGateList({ gates, timeline, isLoading = false }: PolicyGateListProps) {
   if (isLoading) {
     return (
-      <p role="status" className="text-text-secondary">
-        Loading policy checks…
-      </p>
+      <div className="flex flex-col gap-[var(--space-3)]">
+        {HEADING}
+        <p role="status" className="text-body font-normal font-body text-text-secondary">
+          Loading policy checks…
+        </p>
+      </div>
     )
   }
 
   if (gates.length === 0) {
-    return <p className="text-text-secondary">No policy checks yet.</p>
+    return (
+      <div className="flex flex-col gap-[var(--space-3)]">
+        {HEADING}
+        <p className="text-body font-normal font-body text-text-secondary">No policy checks yet.</p>
+      </div>
+    )
   }
 
   return (
-    <ul className="flex flex-col gap-2">
-      {sortGates(gates).map((gate) => (
-        <PolicyGateRow key={gate.id} gate={gate} timeline={timeline} />
-      ))}
-    </ul>
+    <div className="flex flex-col gap-[var(--space-3)]">
+      {HEADING}
+      <ul className="flex flex-col gap-[var(--space-3)]">
+        {sortGates(gates).map((gate) => (
+          <PolicyGateRow key={gate.id} gate={gate} timeline={timeline} />
+        ))}
+      </ul>
+    </div>
   )
 }

@@ -139,13 +139,16 @@ export function DecisionDialog({
   return (
     <Modal title={TITLE[action]} onClose={onClose}>
       {action === 'approved' ? (
-        <p className="text-sm text-text-primary">
+        <p className="text-body font-normal font-body text-text-primary">
           Release revision {revision} to {environment}? You can undo this for {UNDO_WINDOW_MINUTES}{' '}
           minutes.
         </p>
       ) : (
-        <div className="flex flex-col gap-2">
-          <label htmlFor="decision-reason" className="text-sm font-medium text-text-primary">
+        <div className="flex flex-col gap-[var(--space-2)]">
+          <label
+            htmlFor="decision-reason"
+            className="text-item-title font-semibold font-body text-text-primary"
+          >
             {reasonPrompt}
           </label>
           <textarea
@@ -153,24 +156,24 @@ export function DecisionDialog({
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             rows={4}
-            className="rounded-md border border-border bg-surface p-2 text-sm text-text-primary"
+            className="text-body rounded-md border border-border bg-surface p-[var(--space-2)] font-normal font-body text-text-primary"
           />
         </div>
       )}
 
       {state.status === 'error' && (
-        <p role="alert" className="text-sm text-text-primary">
+        <p role="alert" className="text-body font-normal font-body text-text-primary">
           Could not submit this decision. {state.message}
         </p>
       )}
 
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-[var(--space-3)]">
         <CancelButton onClick={onClose}>Cancel</CancelButton>
         <button
           type="button"
           onClick={() => void handleSubmit()}
           disabled={!canSubmit}
-          className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-text-primary disabled:opacity-50"
+          className="rounded-md border border-border px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium text-text-primary disabled:opacity-50"
         >
           {TITLE[action]}
         </button>
@@ -184,7 +187,7 @@ function CancelButton({ onClick, children }: { onClick: () => void; children: Re
     <button
       type="button"
       onClick={onClick}
-      className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-text-primary"
+      className="rounded-md border border-border px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium text-text-primary"
     >
       {children}
     </button>
@@ -206,24 +209,28 @@ function ConflictNotice({
   reason?: string
 }) {
   return (
-    <div className="flex flex-col gap-3">
-      <p role="alert" className="text-sm text-text-primary">
+    <div className="flex flex-col gap-[var(--space-2)]">
+      <p role="alert" className="text-body font-normal font-body text-text-primary">
         Someone already decided this run.
       </p>
-      <p className="text-sm text-text-primary">
-        <span className="font-medium">{formatRunStatusLabel(decision.outcome)}</span> by{' '}
+      <p className="text-item-title font-semibold font-body text-text-primary">
+        <span className="font-semibold">{formatRunStatusLabel(decision.outcome)}</span> by{' '}
         {decision.by} — {formatDateTime(decision.at)} ({formatRelativeTime(decision.at)}).
       </p>
-      <p className="text-sm text-text-secondary">
+      <p className="text-body font-normal font-body text-text-secondary">
         Your {ACTION_NOUN[action]} was not submitted and was not applied on top of theirs.
       </p>
       {reason && (
-        <div>
-          <p className="text-sm font-medium text-text-primary">What you had written</p>
-          <p className="whitespace-pre-wrap text-sm text-text-secondary">{reason}</p>
+        <div className="flex flex-col gap-[var(--space-1)]">
+          <p className="text-item-title font-semibold font-body text-text-primary">
+            What you had written
+          </p>
+          <p className="text-body whitespace-pre-wrap font-normal font-body text-text-secondary">
+            {reason}
+          </p>
         </div>
       )}
-      <p className="text-sm text-text-secondary">
+      <p className="text-body font-normal font-body text-text-secondary">
         You can read the recorded decision, or use the undo window if you still have the right to
         change it.
       </p>

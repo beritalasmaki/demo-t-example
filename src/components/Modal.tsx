@@ -66,15 +66,15 @@ export function Modal({ title, onClose, children, className }: ModalProps) {
       ref={dialogRef}
       aria-labelledby={titleId}
       className={cn(
-        'w-full max-w-md rounded-md border border-border-subtle bg-surface p-6 text-text-primary',
+        'w-full max-w-md rounded-md border border-border-subtle bg-surface p-[var(--space-5)] text-text-primary',
         'backdrop:bg-text-primary/40',
         className,
       )}
     >
-      <h2 id={titleId} className="text-lg font-semibold">
+      <h2 id={titleId} className="text-section-heading font-semibold">
         {title}
       </h2>
-      <div className="mt-4 flex flex-col gap-4">{children}</div>
+      <div className="mt-[var(--space-4)] flex flex-col gap-[var(--space-4)]">{children}</div>
     </dialog>
   )
 }

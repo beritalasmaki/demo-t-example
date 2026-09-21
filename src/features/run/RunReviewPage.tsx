@@ -59,18 +59,21 @@ export function RunReviewPage({ runId, getRunOptions, submitDecisionOptions }: R
   const run = decidedRun ?? state.run
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-[var(--space-7)]">
       <RunHeader run={run} />
-      <section aria-label="Summary">
+      {/* Each region renders its own --text-section-heading <h2> with a fixed id, and the
+       * <section> points at it via aria-labelledby rather than repeating the name in a
+       * separate aria-label — one place for the name, not two. */}
+      <section aria-labelledby="summary-heading">
         <RunSummary summary={run.summary} timeline={run.timeline} />
       </section>
-      <section aria-label="Policy gates">
+      <section aria-labelledby="policy-gates-heading">
         <PolicyGateList gates={run.gates} timeline={run.timeline} />
       </section>
-      <section aria-label="Timeline">
+      <section aria-labelledby="audit-log-heading">
         <Timeline events={run.timeline} startedAt={run.startedAt} />
       </section>
-      <section aria-label="Decision">
+      <section aria-labelledby="decision-heading">
         <DecisionBar
           run={run}
           onRunUpdated={setDecidedRun}

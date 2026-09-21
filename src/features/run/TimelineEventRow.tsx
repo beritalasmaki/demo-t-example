@@ -34,7 +34,8 @@ const ICON_BY_TYPE: Record<TimelineEvent['type'], ComponentType<{ className?: st
 
 /** The card look shared by an expandable and a plain row, so a 200-event list reads as one
  * consistent sequence regardless of which rows happen to have detail. */
-const ROW_CLASSNAME = 'rounded-md border border-border-subtle bg-surface px-4 py-3'
+const ROW_CLASSNAME =
+  'rounded-md border border-border-subtle bg-surface px-[var(--space-4)] py-[var(--space-3)]'
 
 export interface TimelineEventRowProps {
   event: TimelineEvent
@@ -58,15 +59,19 @@ export function TimelineEventRow({
       : 'text-text-secondary'
 
   const summary = (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <div className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-2)]">
       <IconText icon={Icon} iconClassName={iconClassName}>
-        <span className="text-text-primary">{event.title}</span>
+        <span className="text-item-title font-semibold font-body text-text-primary">
+          {event.title}
+        </span>
       </IconText>
-      <span className="text-sm text-text-secondary">
+      <span className="text-meta font-normal font-body text-text-secondary">
         {formatDateTime(event.at)} ({formatRelativeTime(event.at)})
       </span>
       {forcedVisible && (
-        <span className="text-xs text-text-secondary">Shown despite the active filters</span>
+        <span className="text-meta font-normal font-body text-text-secondary">
+          Shown despite the active filters
+        </span>
       )}
     </div>
   )
@@ -89,12 +94,14 @@ export function TimelineEventRow({
       {/* No className passed — Disclosure's own default (rounded-md border border-border-subtle
        * bg-surface) is exactly ROW_CLASSNAME; passing it again would just be redundant. */}
       <Disclosure defaultOpen={defaultOpen} summary={summary}>
-        <div className="flex flex-col gap-2 text-sm">
-          {event.detail && <p className="text-text-primary">{event.detail}</p>}
+        <div className="flex flex-col gap-[var(--space-2)]">
+          {event.detail && (
+            <p className="text-body font-normal font-body text-text-primary">{event.detail}</p>
+          )}
           {event.artefactIds && event.artefactIds.length > 0 && (
-            <div>
-              <p className="font-medium text-text-primary">Artefacts</p>
-              <ul className="mt-1 list-disc pl-5 text-text-secondary">
+            <div className="flex flex-col gap-[var(--space-2)]">
+              <p className="text-item-title font-semibold font-body text-text-primary">Artefacts</p>
+              <ul className="text-meta flex flex-col gap-[var(--space-2)] list-disc pl-5 font-normal font-body text-text-secondary">
                 {event.artefactIds.map((id) => (
                   <li key={id}>{id}</li>
                 ))}

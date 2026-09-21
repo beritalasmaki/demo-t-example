@@ -19,33 +19,52 @@ export interface RunSummaryProps {
   isLoading?: boolean
 }
 
+const HEADING = (
+  <h2 id="summary-heading" className="text-section-heading font-semibold text-text-primary">
+    Summary
+  </h2>
+)
+
 export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryProps) {
   if (isLoading) {
     return (
-      <p role="status" className="text-text-secondary">
-        Loading the summary…
-      </p>
+      <div className="flex flex-col gap-[var(--space-3)]">
+        {HEADING}
+        <p role="status" className="text-body font-normal font-body text-text-secondary">
+          Loading the summary…
+        </p>
+      </div>
     )
   }
 
   const sentences = resolveSummarySentences(summary, timeline)
 
   if (sentences.length === 0) {
-    return <p className="text-text-secondary">No summary available.</p>
+    return (
+      <div className="flex flex-col gap-[var(--space-3)]">
+        {HEADING}
+        <p className="text-body font-normal font-body text-text-secondary">No summary available.</p>
+      </div>
+    )
   }
 
   return (
-    <ul className="flex flex-col gap-2">
-      {sentences.map((sentence) => (
-        <li key={sentence.text} className="flex flex-wrap items-baseline gap-x-2">
-          <span className="text-text-primary">{sentence.text}</span>
-          <EvidenceLink
-            href={`#timeline-event-${sentence.events[0].id}`}
-            label="Evidence"
-            count={sentence.events.length}
-          />
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-[var(--space-3)]">
+      {HEADING}
+      <ul className="flex flex-col gap-[var(--space-3)]">
+        {sentences.map((sentence) => (
+          <li key={sentence.text} className="flex flex-wrap items-baseline gap-x-[var(--space-2)]">
+            <span className="text-body font-normal font-body text-text-primary">
+              {sentence.text}
+            </span>
+            <EvidenceLink
+              href={`#timeline-event-${sentence.events[0].id}`}
+              label="Evidence"
+              count={sentence.events.length}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

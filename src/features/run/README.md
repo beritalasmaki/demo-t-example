@@ -52,7 +52,9 @@ written the code: a compliance officer, a security lead, a product owner. Design
 ## Files
 
 - `RunReviewPage.tsx` — composes the regions: loading, not-found and failed-load states, then
-  `RunHeader`, `RunSummary`, `PolicyGateList` and `Timeline` once the run has loaded
+  `RunHeader`, `RunSummary`, `PolicyGateList`, `Timeline` and `DecisionBar` once the run has
+  loaded. Holds the run in local state so a decision (or a conflict) updates the screen
+  immediately, without a refetch
 - `useRun.ts` — loading, not-found and error handling via `lib/api`'s `getRun`. No
   stale-while-revalidating: nothing in `lib/api` yet signals that a run moved on during a
   read the way `submitDecision`'s `DecisionConflictError` does for a decision in flight
@@ -64,5 +66,9 @@ written the code: a compliance officer, a security lead, a product owner. Design
 - `Timeline.tsx`, `TimelineEventRow.tsx`, `TimelineFilters.tsx` — the audit trail. Named
   `TimelineEventRow`, not `TimelineEvent` as originally planned here: that name already
   belongs to `lib/types.ts`'s `TimelineEvent`, needed in the same file.
-- `ConfidencePanel.tsx` — confidence, reasoning, and what was not verified
-- `DecisionBar.tsx`, `DecisionDialog.tsx` — the decision, its reason and its consequences
+- `ConfidencePanel.tsx` — confidence, reasoning, and what was not verified (not built yet)
+- `DecisionBar.tsx` — the three actions (no brand colour on any of them — Scenario S2), the
+  sign-off tick for a failed or waived gate, and, once decided, who/when/revision and a live
+  undo countdown. `DecisionDialog.tsx` — the confirm-or-reason modal behind each action:
+  validation, a failed submit, and Scenario S5's lighter form (a conflicting decision caught
+  at the moment of submitting, not while passively reading — see docs/DECISIONS.md)

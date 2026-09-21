@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { NOT_FOUND_RUN_ID } from '../../lib/api'
@@ -11,13 +11,35 @@ describe('RunReviewPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Loading run')
   })
 
-  it('composes the header, summary, gates and timeline once the run loads', async () => {
+  it('composes the header, summary, gates, timeline and decision bar once the run loads', async () => {
     render(<RunReviewPage runId={runClean.id} getRunOptions={{ delayMs: 0 }} />)
 
     expect(await screen.findByText(runClean.target.system)).toBeVisible()
     expect(screen.getByRole('region', { name: 'Summary' })).toBeVisible()
     expect(screen.getByRole('region', { name: 'Policy gates' })).toBeVisible()
     expect(screen.getByRole('region', { name: 'Timeline' })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'Decision' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Approve and release' })).toBeVisible()
+  })
+
+  it('reflects a decision immediately, without a refetch', async () => {
+    const user = userEvent.setup()
+    render(
+      <RunReviewPage
+        runId={runClean.id}
+        getRunOptions={{ delayMs: 0 }}
+        submitDecisionOptions={{ delayMs: 0 }}
+      />,
+    )
+
+    await screen.findByText(runClean.target.system)
+    await user.click(screen.getByRole('button', { name: 'Approve and release' }))
+    const dialog = screen.getByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Approve and release' }))
+
+    const decisionRegion = screen.getByRole('region', { name: 'Decision' })
+    expect(await within(decisionRegion).findByText('Approved')).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Approve and release' })).not.toBeInTheDocument()
   })
 
   it('shows a plain not-found message for an id with no matching run', async () => {

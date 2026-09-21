@@ -39,6 +39,78 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · Undo button layout, smooth section-nav scroll, Confidence heading badge
+
+**Goal**
+Three small, independently-specified UI fixes: separate the Undo button from the countdown
+sentence in `DecisionBar`; smooth-scroll `AnchorNav`'s section-jump links; move each
+`ConfidencePanel` area's percentage onto its heading row as a neutral pill.
+
+**What changed**
+- `src/features/run/DecisionBar.tsx` — `DecidedView`'s undo row changed from a single
+  `flex-wrap` row (text and button as adjacent inline siblings) to a `flex-col` stack:
+  countdown text on its own line, `Undo` below it, left-aligned (`items-start`). No change to
+  `BUTTON_CLASSNAME` — same neutral border/background as `DecisionBar`'s other buttons.
+- `src/styles/index.css` — added `scroll-behavior: smooth` on `html`, scoped inside
+  `@media (prefers-reduced-motion: no-preference)`. No JS: AnchorNav's links are plain
+  `<a href="#id">`, and native anchor navigation already honours this property. No
+  `scroll-margin-top` added — see `docs/DECISIONS.md` 0019 for why the conditional in the
+  request ("if any nav/header element is sticky/fixed...") doesn't apply to this layout.
+- `src/features/run/ConfidencePanel.tsx` — each non-missing area's `Disclosure` summary now
+  opens with a `flex justify-between` row: the area name left, a `rounded-full
+  border-border-subtle bg-surface-raised` pill with the percentage right. The full "Confidence
+  X% — basis" sentence still renders below, unchanged — the pill is an at-a-glance addition,
+  not a replacement. "Not checked" (missing) areas render no badge, unchanged.
+
+**Steps, in order**
+1. Read the three requests against the current source (`DecisionBar.tsx`, `AnchorNav.tsx`,
+   `RunReviewPage.tsx`, `ConfidencePanel.tsx`, `index.css`) before changing anything, to check
+   which parts of each request already held true. Found the smooth-scroll request's own
+   sticky-header conditional didn't apply: `AnchorNav` is a side rail (`flex items-start`),
+   never stacked above the content column, so no heading ever ends up underneath it.
+2. Made the three edits directly — each was a small, precisely-specified change to a single
+   component, not new component surface, so this skipped formal Plan Mode.
+3. `npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, tests) — all
+   green; `DecisionBar.test.tsx`/`ConfidencePanel.test.tsx` query by role/text, not DOM
+   structure, so neither needed updating.
+4. Verified in a real, running browser (Playwright, `PLAYWRIGHT_CHROMIUM_EXECUTABLE` pointed
+   at this sandbox's installed Chromium): `getComputedStyle(html).scrollBehavior` reads
+   `smooth` under default emulation and `auto` under `reducedMotion: 'reduce'`; a
+   keyboard-activated (Enter) nav link scrolls the page under both; screenshots of the
+   Confidence and Decision regions in light and dark confirm the badge and the stacked undo
+   layout render as intended.
+
+**Why it was done this way**
+- Undo layout: stacked (button below text, left-aligned) rather than right-aligned on the
+  same row, to stay consistent with the rest of the decided-panel's block layout (outcome,
+  revision are all left-aligned, block-stacked) rather than introducing the only
+  right-edge-aligned element in that panel. This was the one real judgment call across the
+  three fixes — the request explicitly offered either layout.
+- Smooth scroll: CSS `scroll-behavior`, not a `scrollIntoView` click handler — see
+  `docs/DECISIONS.md` 0019 for the full reasoning (no other programmatic scroll in the app for
+  a site-wide property to affect unintentionally, and reduced-motion falls out of the media
+  query for free).
+- Confidence badge: reused `Tag`'s exact token combination
+  (`border-border-subtle`/`bg-surface-raised`/`rounded-full`) for the pill rather than
+  inventing a new visual treatment, but didn't reuse the `Tag` component itself — `Tag`
+  requires an icon, and a bare percentage pill doesn't want one.
+
+**How to do this by hand**
+Same as the steps above — no separate manual procedure; these are direct Tailwind class and
+JSX structure edits.
+
+**Verification**
+`npm run check` (36 test files / 198 tests, typecheck, lint, both custom browser-based
+checks) — all green. Manual Playwright pass: computed `scroll-behavior` under both motion
+preferences, keyboard-triggered nav scroll, and before/after screenshots of the Confidence
+and Decision regions in light and dark (not committed — screenshots aren't checked in, per
+AGENTS.md).
+
+**Open questions / next**
+None outstanding.
+
+---
+
 ### 2026-09-21 · Disclosure open/close animation
 
 **Goal**

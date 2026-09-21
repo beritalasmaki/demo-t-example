@@ -6,6 +6,57 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0014 · `--color-primary`/`--color-primary-foreground` were a self-reference cycle, not a safe mirror — correcting 0008
+
+**Context.** 0008 audited every bridge name against tokens.css and found one other exact-name
+overlap besides border: `primary`. It reasoned that was fine because "the bridge maps it to
+itself, which is only safe because both sides already agree on the value" — i.e.
+`--color-primary: var(--color-primary);` in the bridge, mirroring tokens.css's own
+`--color-primary: var(--violet-light);`. That reasoning was wrong, and 0008's own text above
+is left as it was written rather than edited to hide the mistake. Building the first real
+shadcn components (0013) and actually looking at the rendered result — not just the source —
+showed `bg-primary` painting nothing at all in light theme. Tailwind merges an `@theme` name
+and a same-named `@theme inline` name into one registry entry, the later (bridge) declaration
+winning outright, never layered on top of the earlier one. So the bridge's line wasn't
+"mirroring" anything at runtime — it was the *only* surviving declaration for that name, and
+it referenced its own name: a CSS custom-property cycle, which computes to nothing (per spec,
+its guaranteed-invalid value), silently. `--color-primary-foreground` had the identical bug.
+Worse, tokens.css's own `--color-focus-ring: var(--color-primary);` rode the same cycle,
+making `:focus-visible`'s outline colour invalid too — every keyboard focus ring on the site
+was invisible in light theme, the default theme, until this was found and fixed.
+
+**Options.** (a) Remove both self-referencing lines from the bridge, same fix as 0007/0008 —
+tokens.css's own declaration becomes the only registry entry for the name, nothing to collide
+with. (b) Keep the bridge lines but give them a real, different value pointing somewhere
+else. (c) Rename tokens.css's `primary`/`primary-foreground` to dodge shadcn's vocabulary
+entirely.
+
+**Choice.** (a). There is no version of redeclaring a colliding name in the bridge that is
+safe — not a different value (0007/0008's failure mode: silently wrong, not invalid) and not
+the name's own value either (this failure mode: silently invalid). The only fix that can't
+recreate either bug is to not redeclare the name at all. (c) is a bigger, more disruptive
+change for a collision (a) already resolves cleanly, and rejected here for the same reason
+0009 rejected it for border/accent.
+
+**Consequence.** `bg-primary`/`text-primary`/`bg-primary-foreground`/`text-primary-foreground`
+now resolve to tokens.css's real values in both themes, verified by a probe build and by
+`getComputedStyle` on the rendered app. `:focus-visible` is visible again in light theme,
+confirmed the same way, on a real focusable element, not just by reading the CSS. Every other
+bridge name was re-audited against tokens.css for this exact pattern (a name that collides at
+all, regardless of what value it's given); none of the remaining ones do.
+`scripts/check-theme-bridge.mjs` (0009) is rewritten: its "safe if the value mirrors the
+token's name" exception — exactly the reasoning 0008 used, and exactly what let this bug
+through unflagged for as long as it did — is gone; any colliding name is now an error, full
+stop. A second, independent check was added alongside it: build the real CSS and, in an
+actual browser, verify every semantic colour's `bg-*`/`text-*` utility actually paints its
+own colour, in light and both dark paths — the thing that would have caught this even if the
+static rule had missed it, and that also caught a synthetic mutual cycle between two
+non-colliding bridge names during verification (a case the static rule structurally cannot
+see). This makes `npm run check` depend on a real Chromium build; see `README.md` for the
+one-time `npx playwright install chromium` this now requires.
+
+---
+
 ## 0013 · Added the shadcn bridge's missing `border-color` preflight reset
 
 **Context.** Adding the first real shadcn components (Button, Checkbox, Dialog — fetched
@@ -164,6 +215,12 @@ updating if the bridge or tokens file's structure changed shape enough to break 
 That's an acceptable trade for how cheaply it runs and how exactly it targets the two bugs
 that already happened.
 
+**Superseded in part by 0014.** The "only valid if it mirrors that token's value exactly"
+rule above is exactly what missed the `primary`/`primary-foreground` self-reference cycle —
+mirroring by name is not safe, only omitting the colliding name is. The script no longer has
+that exception, and now also builds the real CSS and checks computed values in a browser,
+which a text-level regex structurally cannot do. See 0014 for the full account.
+
 ---
 
 ## 0008 · Removed the shadcn bridge's `--color-border` override
@@ -191,6 +248,15 @@ just read the source) rather than assume this was the only one: `primary` is the
 exact-name overlap, and it isn't a collision — the bridge maps it to itself, which is only
 safe because both sides already agree on the value. `secondary`, `muted`, `destructive`,
 `ring` and `input` don't collide, because none of them is also one of our own token names.
+
+**Correction (see 0014).** The claim above about `primary` being safe was wrong, and this
+paragraph is left as originally written rather than edited to hide that. The bridge mapping
+it "to itself" wasn't a safe mirror — it was a self-referencing CSS custom-property cycle
+that silently computed to nothing in light theme, taking `--color-focus-ring` (and every
+`:focus-visible` outline on the site) down with it. The probe-build audit this paragraph
+describes checked whether the *value* looked right by reading the source; it didn't check
+whether the property actually resolved to anything at runtime, which is the only way this
+specific failure mode shows up. 0014 has the full account and the fix.
 
 ---
 

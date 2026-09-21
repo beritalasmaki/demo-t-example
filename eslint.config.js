@@ -95,6 +95,15 @@ export default tseslint.config(
     },
   },
   {
+    // check-theme-bridge.mjs's page.evaluate() callbacks run inside a real browser
+    // (Playwright), not Node — same reasoning as the browser+node combination test
+    // files get below.
+    files: ['scripts/check-theme-bridge.mjs'],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
+  {
     languageOptions: {
       parserOptions: {
         projectService: {

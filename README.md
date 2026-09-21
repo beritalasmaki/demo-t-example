@@ -6,7 +6,7 @@ View the screen: https://demo-t-example.vercel.app/
 
 ALSO Storybook view page coming soon!
 
-# What is "Agent run review"?
+# What is "Agent run review" aka. demo-t-example?
 A single, production-quality screen called the **agent run review view**. 
 
 An AI agent has produced a change to a customer's software. Before that change ships, a human reviewer needs to

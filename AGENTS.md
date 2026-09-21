@@ -26,8 +26,10 @@ Content spec: `docs/spec-review-screen.md`. Domain vocabulary: `src/features/run
 3. **No claim without a source.** Every number, status and confidence value on screen must
    come from data in the model, and must link to the evidence it came from. If a value is
    unknown, the UI says "unknown" — it never guesses or hides it.
-4. **Accessibility is part of "done".** Keyboard path for every action, visible focus,
-   contrast of at least 4.5:1 for text, status never carried by colour alone (icon + text).
+4. **Accessibility is a baseline, not a per-task audit.** Every screen needs a working
+   keyboard path and must never carry status by colour alone (icon + text). Full contrast
+   verification and a detailed accessibility pass happen once, as a dedicated review near
+   the end of the project — not repeated in full on every individual task.
 5. **No invented product facts.** Do not put real company names, customers, logos or
    claims into the UI. Sample data is clearly fictional.
 

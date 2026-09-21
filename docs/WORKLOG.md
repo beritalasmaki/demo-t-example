@@ -39,6 +39,129 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · Page composition: RunReviewPage, RunHeader, RunSummary, useRun
+
+**Goal**
+Compose the review screen for real: `RunReviewPage`, `RunHeader`, `RunSummary`, and the
+`useRun` hook wiring them to `lib/api`'s `getRun`, with `PolicyGateList` and `Timeline`
+composed into the same page — closing the open item from the Timeline session (its scroll
+bound was only proven in isolation, never against a real header above it).
+
+**What changed**
+- `src/features/run/useRun.ts` (+ test) — loading/not-found/error/success states over
+  `getRun`, with a `refetch` for the Content-rules "Retry" action.
+- `src/features/run/RunHeader.tsx` (+ stories + test) — system, environment and status always
+  visible; initiative and requester below that; agent, model, run id and time zone behind a
+  disclosure.
+- `src/features/run/RunSummary.tsx` (+ stories + test) — three to five sourced sentences,
+  each linking into the Timeline.
+- `src/features/run/RunReviewPage.tsx` (+ test) — composes all four regions, handling
+  loading/not-found/error once instead of in each region.
+- `src/components/Tag.tsx`, `src/components/EvidenceLink.tsx` (+ stories + tests) — see "Why"
+  below and `docs/DECISIONS.md`, 0010.
+- `src/lib/summary.ts` (+ test) — resolves summary sentences against the timeline, dropping
+  any with no real evidence; `src/lib/timeline.ts` gained `resolveEvidenceIds`, shared with
+  `lib/gates.ts`'s `resolveEvidence` rather than duplicated.
+- `src/lib/format.ts` — `formatRunStatusLabel`, `formatTimeZoneLabel`.
+- `src/lib/api.ts` — `GetRunOptions.simulateNetworkError`, mirroring the option
+  `submitDecision` already had; without it, "Could not load this run" was unreachable.
+- `src/features/run/TimelineEventRow.tsx` — each row now carries a stable
+  `id="timeline-event-<id>"`, so `RunSummary`'s evidence links have something real to point at.
+- `src/app/App.tsx` (+ test) — renders `RunReviewPage`, run selectable via `?run=<id>`
+  (defaults to `run-messy`), so all three fixtures and a bad id are reachable in a real
+  browser without adding a router.
+- READMEs: `src/lib/`, `src/features/run/`.
+
+**Steps, in order**
+1. Read `AGENTS.md`, `docs/spec-review-screen.md`, `lib/api.ts`, `lib/types.ts`,
+   `lib/format.ts`, `lib/gates.ts`, `lib/timeline.ts`, the three fixtures, `PolicyGateList`/
+   `PolicyGateRow`, `StatusBadge`/`IconText`/`Disclosure`/`ToggleChip`, `App.tsx`, and both
+   `.claude/skills/`. Presented a plan (files, judgment calls) and got it approved before
+   writing any code.
+2. Built the `lib` layer first: moved evidence-id resolution out of `gates.ts` into
+   `timeline.ts`'s `resolveEvidenceIds` (shared with the new `summary.ts`), added the two
+   `format.ts` helpers, added `simulateNetworkError` to `getRun`.
+3. Built `Tag` and `EvidenceLink` in `components/`, each with stories and tests.
+4. Added the anchor id to `TimelineEventRow`.
+5. Built `useRun`, `RunHeader`, `RunSummary`, `RunReviewPage` in that order, each with tests;
+   stories for `RunHeader` (all six statuses, all three environments, long-initiative
+   truncation) and `RunSummary` (three/five sentences, a dropped no-evidence sentence,
+   loading, all-dropped).
+6. Wired `App.tsx` to `RunReviewPage` with the `?run=` switch; rewrote `App.test.tsx`
+   (the old placeholder-shell test no longer applied).
+7. `npm run check` — one real failure: `useRun`'s effect called `setState({status:'loading'})`
+   synchronously on every run, which `react-hooks/set-state-in-effect` correctly flags as a
+   cascading-render risk. Fixed by moving the loading reset to render time, guarded by a
+   second `useState` holding the last-handled `runId:attempt` key (react.dev's own "adjusting
+   state when a prop changes" pattern) — a first attempt using a `useRef` for that guard was
+   also rejected by lint (`react-hooks/refs`: refs can't be read or written during render),
+   which is why it's plain state instead.
+8. `npx prettier --write` on every new/changed file; `npm run check` green again.
+9. `npx storybook build`, served it locally, and used `playwright screenshot` against the
+   built iframe URLs for every `RunHeader` and `RunSummary` story, light and dark.
+10. Ran the real app (`npm run dev`) against `?run=run-messy` and drove it with a short
+    Playwright/Node script (not just the CLI) to actually test the scroll composition: scrolled
+    the outer page to bring the Timeline's event list into view, then scrolled *inside* that
+    list via `el.scrollTop = ...` and read back `scrollTop`/`scrollHeight`/`clientHeight`, and
+    separately clicked a `RunSummary` evidence link and confirmed its target event scrolled
+    into the viewport. Killed both local servers afterward.
+11. Wrote `docs/DECISIONS.md` 0010 and this entry.
+
+**Why it was done this way**
+- **`Tag`, not `StatusBadge`, for run status and environment.** `StatusBadge`'s five tones are
+  `--color-status-*`, and both `tokens.css` and `src/styles/README.md` scope those tokens to
+  "a claim about a policy check" specifically — the same distinction the design system
+  already draws between accent and status colours. A run's workflow phase (running, approved,
+  ...) and its deployment environment are neither of those; reusing status colours for them
+  would visually conflate "this gate passed" with "this run was approved," which are
+  different claims made by different parties. `Tag` carries no colour semantics at all —
+  distinctness comes from the icon and the exact label — so nothing new needed adding to
+  `tokens.css` either. See `docs/DECISIONS.md`, 0010.
+- **Evidence links point into the Timeline for real**, not a restatement of ids. This was only
+  possible once the page actually composed `RunSummary` next to `Timeline` — before this
+  session, neither region had a reason to expose a stable DOM anchor.
+- **`getRun` needed a way to fail on purpose.** It could previously only ever succeed or throw
+  `NotFoundError`; there was no way to reach "Could not load this run. The connection timed
+  out. Retry." at all. `simulateNetworkError` mirrors the shape `submitDecision` already uses,
+  rather than inventing a different one.
+- **No stale-while-revalidating.** `getRun` has nothing like `submitDecision`'s
+  `DecisionConflictError` to signal a run moved on during a read. That's a Decision-region
+  (Scenario S5) concern, not built yet — `useRun` exposes `refetch` for Retry and nothing more,
+  rather than half-building a state nothing can trigger.
+- **`?run=` on `App.tsx`, not a hard-coded fixture.** Without it, only one of the three
+  fixtures would ever be reachable outside Storybook and tests, which would have made the
+  scroll-composition verification (the actual point of this task) impossible to do against
+  the real app rather than an isolated story.
+
+**How to do this by hand**
+Same shape as any other region: read the spec section, list every state, build with tokens,
+write the Storybook story per state, check both themes. The one part specific to this task —
+proving a scroll region behaves inside a real page, not just in isolation — has no by-hand
+equivalent beyond opening the real app in a browser, scrolling to the region, and watching
+whether the right part of the page moves.
+
+**Verification**
+`npm run check` (25 test files, 133 tests) green; `npx prettier --check .` clean except the
+pre-existing, unrelated `README.md` warning (not touched this session). Storybook stories for
+`RunHeader` and `RunSummary` screenshotted via a built Storybook served locally, light and
+dark. The Timeline scroll question was answered directly, not assumed: with `run-messy`
+composed under the real header/summary/gates, the timeline list's own bounding box stayed
+exactly `384px` tall (`max-h-96`) with independent internal scroll
+(`scrollHeight: 11736, clientHeight: 384`) regardless of the page's own scroll position or the
+real header above it — **the earlier assumption held; no fix was needed.** Also confirmed:
+clicking a `RunSummary` evidence link scrolls its target timeline event into view.
+
+**Open questions / next**
+- Confidence and Decision (Regions 5 and 6) are still not built — `RunReviewPage` composes
+  everything that exists so far and nothing more.
+- `useRun` has no stale-while-revalidating; when Decision is built and `submitDecision`'s
+  `DecisionConflictError` (Scenario S5) enters the page, `useRun` likely needs to grow a way
+  to react to a run changing under a reviewer who is still reading it.
+- `App.tsx`'s `?run=` switch is a stand-in for real routing, explicitly out of scope
+  (AGENTS.md); it should be replaced, not extended, once routing is actually added.
+
+---
+
 ### 2026-09-20 · Automated check for shadcn-bridge/token collisions
 
 **Goal**

@@ -6,6 +6,38 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0010 · Run status and environment get a neutral `Tag`, not `StatusBadge`
+
+**Context.** `RunHeader` needs to show `RunStatus` (running/blocked/awaiting_review/approved/
+changes_requested/rejected) and the target environment (dev/staging/production), both with
+"icon + text, never colour alone" (AGENTS.md non-negotiable 4). `StatusBadge` already does
+exactly that shape of thing for `GateResult` — but its five tones are wired to
+`--color-status-*`, and both `tokens.css` and `src/styles/README.md` scope those tokens
+specifically to "a claim about a policy check." Neither a workflow phase nor a deployment
+environment is that.
+
+**Options.** (a) Reuse `StatusBadge`, mapping each `RunStatus`/environment value onto the
+closest-feeling existing tone (e.g. `approved` → `success`, `rejected` → `danger`).
+(b) Add new tones (and new `--color-status-*` tokens) for the values `StatusBadge` doesn't
+already cover. (c) Build a colour-neutral `Tag` (icon + label, no tone) for anything that
+needs "icon + text" but isn't a policy-check claim.
+
+**Choice.** (c). (a) would visually conflate two different claims made by two different
+parties — "this policy check passed" and "this run was approved" are not the same statement,
+and `src/styles/README.md` already warns against exactly this kind of look-alike confusion for
+accent vs. status. (b) solves the confusion but violates AGENTS.md's design-system target ("a
+new screen can be built without adding a single new colour value") for a case that doesn't
+need a new colour at all — a workflow phase doesn't need to look like a pass/fail claim to be
+legible; an icon and an exact label are enough.
+
+**Consequence.** `Tag` (`src/components/`) is now the generic building block for "icon + text,
+no colour semantics" — reusable anywhere a status-shaped thing isn't actually a policy-check
+result. `StatusBadge` stays scoped to `GateResult` exactly as before. If a future region needs
+another non-policy status (e.g. something for `ConfidenceArea` or `Decision`), it should reach
+for `Tag`, not extend `StatusBadge`'s tone set.
+
+---
+
 ## 0009 · Shadcn-bridge/token collisions are now checked by a script, not by memory
 
 **Context.** 0007 (`--color-accent`) and 0008 (`--color-border`) were the same bug found

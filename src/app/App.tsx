@@ -12,12 +12,12 @@ function currentRunId(): string {
 
 export default function App() {
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
+    <main className="mx-auto max-w-5xl px-6 py-12">
       {/* The page's own constant identity — not data about the run being reviewed, so it
        * lives here rather than in RunReviewPage. font-heading comes from the h1 tag itself
        * (src/styles/index.css's base layer), so only the size and weight need stating. */}
       <h1 className="text-page-title mb-[var(--space-7)] font-bold text-text-primary">
-        Agent run review
+        Agent run review <span className="font-normal text-text-secondary">— Demo</span>
       </h1>
       <RunReviewPage runId={currentRunId()} />
     </main>

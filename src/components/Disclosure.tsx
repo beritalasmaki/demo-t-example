@@ -36,8 +36,31 @@ export function Disclosure({ summary, children, defaultOpen = false, className }
           className="h-4 w-4 shrink-0 text-text-secondary transition-transform duration-[var(--motion-duration-fast)] [details[open]_&]:rotate-180"
         />
       </summary>
-      <div className="border-t border-border-subtle px-[var(--space-4)] py-[var(--space-3)]">
-        {children}
+      {/*
+       * Native `<details>` applies `display: none` to its children the instant `open` goes
+       * false — before any CSS transition can run — so animating open/close means never
+       * letting the browser do that hiding itself. `open` still genuinely toggles (screen
+       * readers get the real expanded/collapsed state); the *visual* collapse is entirely
+       * this grid row animating between `0fr` and `1fr`, independent of `display`. The
+       * `overflow-hidden` div is what lets a grid item actually shrink past its content's own
+       * height down to the `0fr` track — a plain `<div>` with no `overflow` set can't.
+       * Opening gets a small, springy overshoot; closing stays quick and plain, per
+       * tokens.css's Motion block — deliberately not reused for status/decision motion.
+       */}
+      <div
+        className={cn(
+          'grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity]',
+          'duration-[var(--motion-duration-close)] ease-[var(--motion-ease-in)]',
+          '[details[open]_&]:grid-rows-[1fr] [details[open]_&]:opacity-100',
+          '[details[open]_&]:duration-[var(--motion-duration-open)]',
+          '[details[open]_&]:ease-[var(--motion-ease-spring)]',
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-border-subtle px-[var(--space-4)] py-[var(--space-3)]">
+            {children}
+          </div>
+        </div>
       </div>
     </details>
   )

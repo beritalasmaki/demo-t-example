@@ -1,5 +1,10 @@
+import { Bot, CheckSquare, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { ActorIcon } from '../../components/ActorIcon'
 import { Checkbox } from '../../components/Checkbox'
+import { IconText } from '../../components/IconText'
+import { RegionCard } from '../../components/RegionCard'
+import { isSystemActor } from '../../lib/actors'
 import type { SubmitDecisionOptions } from '../../lib/api'
 import { undoWindow } from '../../lib/decision'
 import {
@@ -31,9 +36,15 @@ const BUTTON_CLASSNAME =
   'hover:border-text-secondary disabled:cursor-not-allowed disabled:opacity-50'
 
 const HEADING = (
-  <h2 id="decision-heading" className="text-section-heading font-semibold text-text-primary">
-    Decision
-  </h2>
+  <>
+    <h2 id="decision-heading" className="text-section-heading font-semibold text-text-primary">
+      <IconText icon={CheckSquare}>Decision</IconText>
+    </h2>
+    <p className="text-meta font-normal font-body text-text-secondary">
+      Approve, request changes, or reject — always made by the human reviewer, never by the
+      agent.
+    </p>
+  </>
 )
 
 export interface DecisionBarProps {
@@ -58,10 +69,10 @@ export function DecisionBar({
 
   if (run.decision) {
     return (
-      <div className="flex flex-col gap-[var(--space-3)]">
+      <RegionCard className="flex flex-col gap-[var(--space-3)]">
         {HEADING}
-        <DecidedView decision={run.decision} />
-      </div>
+        <DecidedView run={run} decision={run.decision} onRunUpdated={onRunUpdated} />
+      </RegionCard>
     )
   }
 
@@ -70,7 +81,7 @@ export function DecisionBar({
   const canApprove = !needsAcknowledgement || acknowledged
 
   return (
-    <div className="flex flex-col gap-[var(--space-3)]">
+    <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {HEADING}
       <div className="flex flex-col gap-[var(--space-2)]">
         {needsAcknowledgement && (
@@ -124,11 +135,26 @@ export function DecisionBar({
           submitDecisionOptions={submitDecisionOptions}
         />
       )}
-    </div>
+    </RegionCard>
   )
 }
 
-function DecidedView({ decision }: { decision: Decision }) {
+/**
+ * Undo is real (it does put `run.decision` back to `undefined`, on screen, immediately) but
+ * local-only — there is no backend for it to reverse anything on. See docs/DECISIONS.md for
+ * why that's the deliberate scope, not a shortcut. Reuses `onRunUpdated`, the exact same
+ * mechanism `DecisionBar` already uses to apply a real decision or an S5 conflict — undoing
+ * isn't a different kind of state change from those, just one going the other way.
+ */
+function DecidedView({
+  run,
+  decision,
+  onRunUpdated,
+}: {
+  run: Run
+  decision: Decision
+  onRunUpdated: (updatedRun: Run) => void
+}) {
   const [now, setNow] = useState(() => new Date())
   const undo = undoWindow(decision, now)
 
@@ -138,18 +164,35 @@ function DecidedView({ decision }: { decision: Decision }) {
     return () => clearInterval(interval)
   }, [undo.active])
 
+  function handleUndo() {
+    onRunUpdated({ ...run, decision: undefined, status: 'awaiting_review' })
+  }
+
   return (
     <div className="flex flex-col gap-[var(--space-2)] rounded-md border border-border-subtle bg-surface-raised p-[var(--space-4)]">
       <p className="text-item-title font-semibold font-body text-text-primary">
-        <span className="font-semibold">{outcomeVerb(decision.outcome)}</span> by {decision.by} —{' '}
-        {formatDateTime(decision.at)} ({formatRelativeTime(decision.at)})
+        <span className="font-semibold">{outcomeVerb(decision.outcome)}</span> by{' '}
+        <span className="inline-flex items-center gap-[var(--space-2)]">
+          <ActorIcon icon={isSystemActor(decision.by) ? Bot : User} />
+          {decision.by}
+        </span>{' '}
+        — {formatDateTime(decision.at)} ({formatRelativeTime(decision.at)})
       </p>
       <p className="text-meta font-normal font-body text-text-secondary">
         Revision {decision.revision}
       </p>
-      {undo.active && (
-        <p className="text-meta font-normal font-body text-text-secondary" aria-live="polite">
-          You can undo this for {formatDuration(undo.remainingMs)} more.
+      {undo.active ? (
+        <div className="flex flex-wrap items-center gap-[var(--space-3)]">
+          <p className="text-meta font-normal font-body text-text-secondary" aria-live="polite">
+            You can undo this for {formatDuration(undo.remainingMs)} more.
+          </p>
+          <button type="button" onClick={handleUndo} className={BUTTON_CLASSNAME}>
+            Undo
+          </button>
+        </div>
+      ) : (
+        <p className="text-meta font-normal font-body text-text-secondary">
+          The undo window for this decision has closed.
         </p>
       )}
     </div>

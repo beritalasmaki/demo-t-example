@@ -1,3 +1,5 @@
+import { Filter } from 'lucide-react'
+import { IconText } from '../../components/IconText'
 import { ToggleChip } from '../../components/ToggleChip'
 import type { TimelineEvent } from '../../lib/types'
 
@@ -33,20 +35,28 @@ export function TimelineFilters({ activeTypes, onActiveTypesChange }: TimelineFi
   }
 
   return (
-    <div
-      role="group"
-      aria-label="Filter by event type"
-      className="flex flex-wrap gap-[var(--space-3)]"
-    >
-      {ALL_TYPES.map((type) => (
-        <ToggleChip
-          key={type}
-          pressed={activeTypes.has(type)}
-          onPressedChange={(pressed) => setTypeActive(type, pressed)}
-        >
-          {TYPE_LABEL[type]}
-        </ToggleChip>
-      ))}
+    <div className="flex flex-col gap-[var(--space-2)]">
+      <span
+        id="filter-logs-label"
+        className="text-meta font-semibold font-body uppercase tracking-wide text-text-secondary"
+      >
+        <IconText icon={Filter}>Filter logs</IconText>
+      </span>
+      <div
+        role="group"
+        aria-labelledby="filter-logs-label"
+        className="flex flex-wrap gap-[var(--space-3)]"
+      >
+        {ALL_TYPES.map((type) => (
+          <ToggleChip
+            key={type}
+            pressed={activeTypes.has(type)}
+            onPressedChange={(pressed) => setTypeActive(type, pressed)}
+          >
+            {TYPE_LABEL[type]}
+          </ToggleChip>
+        ))}
+      </div>
     </div>
   )
 }

@@ -34,6 +34,7 @@ and why dependencies only point one way.
 
 ```bash
 npm install
+npx playwright install chromium   # once — needed by npm run check's theme-bridge verification
 
 npm run dev              # start the app
 npm run storybook        # start Storybook, on components and design tokens

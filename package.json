@@ -17,12 +17,14 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "check:theme-bridge": "node scripts/check-theme-bridge.mjs",
-    "check": "npm run typecheck && npm run lint && npm run check:theme-bridge && npm run test"
+    "check:format-locale": "node scripts/check-format-locale.mjs",
+    "check": "npm run typecheck && npm run lint && npm run check:theme-bridge && npm run check:format-locale && npm run test"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.47.0",
+    "radix-ui": "^1.6.7",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwind-merge": "^3.7.0"
@@ -50,6 +52,7 @@
     "eslint-plugin-storybook": "^10.6.0",
     "globals": "^17.12.0",
     "jsdom": "^30.1.0",
+    "playwright": "^1.63.0",
     "prettier": "^3.9.8",
     "storybook": "^10.6.0",
     "tailwindcss": "^4.3.3",

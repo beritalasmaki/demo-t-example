@@ -6,6 +6,16 @@ import type { GateResult, PolicyGate, RunStatus } from './types'
  * component, so a screen never has to decide the wording for itself.
  */
 
+/**
+ * Every `Intl`/`toLocale*` call below must pass this explicitly, never `undefined`.
+ * `undefined` means "use the runtime's default locale" — which silently varies per browser
+ * and OS, not per this app's own design (this has now broken the same way twice: first
+ * 12-hour-vs-24-hour clock time, then relative-time strings rendering in Finnish —
+ * "7 kuukautta sitten" — on a machine set to that locale). `scripts/check-format-locale.mjs`
+ * enforces this mechanically as part of `npm run check`, not just by convention.
+ */
+const LOCALE = 'en'
+
 /** Content rules, "Status names" — the fixed label for each raw GateResult value. Does not
  * include the waiver's name (see `formatGateResultLabel`, which does) or the "Not run"
  * reason (see `explanationFor` in `lib/gates.ts`, which supplies it separately). */
@@ -49,7 +59,7 @@ export function formatRunStatusLabel(status: RunStatus): string {
  * instead, since it's not needed at a glance every time a clock time is shown.
  */
 export function formatTimeZoneLabel(now: Date = new Date()): string {
-  const part = new Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
+  const part = new Intl.DateTimeFormat(LOCALE, { timeZoneName: 'short' })
     .formatToParts(now)
     .find((p) => p.type === 'timeZoneName')
   return part?.value ?? ''
@@ -64,7 +74,7 @@ export function formatDateTime(iso: string, now: Date = new Date()): string {
   const date = new Date(iso)
   // The spec's own example ("14:32") is 24-hour. Locale-default AM/PM would silently drift
   // from that the moment this runs somewhere en-US isn't the assumed locale.
-  const time = date.toLocaleTimeString(undefined, {
+  const time = date.toLocaleTimeString(LOCALE, {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
@@ -73,7 +83,7 @@ export function formatDateTime(iso: string, now: Date = new Date()): string {
 
   if (isToday) return `${time} today`
 
-  const day = date.toLocaleDateString(undefined, {
+  const day = date.toLocaleDateString(LOCALE, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -89,7 +99,7 @@ const RELATIVE_UNITS: { unit: Intl.RelativeTimeFormatUnit; ms: number }[] = [
   { unit: 'minute', ms: 60 * 1000 },
 ]
 
-const relativeTimeFormat = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' })
+const relativeTimeFormat = new Intl.RelativeTimeFormat(LOCALE, { numeric: 'auto' })
 
 /** The "(8 minutes ago)" half of Content rules' Time format, on its own — pairs with
  * `formatDateTime` wherever both are shown together. */
@@ -130,4 +140,13 @@ export function formatSignOffMessage(failedCount: number, waivedCount: number): 
     clauses.push(`${waivedCount} ${waivedCount === 1 ? 'exception' : 'exceptions'}`)
   }
   return `I have seen ${clauses.join(' and ')}.`
+}
+
+/**
+ * Content rules, "Numbers": "No decimals: they would suggest a precision we do not have."
+ * `ConfidenceArea.value` is 0..1; this is the whole-percentage form every confidence value is
+ * shown as, always paired with its basis (`ConfidencePanel`), never shown alone.
+ */
+export function formatConfidencePercent(value: number): string {
+  return `${Math.round(value * 100)}%`
 }

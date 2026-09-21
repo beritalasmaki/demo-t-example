@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { PolicyGate } from './types'
 import {
+  formatConfidencePercent,
   formatDateTime,
   formatDuration,
   formatGateResultLabel,
@@ -98,5 +99,16 @@ describe('formatSignOffMessage', () => {
   it('omits a zero-count half instead of naming it', () => {
     expect(formatSignOffMessage(0, 2)).toBe('I have seen 2 exceptions.')
     expect(formatSignOffMessage(1, 0)).toBe('I have seen 1 failed check.')
+  })
+})
+
+describe('formatConfidencePercent', () => {
+  it('matches the Content rules example exactly', () => {
+    expect(formatConfidencePercent(0.72)).toBe('72%')
+  })
+
+  it('never shows a decimal', () => {
+    expect(formatConfidencePercent(0.385)).toBe('39%')
+    expect(formatConfidencePercent(0.9)).toBe('90%')
   })
 })

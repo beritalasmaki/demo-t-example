@@ -39,6 +39,507 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-21 · Disclosure open/close animation
+
+**Goal**
+Add a real open/close animation to `Disclosure` (policy gate rows, "Run details", timeline
+event rows): a springy overshoot on open, a quick plain close, reduced-motion respected,
+scoped to disclosure/accordion interactions only.
+
+**What changed**
+- `src/styles/tokens.css` — four new Motion tokens: `--motion-duration-open` (220ms),
+  `--motion-duration-close` (160ms), `--motion-ease-spring`
+  (`cubic-bezier(0.34, 1.56, 0.64, 1)`), `--motion-ease-in` (`cubic-bezier(0.4, 0, 1, 1)`,
+  same value as the already-declared, still-unused `--motion-ease-exit` — added under its own
+  name rather than repurposing that one). Both new durations collapse to `1ms` under
+  `prefers-reduced-motion: reduce`, same pattern as the existing three.
+- `src/components/Disclosure.tsx` — the body wrapper is now a single-track CSS Grid
+  (`grid-template-rows: 0fr` ↔ `1fr`, keyed off the existing `details[open] &` selector — the
+  same selector the chevron rotation already used), with an `overflow-hidden` inner div doing
+  the actual clipping. No React state added.
+
+**Steps, in order**
+1. Read the request fresh — precise values already given (durations, exact
+   `cubic-bezier(...)` curves, which property combination, the reduced-motion requirement,
+   and an explicit scope exclusion: not `DecisionBar` or anything status/decision-related).
+   Read `Disclosure.tsx` and the existing Motion block in `tokens.css` before planning:
+   confirmed `Disclosure` is currently fully uncontrolled (native `<details>`, zero JS state,
+   even the chevron rotation is pure CSS via a `details[open] &` selector) and that
+   `--motion-ease-exit`/`--motion-ease-standard`/`--motion-duration-base` are all declared but
+   currently unused anywhere in the app.
+2. Used `EnterPlanMode`: native `<details>` can't be animated by adding `transition` alone —
+   the browser hides its children instantly on close, before any transition runs. Weighed two
+   real techniques (a CSS-only `grid-template-rows` trick that keeps `Disclosure` free of JS
+   state vs. a JS-measured explicit-height animation) and chose the CSS-only one, named as the
+   plan's one real judgment call, since it keeps the component's own "no custom JS"
+   design intact and doesn't add a browser-support gamble. Got the plan approved via
+   `ExitPlanMode`.
+3. Added the four tokens (+ reduced-motion overrides), then the grid wrapper in
+   `Disclosure.tsx`.
+4. `npm run check` green, including `Disclosure`'s own existing tests, unchanged — nothing
+   about open/close semantics or focus changed, only how the height gets there.
+5. Verified against the real running app, not just the CSS source: read
+   `getComputedStyle` mid-transition in a real browser and confirmed the open state's
+   `transition-duration`/`transition-timing-function` matched the spring token exactly, the
+   close state matched the ease-in token, and a real intermediate `grid-template-rows` pixel
+   value was captured (not stuck at the start or end value) — then repeated with Playwright's
+   `reducedMotion: 'reduce'` emulation and confirmed both durations collapsed to `1ms`.
+6. While verifying visually, worked through whether the overshoot would actually be
+   *perceptible*: a single `fr`-unit grid track can't be pushed past the space its content
+   needs, so there's no pixel value for the row to overshoot into and settle back from, the
+   way `scale` could — and `scale`/`transform` were explicitly ruled out by the request. The
+   easing curve and timing are genuinely correct and verified; a literally visible bounce in
+   height is not achievable within the "no scale" constraint using this technique. Wrote this
+   up as `docs/DECISIONS.md` 0018 rather than silently shipping something that might not match
+   what "settles with a small overshoot" was picturing, with the concrete alternative (a
+   measured-height, small-JS-state version) named if that turns out to matter more than
+   keeping `Disclosure` free of JS/transform.
+
+**Why it was done this way**
+The CSS grid-rows technique was chosen specifically to avoid adding React state and a
+browser-support gamble (the newer `@starting-style`/`allow-discrete` CSS, purpose-built for
+animating `<details>` directly, is too recent to trust for a check this app already treats as
+load-bearing — `scripts/check-theme-bridge.mjs` renders real CSS in a real browser and
+asserts on computed values). The trade-off that technique carries (no literal overshoot
+possible without `scale`) was worth surfacing rather than guessing whether it matters more
+than the constraints that ruled out the alternative — see docs/DECISIONS.md 0018.
+
+**How to do this by hand**
+For any future `<details>`-based reveal, don't reach for `transition: height` directly — it
+won't run, because the browser un-renders the content before a transition on a `display:
+none` change ever fires. Use the `grid-template-rows: 0fr` ↔ `1fr` pattern with an
+`overflow-hidden` inner wrapper instead, keyed off `details[open] &` the same way this
+component's chevron rotation already was. If a literally visible overshoot bounce is wanted
+on the way open, that specifically requires measuring a real pixel height (or using
+`transform: scale`) — a single flexible grid track cannot produce one on its own.
+
+**Verification**
+`npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, 36 files / 198
+tests) green. Computed-style verification in a real browser (open state's timing-function and
+duration, close state's, a genuine mid-transition height sample, and reduced-motion collapsing
+both durations to `1ms`) as described above. Screenshots of a gate row closed and settled-open,
+light and dark.
+
+**Open questions / next**
+- docs/DECISIONS.md 0018: if the springy *feel* (not just the correct easing curve) turns out
+  to matter, the concrete next step is a measured-height version of `Disclosure`, not a
+  redesign — everything else about the component stays the same.
+
+---
+
+### 2026-09-21 · Confidence region (all six built), real local undo, summary hierarchy, and five design fixes
+
+**Goal**
+Build Confidence (Region 5) — the last unbuilt region — and add real local-only undo, a
+visual headline for the first summary sentence with per-sentence icons, and five smaller
+design fixes: a circular person/system icon, an icon/text alignment audit, region
+descriptions, an in-page anchor nav, and a restyled filter-chips label.
+
+**What changed**
+- `src/lib/confidence.ts` (+ test) — `resolveConfidenceAreas`: `Run.confidence`'s four fixed
+  areas, always all four, "missing" (no invented reason) for one the model didn't report.
+- `src/lib/format.ts` — `formatConfidencePercent` (whole percentage, no decimals).
+- `src/features/run/ConfidencePanel.tsx` (+ stories, + test) — one `Disclosure` row per area:
+  what couldn't be verified and the value+basis always visible, the longer rationale behind
+  the disclosure, "Not checked" (status-unknown tone) for a missing area. Composed into
+  `RunReviewPage.tsx` between Audit log and Decision.
+- `DecisionBar.tsx`'s `DecidedView` — a real "Undo" button while the window is active
+  (`onRunUpdated({ ...run, decision: undefined, status: 'awaiting_review' })`, the same
+  mechanism the page already uses for a live decision or an S5 conflict); a
+  previously-nonexistent "The undo window for this decision has closed." message once it
+  expires. `docs/DECISIONS.md` 0017.
+- `src/lib/summary.ts` (+ test) — `classifySummarySentence`: a sentence naming a specific
+  gate outcome (failed/exception/not run/does not apply) is classified as that exact
+  `GateResult`; a count/all-clear sentence as `'outcome'`; anything else as `'change'`.
+  `RunSummary.tsx` — the first rendered sentence gets `text-item-title font-semibold` as the
+  card's headline; every sentence gets an icon, reusing `PolicyGateRow.tsx`'s own
+  icon/colour per `GateResult` for the four gate-outcome kinds, a neutral icon otherwise.
+- `src/components/ActorIcon.tsx` (+ story, + test) — a small circular badge around the
+  existing person/system icon; wired into `PolicyGateRow.tsx` and `DecisionBar.tsx` in place
+  of the bare icon.
+- `src/components/AnchorNav.tsx` (+ story, + test) — a sticky, generic list of in-page anchor
+  links; `RunReviewPage.tsx` supplies the six region entries (`RunHeader.tsx` gained a fixed
+  `id="run-header-heading"` to match every other region) and composes it alongside the region
+  stack. `App.tsx`'s container widened `max-w-4xl` → `max-w-5xl` to fit it.
+- `PolicyGateList.tsx`, `DecisionBar.tsx` — one description line each under the heading, same
+  pattern `Timeline.tsx` already used.
+- `TimelineFilters.tsx` — the "Filter logs" label restyled uppercase with a `Filter` icon,
+  distinct from the paragraph text around it.
+- `features/run/README.md`, `lib/README.md` — updated for every new file above.
+
+**Steps, in order**
+1. Read `AGENTS.md` and `docs/spec-review-screen.md` fresh. The request combined a
+   spec-completeness item (Confidence, undo, summary hierarchy) with five follow-up design
+   fixes from a screenshot review — used `EnterPlanMode`: read every file the plan would
+   touch (all five existing regions, `lib/summary.ts`, `lib/types.ts`'s `ConfidenceArea`,
+   both fixtures' real `confidence` arrays, `PolicyGateRow.tsx`'s `TONE_BY_RESULT`,
+   `IconText`/`RegionCard`/`ToggleChip`), verified every candidate lucide icon name exists,
+   and read every real summary sentence across all three fixtures before proposing the
+   sentence classifier. Named ten judgment calls explicitly in the plan (confidence area
+   order, undo's target status, the "window closed" message not actually existing yet, the
+   summary classifier's exact keyword rules, the person icon's circular treatment, nav as a
+   generic component, etc.) and flagged the nav panel up front as the one real structural
+   change here, not just a polish pass. Got the plan approved via `ExitPlanMode` before
+   writing code.
+2. Built the Confidence region first, in isolation, verified with its own tests (including a
+   keyboard-opened-disclosure test) before touching anything else.
+3. Wired real undo through `DecisionBar`'s existing `onRunUpdated` callback — no new prop, no
+   new state mechanism. Fixed the two existing undo tests to match the new DOM (a real
+   button now present) rather than leaving them passing against stale behaviour.
+4. Built `classifySummarySentence` and verified it against literally every summary sentence
+   in `run-clean`, `run-blocked` and `run-messy` — not a representative sample — before
+   wiring it into `RunSummary.tsx`.
+5. Built `ActorIcon` and swapped it into both existing call sites, then ran the full test
+   suite (not just the two touched files) — a DOM-structure change like this broke an
+   existing assertion in a similar spot two sessions ago, so checked broadly rather than
+   assuming only the obviously-related tests would notice.
+6. Added the two region descriptions and the filter-label restyle — small, independent
+   changes, each `npm run typecheck`ed immediately rather than batched.
+7. Built `AnchorNav`, added the missing heading id to `RunHeader.tsx`, composed the nav into
+   `RunReviewPage.tsx`, widened `App.tsx`. Deliberately left out a scroll-spy highlight and a
+   responsive collapse — the plan named both as complexity beyond what was asked, and mobile
+   layouts are already out of scope (AGENTS.md).
+8. `npm run check` green, then a full visual pass on the real dev server at a wide viewport,
+   specifically to alignment-audit the new icon-heavy layout rather than assume `IconText`'s
+   existing `items-center` handled every new case: found one real bug this way —
+   `ActorIcon`'s circle used `bg-surface-raised` as its fill, which is the exact background
+   of two of its three actual usage sites (the waiver callout, the decided-decision panel),
+   so the circle was nearly invisible, only a faint border showing. Fixed by dropping the
+   fill entirely and using the stronger `border-border` for the ring, verified by
+   re-screenshotting the same spot.
+9. Full keyboard pass on the real running app: tab order starts with the six nav links (all
+   six `href`s correct), flows continuous into the page content with nothing skipped; a nav
+   link click changes the URL hash to the right section; the new Undo button is reachable
+   and activatable by Enter, and correctly puts `DecisionBar` back into its undecided view.
+10. Before/after screenshots of the full composed `RunReviewPage` (`run-messy` — exercises
+    the missing-confidence-area case and an active undo window), light and dark, at the same
+    viewport as the "before" shots for a direct comparison.
+
+**Why it was done this way**
+- **Confidence always shows all four areas, never just what's in the array.** Matches how
+  Policy gates already shows its fixed result vocabulary, and is exactly what Acceptance
+  criteria asks for ("An area with no value shows 'Not checked'") — the alternative (render
+  only what's present) would silently drop `run-messy`'s missing `security` area instead of
+  surfacing it, the opposite of "Never hidden: an area with no confidence value at all."
+- **Undo reuses `onRunUpdated` rather than adding a new mechanism**, and stays explicitly
+  local-only (docs/DECISIONS.md 0017) rather than inventing backend semantics (an audit
+  trail entry for the undo itself, who's allowed to undo someone else's decision) this
+  fixture-backed demo has no real answer for.
+- **The summary-sentence classifier reuses `PolicyGateRow`'s own `GateResult` icons/colours**
+  for a sentence naming a gate outcome, rather than inventing a second visual language for
+  the same claim — a failed-check sentence and a failed-check gate row should look like the
+  same kind of fact, because they are.
+- **Alignment audit was a real screenshot check, not a documentation-only claim.** The plan
+  named this as a judgment call precisely so it wouldn't be skipped, and it caught a real bug
+  (`ActorIcon`'s invisible-on-its-own-background circle) that reading the source would not
+  have shown — the same lesson this codebase's own probe-build discipline keeps re-teaching.
+
+**How to do this by hand**
+For a new component whose icon or badge sits on a variable background (a row, a callout, a
+decided-state panel — anywhere the same piece renders in more than one place), don't assume a
+background-based fill will read correctly everywhere it's used — check by screenshotting each
+real usage site, or prefer a border-only treatment that doesn't depend on contrasting with
+whatever's behind it. For any new sentence-classification or actor-classification heuristic
+(this session added a second one, `classifySummarySentence`, alongside the existing
+`isSystemActor`), verify it against every real value the fixtures actually contain, not a
+plausible-looking sample — and say so in the code comment, so the next person knows exactly
+what it's been checked against.
+
+**Verification**
+`npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, 36 files / 198
+tests) green. Keyboard pass and before/after screenshots (light + dark) as described above.
+
+**Open questions / next**
+- All six spec regions are now built. `AnchorNav` has no scroll-spy and no responsive
+  collapse, both deliberately out of scope this session (see judgment call 8 in the session's
+  plan) — worth reconsidering if this app's audience ever includes a narrow viewport.
+- The summary-sentence classifier (`classifySummarySentence`) and the actor heuristic
+  (`isSystemActor`) are both string-pattern guesses, verified against everything the fixtures
+  contain today but not proven correct for sentences or names this app has never generated —
+  same open question as docs/DECISIONS.md 0016 already raises for the older heuristic.
+
+---
+
+### 2026-09-21 · Region boundaries, heading icons, content clarity, locale fix, filter clarity, demo label
+
+**Goal**
+Fix a real locale bug in `lib/format.ts` (relative-time strings rendering in Finnish) for the
+second time, this time with a regression check. Give every region on `RunReviewPage` a
+visible container and a heading icon (currently spacing-only). Add several small
+content-clarity fixes surfaced by a plain-state report and a shared screenshot earlier this
+session: a "Target:" clarification in the run header, an audit-log subtitle, person-vs-system
+icons on actor names, a "Filter logs" label with stronger active/inactive filter contrast, and
+a "Demo" label on the page identity. Confidence (Region 5) and a real undo action stayed
+explicitly out of scope.
+
+**What changed**
+- `src/lib/format.ts` — pinned `LOCALE = 'en'`, used everywhere an `Intl`/`toLocale*` call
+  previously passed `undefined`.
+- `scripts/check-format-locale.mjs` (new) — fails `npm run check` if `format.ts` has a
+  locale-sensitive call with no explicit locale again; wired in via `check:format-locale`.
+- `src/components/RegionCard.tsx` (+ story + test) — the shared visible container
+  (`border-border-subtle`/`bg-surface`/`rounded-md`/`p-[space-4]`) every region now sits in,
+  applied to every return branch (loading/empty/happy-path) of `RunHeader`, `RunSummary`,
+  `PolicyGateList`, `Timeline`, `DecisionBar`.
+- Each region's `<h2>` wrapped in `IconText` with a matching lucide icon: `Target` (Run
+  header), `FileText` (Summary), `ShieldCheck` (Policy gates), `History` (Audit log),
+  `CheckSquare` (Decision).
+- `RunHeader.tsx` — the system-name heading now reads "Target: `<system>`", the label
+  de-emphasized ahead of the name.
+- `Timeline.tsx` — "What the agent did during this run." under the heading.
+- `src/lib/actors.ts` (new, + test) — `isSystemActor`, a string heuristic distinguishing a
+  person's name from a system's name-and-version (docs/DECISIONS.md 0016). Wired into
+  `PolicyGateRow.tsx` (`evaluatedBy`, the waiver callout) and `DecisionBar.tsx`'s
+  `DecidedView` (`decision.by`) via `IconText` with `User`/`Bot`.
+- `TimelineFilters.tsx` — a visible "Filter logs" label, wired to the chip group via
+  `aria-labelledby` (replacing the invisible `aria-label` it had instead). `ToggleChip.tsx` —
+  `font-semibold` added to the pressed state, so active/inactive isn't colour-only.
+- `index.html`'s `<title>` and `App.tsx`'s `<h1>` both get a de-emphasized "— Demo" suffix.
+- `docs/DECISIONS.md` — 0015 (the locale-check pattern) and 0016 (the actor-icon heuristic).
+
+**Steps, in order**
+1. Read `AGENTS.md` and `docs/spec-review-screen.md` fresh, per the task. Since the request
+   named six distinct areas of change across five region components plus shared components,
+   used `EnterPlanMode`: explored every file that would be touched (all five region
+   components, `format.ts` + its existing tests, `IconText`/`ToggleChip`/`TimelineFilters`,
+   `tokens.css`), enumerated every real `evaluatedBy`/`waiver.by`/`decision.by` value across
+   all three fixtures to validate the person/system heuristic before proposing it, and
+   verified every candidate lucide icon name actually exists in the installed version.
+   Wrote the plan to name every judgment call explicitly (heading icon choices, where
+   "Target:" goes, actor-icon scope, `RegionCard` as a new shared component vs. a repeated
+   class string) and got it approved via `ExitPlanMode` before writing any code.
+2. Fixed the locale bug first, in isolation: pinned `LOCALE = 'en'` in `format.ts`, wrote
+   `scripts/check-format-locale.mjs` (a narrow regex check, the same shape as
+   `scripts/check-theme-bridge.mjs`), and proved it against failure before moving on —
+   temporarily reverted one call back to `undefined`, confirmed the check failed and named
+   the exact call, restored, confirmed a clean pass.
+3. Built `RegionCard` (component + story + test, per the `new-component` skill) before
+   touching any region, then applied it to all five region components' root elements, in
+   every return branch each one has — not just the populated state.
+4. Added each region's heading icon and the content-clarity changes together, file by file
+   (same lines were already being touched for the region-card wrap), then `npm run
+   typecheck` after every file to catch JSX/import mistakes immediately rather than at the
+   end.
+5. Built `lib/actors.ts`'s `isSystemActor` and its test against the real fixture values
+   already enumerated in step 1, then wired the icon into the three named call sites.
+6. Filter clarity: swapped the filter group's `aria-label` for a visible label + `aria-
+   labelledby` (matching the `<h2>`/`aria-labelledby` pattern already used elsewhere on the
+   page), and added `font-semibold` to `ToggleChip`'s pressed state — confirmed the existing
+   fill/outline treatment already did most of what was asked, so didn't invent a new colour.
+7. `npm run test` — one real failure: `PolicyGateRow.test.tsx` asserted the waiver line as
+   one contiguous text node (`/Exception granted by Owen Baptiste/`), which no longer holds
+   now that the name is wrapped in its own `IconText` element. Fixed by checking the
+   surrounding `<p>`'s full `textContent` instead of a single text-node match, and added a
+   new test asserting the right icon (`.lucide-user` vs. `.lucide-bot`) renders for a person
+   vs. a system `evaluatedBy`.
+8. `npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, tests)
+   green.
+9. Keyboard pass and before/after screenshots against the real dev server (same
+   Playwright-via-environment technique used earlier this session): tabbed through the whole
+   page (32 stops, nothing skipped or trapped), confirmed a filter chip still toggles via
+   Enter, and confirmed the filter group's accessible name resolves to "Filter logs" through
+   the new `aria-labelledby`. Screenshotted `run-messy`, light and dark, before any change and
+   after everything landed.
+
+**Why it was done this way**
+- **Fixed the locale bug with a mechanical check this time, not just a fix.** The 12-hour
+  clock fix (2026-09-19) addressed one call in this file; the same file still had four more
+  calls with the identical unset-locale problem, which is exactly how a second, related bug
+  surfaced from the same root cause. A check that fails the build is what actually stops a
+  third occurrence — see docs/DECISIONS.md 0015.
+- **`RegionCard` as a real component, not a repeated class string.** Four of the five regions
+  have multiple return branches that all need the identical container — writing the class
+  string 3–4 times per file across 5 files is exactly the kind of duplication this codebase's
+  own `Disclosure`/`StatusBadge`/`Tag` precedent avoids. One component, one place to change
+  the container later.
+- **Person/system icon is a heuristic, named as one.** No field in the data model says which
+  kind of actor a given string is, and adding one was out of scope tonight. Verified against
+  every real value rather than assumed correct from the pattern alone — see
+  docs/DECISIONS.md 0016 for the trade-off this leaves open.
+- **Kept `ToggleChip`'s existing fill/outline treatment.** Reading the actual source before
+  changing it showed the filled-vs-outline distinction the request described was already
+  built; screenshotted to confirm it reads clearly, and added `font-semibold` rather than
+  inventing a new colour pairing for a distinction that was already mostly there.
+
+**How to do this by hand**
+For any new top-level region on this screen, reach for `RegionCard` (`src/components/
+RegionCard.tsx`) as the outer container rather than writing `rounded-md border
+border-border-subtle bg-surface p-[var(--space-4)]` again — and apply it in every state a
+region can render (loading, empty, populated), not only the happy path, or the boundary will
+flicker in and out depending on what's on screen. For a new actor-name field, reuse
+`lib/actors.ts`'s `isSystemActor` rather than re-deriving the person/system distinction by
+eye — and if it ever misclassifies a real value, that's the signal to replace it with a real
+data-model field (docs/DECISIONS.md 0016), not to add another pattern case.
+
+**Verification**
+`npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, 32 files / 178
+tests) green. `check-format-locale.mjs` verified against both failure and success, the same
+way `check-theme-bridge.mjs` was. Keyboard pass on the real running app: full tab sweep with
+nothing skipped or trapped, a filter chip toggles via Enter, the filter group's accessible
+name resolves to "Filter logs". Before/after screenshots of the full composed `RunReviewPage`
+(`run-messy`), light and dark, via the real dev server.
+
+**Open questions / next**
+- The person/system actor icon is a string heuristic (docs/DECISIONS.md 0016), not backed by
+  a real field — worth revisiting if a real `evaluatedByKind`-style field is ever added to the
+  data model for other reasons.
+- Confidence (Region 5) and a real undo action remain unbuilt, unchanged from before this
+  session — both were explicitly out of scope tonight.
+
+---
+
+### 2026-09-21 · First real shadcn components (Button, Checkbox, Dialog); a self-referencing bridge bug that broke every focus ring in light theme
+
+**Goal**
+Add real shadcn/ui components (`npx shadcn@latest init` was blocked — see below) and, once
+building them surfaced a real bug in the existing shadcn bridge, fix it properly: audit for
+the same pattern elsewhere, fix the check that should have caught it, and correct the record.
+
+**What changed**
+- `src/components/ui/button.tsx`, `checkbox.tsx`, `dialog.tsx` (new) — fetched from
+  shadcn-ui/ui on GitHub, import paths rewritten to this project's aliases, `accent`/
+  `accent-foreground` hover states patched to `surface-raised`/`foreground` per 0007.
+- `package.json`/`package-lock.json` — `radix-ui` (the three components' primitive backend)
+  and `playwright` (devDependency, for `check-theme-bridge.mjs`'s runtime check below) added.
+- `src/styles/index.css` — added the global `border-color` preflight reset shadcn's own
+  components assume and this project didn't have (0013); removed the self-referencing
+  `--color-primary`/`--color-primary-foreground` bridge lines (0014); bridge comment
+  rewritten to record both.
+- `scripts/check-theme-bridge.mjs` — rewritten: the "safe if the bridge value mirrors the
+  token's name" exception is gone (any colliding name is now an unconditional error), and a
+  new runtime check builds the real CSS and verifies every semantic colour's `bg-*`/`text-*`
+  utility actually paints its own colour, in a real browser, across light and both dark paths.
+- `eslint.config.js` — `scripts/check-theme-bridge.mjs` given combined browser+node globals
+  (its `page.evaluate()` callbacks run in a real browser, not Node).
+- `README.md` — the one-time `npx playwright install chromium` the check now needs.
+- `docs/DECISIONS.md` — 0013 (the border-color reset), 0014 (the primary/focus-ring bug and
+  fix, correcting 0008), plus in-place correction notes appended to 0008 and 0009 themselves.
+- Commits: `c922fad` (the three components + border-color fix), `240b999` (the primary/
+  focus-ring fix + check rewrite).
+
+**Steps, in order**
+1. `npx shadcn@latest init` — blocked: `ui.shadcn.com` returns a 403 through this session's
+   egress proxy (confirmed with `curl`, then via the proxy's own `/__agentproxy/status`).
+   `raw.githubusercontent.com` is reachable, so fetched `dialog.tsx` and `checkbox.tsx`
+   directly from `shadcn-ui/ui`'s GitHub source instead, at the exact paths the CLI itself
+   would pull from (`apps/v4/registry/new-york-v4/ui/*.tsx`).
+2. Both fetched files import `cn` from a registry-internal alias (`"cn"`, not a real package)
+   and `dialog.tsx` additionally imports `Button` from a path (`@/registry/new-york-v4/ui/
+   button`) that only exists inside shadcn's own monorepo. Fetched `button.tsx` the same way
+   rather than stripping the dependency, and rewrote all three files' imports to this
+   project's real aliases (`@/lib/utils`, `@/components/ui/button`).
+3. `npm install`, `npm install radix-ui`, `npm run typecheck`/`build` — all green.
+4. Rendered the three components side by side in a throwaway harness (a temp file swapped
+   into `main.tsx`, reverted after) and screenshotted light/dark with the environment's
+   global Playwright: `bg-primary` (Button's `default` variant) painted nothing at all in
+   light theme, the default theme.
+5. Traced it to the compiled CSS, not assumed: `--color-primary` and `--color-primary-
+   foreground` in the bridge were self-referencing (`var(--color-primary)`), reasoned safe by
+   0008 as "mirrors the token." Tailwind merges an `@theme` name and a same-named `@theme
+   inline` one into one entry, the bridge's winning outright — so this was a genuine CSS
+   custom-property cycle, computing to nothing. `--color-focus-ring` (tokens.css: `var(--
+   color-primary)`) rode the same cycle, breaking `:focus-visible`'s outline colour site-wide
+   in light theme — confirmed with `getComputedStyle(...).getPropertyValue('--color-focus-
+   ring')` returning `""`.
+6. Reported the bug and stopped for a decision before touching shared, non-shadcn code — see
+   "Why" below.
+7. Fix: removed both self-referencing lines; re-audited every remaining bridge name against
+   every tokens.css name for the identical pattern (name collides, regardless of what value
+   it's given) — none of the rest do.
+8. Rewrote `check-theme-bridge.mjs`'s static rule to have no "mirrors the token" exception.
+   Tried a first runtime-verification design (raw `getComputedStyle(:root)` per custom-
+   property name) and it produced dozens of false positives: `@theme inline` bakes
+   non-colliding bridge names directly into each utility's own rule at build time
+   (`.bg-background{background-color:var(--color-bg)}`) rather than emitting a real
+   `--color-background` custom property at all, so checking for that property directly
+   flagged every one of them as "broken" when nothing was wrong. Redesigned around applying
+   the actual `bg-*`/`text-*` utility to a real element and reading what painted instead —
+   the same test that caught the original bug, generalized to every semantic colour.
+9. That redesign hit a second false-positive class: Tailwind's content scanner only
+   generates a utility class if it finds that literal class name as text somewhere in the
+   project, so colours nothing in the app currently uses (every status colour, `bg-card`, …)
+   simply weren't in the build output. Added a throwaway probe file (written before the
+   build, deleted in a `finally` right after) containing every `bg-<name> text-<name>` as
+   literal text, giving the scanner a real reason to generate each one.
+10. Verified the finished check against failure, not just success: reintroduced the exact
+    primary self-reference and confirmed the static check catches it immediately; separately
+    injected a synthetic mutual cycle between two *non-colliding* bridge names and confirmed
+    the runtime check catches that (the case the static rule structurally cannot see); then
+    restored the clean file and confirmed a clean pass both times.
+11. Lint failed on the rewritten script (`document`/`getComputedStyle` "not defined" inside
+    `page.evaluate()` callbacks — those run in the browser, not Node). Gave the script
+    combined browser+node globals in `eslint.config.js`, the same pattern test files already
+    use.
+12. Confirmed the actual fix, not just the check: tabbed into the real running app in light
+    theme and read the focused element's computed `outline-color` — `rgb(91, 79, 199)`,
+    exactly `--violet-light`/`--color-focus-ring`'s correct value — plus a screenshot showing
+    the visible violet ring.
+13. `npm run check` (with `PLAYWRIGHT_CHROMIUM_EXECUTABLE` set for this sandboxed session's
+    non-default browser path) green end to end. Corrected 0008 and 0009 in place (their
+    original reasoning is left as written, with a correction paragraph appended) and wrote
+    0014.
+
+**Why it was done this way**
+- **Stopped and asked before fixing the focus-ring bug.** It's a real, serious, pre-existing
+  bug, but it's in shared, non-shadcn code, unrelated to the two components actually asked
+  for — exactly the kind of thing AGENTS.md's "ask before... restructuring" is for. Reporting
+  it precisely (root cause, blast radius, a proposed fix) and waiting for a decision, rather
+  than unilaterally patching shared token/bridge files, matched how this repository's other
+  cross-cutting decisions (0007, 0008) were made — deliberately, not silently.
+- **No safe way to redeclare a colliding name in the bridge, mirrored or not.** 0008's
+  "primary is fine, it mirrors itself" reasoning read the *source* and judged the value
+  looked right; it never checked whether the property *resolved* to anything at runtime, which
+  is the only way a self-reference cycle shows up. There is no version of redeclaring a
+  colliding name that's provably safe — the fix, same as 0007/0008, is to not redeclare it.
+- **Corrected 0008/0009 in place rather than silently superseding them.** A wrong decision
+  quietly replaced by a later one looks, in hindsight, like nobody ever got it wrong — which
+  makes the same mistake easier to repeat. Leaving 0008's original paragraph intact with a
+  correction appended, and pointing to 0014 from both 0008 and 0009, keeps the actual history
+  legible.
+- **Utility-class checks, not raw custom-property checks.** Two rounds of false positives
+  (steps 8–9) taught the same lesson twice: Tailwind v4's `@theme inline` emission and its
+  content-scanning are both real mechanics that a naive "read `:root`'s computed value" check
+  doesn't model. Testing the thing that actually matters — does this Tailwind class, applied
+  to a real element, paint the colour it's supposed to — sidesteps needing to model either
+  mechanic correctly, and is exactly what the original bug looked like when it was found.
+
+**How to do this by hand**
+When a design-system bridge maps your own token names onto a third-party vocabulary (here,
+shadcn's `primary`/`border`/`accent`/…), a name that exists on *both* sides is never safe to
+redeclare in the bridge, no matter what value you give it — not a different value (silently
+wrong, 0007/0008's failure mode) and not the name's own value either (silently invalid, this
+session's failure mode). Drop it from the bridge and let the one real declaration through.
+To check any of this by hand: build the app, apply the exact utility class to a throwaway
+element, and read `getComputedStyle` — not `:root`'s custom property directly (a name can be
+real and correct without ever appearing there), and not by reading the CSS source and
+reasoning about what it should do.
+
+**Verification**
+`npm run check` (typecheck, lint, `check:theme-bridge`, 30 files / 170 tests) green after
+both commits. The rewritten `check-theme-bridge.mjs` verified against both failure and
+success: the real historical bug reintroduced and caught, a synthetic non-colliding mutual
+cycle reintroduced and caught, a clean pass confirmed after restoring. The actual fix verified
+independently of the check: `bg-primary`/`text-primary-foreground` screenshotted correctly in
+light and dark on the three new components; a real focusable element in the running app
+tabbed to and its computed `outline-color` read directly, plus a screenshot of the visible
+focus ring, in light theme.
+
+**Open questions / next**
+- `npm run check` now depends on a Chromium build Playwright can launch. Works with `npx
+  playwright install chromium` on an ordinary machine; this session's sandboxed browser cache
+  needed `PLAYWRIGHT_CHROMIUM_EXECUTABLE` pointed at its own non-default path instead. No CI
+  workflow exists yet in this repo to also wire this into — worth checking when one is added.
+- `Button`, `Checkbox`, `Dialog` are added and verified rendering correctly, but not yet used
+  anywhere in the actual product (`RunReviewPage` and friends), and have no stories or tests
+  of their own yet — `src/components/README.md`'s "every state gets a Storybook story" rule
+  wasn't applied to them this session, since the task was explicitly to verify them side by
+  side with the hand-written components first, not to adopt them yet.
+- This session pushed to a dedicated branch (`claude/serene-carson-7obhu8`) rather than
+  `main`, per this session's own environment configuration — see the reply in conversation for
+  what merging it requires.
+
+---
+
 ### 2026-09-21 · Explicit type scale and spacing scale, applied across RunReviewPage
 
 **Goal**

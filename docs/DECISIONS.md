@@ -6,6 +6,226 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0018 · Disclosure's open/close animation: CSS grid-rows, not a measured-height overshoot
+
+**Context.** The request asked for a springy overshoot easing on open (`cubic-bezier(0.34,
+1.56, 0.64, 1)`) with an explicit constraint: "no bounce/scale/rotation — the personality
+comes from the easing curve, not from extra movement." Native `<details>` can't be animated
+directly (the browser applies `display: none` to its children the instant `open` goes false,
+before any transition can run), so this needed a real technique, not just adding
+`transition`.
+
+**Options.** (a) A single-track CSS Grid (`grid-template-rows: 0fr` ↔ `1fr`), transitioning
+that property with the spring easing — no JS state, `<details>` stays exactly as
+uncontrolled as it already was. (b) Measure the content's real pixel height (a ref +
+`scrollHeight`, or a `ResizeObserver`) and animate an explicit `height` (or `max-height`) to
+that value in React state — more moving parts, and a component whose own doc comment
+currently says "native `<details>`/`<summary>` rather than custom JS."
+
+**Choice.** (a) — implemented and verified: the computed `transition-duration` and
+`transition-timing-function` on open genuinely match the spring token, and the row's real
+height interpolates through it (confirmed via `getComputedStyle` mid-transition in a real
+browser, not assumed from the CSS alone). **But it doesn't produce a literally visible
+overshoot.** A CSS Grid track sized in `fr` units has nothing to overshoot *into*: with only
+one flexible track, the row always claims exactly the space the content needs, at every
+point in the curve, including the portion of the curve past `1.0` — there's no pixel value
+for the row to briefly exceed and settle back from, the way a `scale` or a fixed-pixel
+`height` animation could. (b) would have made a genuine overshoot possible (an explicit pixel
+height briefly exceeding the content's natural height *is* visible, as a small extra gap that
+closes), but only by giving up the "no custom JS" property this component has had since it
+was built, for a request that also explicitly ruled out the other way overshoot is usually
+made visible (`scale`). Given the explicit "no scale" constraint, (a) is what's implementable
+within it — the curve genuinely runs at the exact tokens specified, it just expresses as an
+unusually fast-then-settling *rate* of opening rather than a visible bounce past the final
+size.
+
+**Consequence.** `--motion-duration-open`/`-close`/`--motion-ease-spring`/`--motion-ease-in`
+are real, used tokens, and the transition timing is verified correct. If a literally visible
+overshoot bounce turns out to matter more than keeping `Disclosure` free of JS state and
+`transform`/`scale`, option (b) is the concrete alternative — a small, contained change
+(a ref, a measured height, React `open` state synced from the native `toggle` event) — not a
+redesign.
+
+---
+
+## 0017 · Undo is real, but local-only — there is nothing to reverse it on
+
+**Context.** The undo window (0003) was, until now, a countdown with nothing to click: real
+information ("you can undo this for 6 min 59 s more"), but no way to act on it. The request
+was to add an actual "Undo" button. `lib/api.ts` has no `undoDecision`-shaped function, and
+adding one would mean deciding what a real undo endpoint does — whether it needs its own
+audit trail entry, whether a second reviewer can undo someone else's decision, what happens
+if the undo itself races a release — none of which this demo's fixture-backed `getRun`/
+`submitDecision` pair has any real backend semantics for.
+
+**Options.** (a) A real `<button>` that calls `onRunUpdated({ ...run, decision: undefined,
+status: 'awaiting_review' })` — the exact same local-state mechanism `DecisionBar` already
+uses for a live decision or an S5 conflict (`RunReviewPage`'s `decidedRun` state), reverting
+what's on screen, with no network call. (b) Add a matching `undoDecision` to `lib/api.ts`,
+mirroring `submitDecision`'s shape, so undo goes through the same seam a real backend would.
+(c) Leave the button out and keep only the countdown text.
+
+**Choice.** (a). It makes the button real in the only sense this app can make anything
+real — the screen genuinely changes, immediately, the same way approving or rejecting does —
+without inventing backend behaviour (b) would need real answers for for a demo that
+explicitly has none (AGENTS.md, Stack: "No backend"). (c) would leave the request half-done
+for no reason: the local-state mechanism (a) uses already exists and already does exactly
+this shape of thing.
+
+**Consequence.** Undo is real and immediate on screen, but only for this browser tab, this
+session, this local React state — refreshing the page reloads the original fixture,
+undecided-or-decided exactly as it was written, same as any other local-only change already
+made through `DecisionBar`. If a real backend is ever added, this is the seam
+(`onRunUpdated`) where an actual `undoDecision` call would slot in, the same way (b) would
+have worked, without changing `DecisionBar`'s own shape.
+
+---
+
+## 0016 · Person-vs-system actor icons are a string heuristic, not a data-model field
+
+**Context.** A screenshot review asked for a small icon distinguishing a person's name from a
+system's name-and-version next to `PolicyGate.evaluatedBy`, `PolicyGate.waiver.by` and
+`Decision.by` (docs/spec-review-screen.md, Content rules, "Who did what": "a person by name,
+or a system by name and version"). The data model has no field saying which one a given
+string is — adding one was explicitly out of scope for this task.
+
+**Options.** (a) A heuristic over the string itself: every system name in this app's fixtures
+ends in a version tag ("policy-engine v2.3"), no person's name does. (b) Add a real
+`PolicyGate.evaluatedByKind: 'person' | 'system'` (and the equivalent for `waiver`/
+`Decision`) field to the data model. (c) Skip the icon distinction entirely until a real field
+exists.
+
+**Choice.** (a), `src/lib/actors.ts`'s `isSystemActor`. Verified against every actual
+`evaluatedBy`/`waiver.by`/`decision.by` value across all three fixtures (7 distinct values: 4
+system, 3 person) — correct on all of them. (b) is the more correct long-term answer but was
+out of scope tonight; (c) would have left the request half-done for no real reason, since (a)
+is cheap, reversible, and doesn't touch anything (b) would later need to replace.
+
+**Consequence.** This is a text-pattern guess, not a real distinction: a future system name
+that doesn't end in a version tag, or a person whose name coincidentally does, would be
+misclassified. It is verified correct on every value that exists today, not proven correct in
+general. If a system evaluator is ever named without a version suffix (or a gate/decision
+gains a real `evaluatedByKind`-style field for another reason), `isSystemActor` should be
+replaced, not extended with more pattern cases.
+
+---
+
+## 0015 · `format.ts`'s locale is now pinned, and checked, not left to the runtime default
+
+**Context.** Relative-time strings (`formatRelativeTime`) rendered in Finnish
+("7 kuukautta sitten") instead of English, on a machine whose browser/OS reported that
+locale. Every `Intl`/`toLocale*` call in `src/lib/format.ts` passed `undefined` for locale,
+which means "follow the runtime's default" — not a deliberate choice, just left unset. This
+is the second time a bug in this exact file has come from the same root cause: the first was
+12-hour vs. 24-hour clock time (`docs/WORKLOG.md`, 2026-09-19), fixed with `hour12: false`
+but without addressing the *other* locale-dependent calls in the same file, which is exactly
+why this one was still open to find.
+
+**Options.** (a) Pin every locale-sensitive call in `format.ts` to a single explicit
+constant (`'en'`), and rely on code review to keep it that way. (b) Same fix, plus a narrow
+automated check (matching `scripts/check-theme-bridge.mjs`'s precedent, 0009) that fails
+`npm run check` if any locale-sensitive call in that file omits an explicit locale again.
+(c) Leave it locale-dependent, and instead force a consistent locale at the app's root (e.g.
+an `<html lang>`-driven i18n setup).
+
+**Choice.** (b), `scripts/check-format-locale.mjs`. (a) alone is what was already true for the
+12-hour-clock fix — it held for exactly the one call that got fixed, not the others in the
+same file, which is how this happened a second time. (c) is real internationalization
+infrastructure this app doesn't have and doesn't need yet (it has no other language content;
+Content rules' wording is fixed English throughout) — pinning one file's own calls is a much
+smaller, sufficient fix for the actual problem. Verified the same way 0009's check was:
+reintroduced the exact bug, confirmed the new check fails and names the offending call, then
+confirmed a clean pass after restoring.
+
+**Consequence.** `format.ts` can no longer regress to the runtime's default locale without
+`npm run check` failing immediately and naming the exact call. The check is deliberately
+narrow — a regex over one file's known call shapes — and would need updating if a
+locale-sensitive call were added elsewhere in the app or written in an unrecognized shape.
+
+---
+
+## 0014 · `--color-primary`/`--color-primary-foreground` were a self-reference cycle, not a safe mirror — correcting 0008
+
+**Context.** 0008 audited every bridge name against tokens.css and found one other exact-name
+overlap besides border: `primary`. It reasoned that was fine because "the bridge maps it to
+itself, which is only safe because both sides already agree on the value" — i.e.
+`--color-primary: var(--color-primary);` in the bridge, mirroring tokens.css's own
+`--color-primary: var(--violet-light);`. That reasoning was wrong, and 0008's own text above
+is left as it was written rather than edited to hide the mistake. Building the first real
+shadcn components (0013) and actually looking at the rendered result — not just the source —
+showed `bg-primary` painting nothing at all in light theme. Tailwind merges an `@theme` name
+and a same-named `@theme inline` name into one registry entry, the later (bridge) declaration
+winning outright, never layered on top of the earlier one. So the bridge's line wasn't
+"mirroring" anything at runtime — it was the *only* surviving declaration for that name, and
+it referenced its own name: a CSS custom-property cycle, which computes to nothing (per spec,
+its guaranteed-invalid value), silently. `--color-primary-foreground` had the identical bug.
+Worse, tokens.css's own `--color-focus-ring: var(--color-primary);` rode the same cycle,
+making `:focus-visible`'s outline colour invalid too — every keyboard focus ring on the site
+was invisible in light theme, the default theme, until this was found and fixed.
+
+**Options.** (a) Remove both self-referencing lines from the bridge, same fix as 0007/0008 —
+tokens.css's own declaration becomes the only registry entry for the name, nothing to collide
+with. (b) Keep the bridge lines but give them a real, different value pointing somewhere
+else. (c) Rename tokens.css's `primary`/`primary-foreground` to dodge shadcn's vocabulary
+entirely.
+
+**Choice.** (a). There is no version of redeclaring a colliding name in the bridge that is
+safe — not a different value (0007/0008's failure mode: silently wrong, not invalid) and not
+the name's own value either (this failure mode: silently invalid). The only fix that can't
+recreate either bug is to not redeclare the name at all. (c) is a bigger, more disruptive
+change for a collision (a) already resolves cleanly, and rejected here for the same reason
+0009 rejected it for border/accent.
+
+**Consequence.** `bg-primary`/`text-primary`/`bg-primary-foreground`/`text-primary-foreground`
+now resolve to tokens.css's real values in both themes, verified by a probe build and by
+`getComputedStyle` on the rendered app. `:focus-visible` is visible again in light theme,
+confirmed the same way, on a real focusable element, not just by reading the CSS. Every other
+bridge name was re-audited against tokens.css for this exact pattern (a name that collides at
+all, regardless of what value it's given); none of the remaining ones do.
+`scripts/check-theme-bridge.mjs` (0009) is rewritten: its "safe if the value mirrors the
+token's name" exception — exactly the reasoning 0008 used, and exactly what let this bug
+through unflagged for as long as it did — is gone; any colliding name is now an error, full
+stop. A second, independent check was added alongside it: build the real CSS and, in an
+actual browser, verify every semantic colour's `bg-*`/`text-*` utility actually paints its
+own colour, in light and both dark paths — the thing that would have caught this even if the
+static rule had missed it, and that also caught a synthetic mutual cycle between two
+non-colliding bridge names during verification (a case the static rule structurally cannot
+see). This makes `npm run check` depend on a real Chromium build; see `README.md` for the
+one-time `npx playwright install chromium` this now requires.
+
+---
+
+## 0013 · Added the shadcn bridge's missing `border-color` preflight reset
+
+**Context.** Adding the first real shadcn components (Button, Checkbox, Dialog — fetched
+directly from shadcn-ui/ui on GitHub, since ui.shadcn.com is blocked by this session's egress
+policy) exposed a gap the bridge comment had flagged as unverified: Tailwind v4's preflight
+sets bare `border`/`border-*` width utilities with `border-color: currentColor`, not any theme
+token. Every fetched component uses bare `border` assuming shadcn's own classic
+`* { @apply border-border }` reset, which this project never had — so `DialogContent`'s and
+Button's `outline` variant's border would have rendered as `currentColor` (matching text)
+instead of `--color-border`.
+
+**Options.** (a) Add the missing global reset (`*, ::after, ::before { border-color:
+var(--color-border); }`) to `index.css`'s existing `@layer base` block, matching shadcn's own
+convention. (b) Patch only the three new files to use the explicit `border-border` utility
+instead of bare `border`, leaving no site-wide change. (c) Leave it and accept the wrong
+border colour until it's visibly noticed.
+
+**Choice.** (a). This is exactly the kind of cross-cutting shadcn-compatibility concern the
+bridge file exists to own, and the bridge comment already anticipated needing this fix once a
+real component landed. Scoping the fix to only the three new files (b) would leave the same
+gap for every future shadcn component to hit again.
+
+**Consequence.** Any element anywhere in the app that uses a bare Tailwind `border` utility
+now gets `--color-border` by default instead of `currentColor`. Verified with a probe build:
+the compiled CSS shows the reset before any component styles, and `bg-surface-raised`/
+`hover:text-foreground` are what the three new files reference instead of shadcn's
+`accent`/`accent-foreground` (dropped from the bridge by 0007), per that decision's own
+instruction to patch call sites by hand.
+
+---
+
 ## 0012 · Passive detection of a conflicting decision is out of scope for v1
 
 **Context.** Scenario S5 ("Run decided by another reviewer during review") describes two
@@ -133,6 +353,12 @@ updating if the bridge or tokens file's structure changed shape enough to break 
 That's an acceptable trade for how cheaply it runs and how exactly it targets the two bugs
 that already happened.
 
+**Superseded in part by 0014.** The "only valid if it mirrors that token's value exactly"
+rule above is exactly what missed the `primary`/`primary-foreground` self-reference cycle —
+mirroring by name is not safe, only omitting the colliding name is. The script no longer has
+that exception, and now also builds the real CSS and checks computed values in a browser,
+which a text-level regex structurally cannot do. See 0014 for the full account.
+
 ---
 
 ## 0008 · Removed the shadcn bridge's `--color-border` override
@@ -160,6 +386,15 @@ just read the source) rather than assume this was the only one: `primary` is the
 exact-name overlap, and it isn't a collision — the bridge maps it to itself, which is only
 safe because both sides already agree on the value. `secondary`, `muted`, `destructive`,
 `ring` and `input` don't collide, because none of them is also one of our own token names.
+
+**Correction (see 0014).** The claim above about `primary` being safe was wrong, and this
+paragraph is left as originally written rather than edited to hide that. The bridge mapping
+it "to itself" wasn't a safe mirror — it was a self-referencing CSS custom-property cycle
+that silently computed to nothing in light theme, taking `--color-focus-ring` (and every
+`:focus-visible` outline on the site) down with it. The probe-build audit this paragraph
+describes checked whether the *value* looked right by reading the source; it didn't check
+whether the property actually resolved to anything at runtime, which is the only way this
+specific failure mode shows up. 0014 has the full account and the fix.
 
 ---
 

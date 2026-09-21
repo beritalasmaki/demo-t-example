@@ -1,9 +1,10 @@
 
 
 View the screen: https://demo-t-example.vercel.app/ 
+
 NOTE! Design is still in process. We built the case first before the UI polishes. However, first tokens have been built already: colors, fonts and spacing. More coming soon :)
 
-Also Storybook view page coming soon!
+ALSO Storybook view page coming soon!
 
 # What is "Agent run review"?
 A single, production-quality screen called the **agent run review view**. 

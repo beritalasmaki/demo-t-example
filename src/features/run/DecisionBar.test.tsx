@@ -124,7 +124,30 @@ describe('DecisionBar', () => {
     expect(screen.getByText('You can undo this for 6 min 59 s more.')).toBeVisible()
   })
 
-  it('hides the undo line once the window has closed', () => {
+  it('undoing while the window is active puts the run back to awaiting_review, with no decision', async () => {
+    const user = userEvent.setup()
+    const onRunUpdated = vi.fn()
+    const decidedRun = run({
+      status: 'approved',
+      decision: {
+        outcome: 'approved',
+        by: 'Jordan Ellis',
+        at: new Date().toISOString(),
+        acknowledgedGateIds: [],
+        revision: 'abc123',
+      },
+    })
+    render(<DecisionBar run={decidedRun} onRunUpdated={onRunUpdated} />)
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(onRunUpdated).toHaveBeenCalledWith({
+      ...decidedRun,
+      decision: undefined,
+      status: 'awaiting_review',
+    })
+  })
+
+  it('shows the window-closed message and no Undo button once the window has closed', () => {
     render(
       <DecisionBar
         run={run({
@@ -141,6 +164,8 @@ describe('DecisionBar', () => {
       />,
     )
     expect(screen.queryByText(/You can undo this/)).not.toBeInTheDocument()
+    expect(screen.getByText('The undo window for this decision has closed.')).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
   })
 
   it('completes a real approve round trip and reports the updated run', async () => {

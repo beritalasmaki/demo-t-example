@@ -6,6 +6,39 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0017 · Undo is real, but local-only — there is nothing to reverse it on
+
+**Context.** The undo window (0003) was, until now, a countdown with nothing to click: real
+information ("you can undo this for 6 min 59 s more"), but no way to act on it. The request
+was to add an actual "Undo" button. `lib/api.ts` has no `undoDecision`-shaped function, and
+adding one would mean deciding what a real undo endpoint does — whether it needs its own
+audit trail entry, whether a second reviewer can undo someone else's decision, what happens
+if the undo itself races a release — none of which this demo's fixture-backed `getRun`/
+`submitDecision` pair has any real backend semantics for.
+
+**Options.** (a) A real `<button>` that calls `onRunUpdated({ ...run, decision: undefined,
+status: 'awaiting_review' })` — the exact same local-state mechanism `DecisionBar` already
+uses for a live decision or an S5 conflict (`RunReviewPage`'s `decidedRun` state), reverting
+what's on screen, with no network call. (b) Add a matching `undoDecision` to `lib/api.ts`,
+mirroring `submitDecision`'s shape, so undo goes through the same seam a real backend would.
+(c) Leave the button out and keep only the countdown text.
+
+**Choice.** (a). It makes the button real in the only sense this app can make anything
+real — the screen genuinely changes, immediately, the same way approving or rejecting does —
+without inventing backend behaviour (b) would need real answers for for a demo that
+explicitly has none (AGENTS.md, Stack: "No backend"). (c) would leave the request half-done
+for no reason: the local-state mechanism (a) uses already exists and already does exactly
+this shape of thing.
+
+**Consequence.** Undo is real and immediate on screen, but only for this browser tab, this
+session, this local React state — refreshing the page reloads the original fixture,
+undecided-or-decided exactly as it was written, same as any other local-only change already
+made through `DecisionBar`. If a real backend is ever added, this is the seam
+(`onRunUpdated`) where an actual `undoDecision` call would slot in, the same way (b) would
+have worked, without changing `DecisionBar`'s own shape.
+
+---
+
 ## 0016 · Person-vs-system actor icons are a string heuristic, not a data-model field
 
 **Context.** A screenshot review asked for a small icon distinguishing a person's name from a

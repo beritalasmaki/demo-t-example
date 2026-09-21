@@ -38,3 +38,12 @@ export const GatesNeedAcknowledgementTicked: Story = {
 export const Decided: Story = {
   args: { run: runMessy },
 }
+
+export const DecidedUndoWindowClosed: Story = {
+  args: {
+    run: {
+      ...runMessy,
+      decision: { ...runMessy.decision!, at: '2020-01-01T00:00:00Z' },
+    },
+  },
+}

@@ -29,7 +29,7 @@ export function AnchorNav({ items, label, className }: AnchorNavProps) {
     <nav
       aria-label={label}
       className={cn(
-        'sticky top-[var(--space-5)] flex w-44 shrink-0 flex-col gap-[var(--space-1)] self-start rounded-md border border-border-subtle bg-surface p-[var(--space-3)]',
+        'sticky top-[var(--space-5)] flex w-44 shrink-0 flex-col gap-[var(--space-1)] self-start',
         className,
       )}
     >

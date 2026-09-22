@@ -175,7 +175,11 @@ function DecidedView({
           <span className="text-body font-semibold font-body text-text-primary">
             {formatDecisionOutcomeLabel(decision.outcome)} by
           </span>
-          <ActorName name={decision.by} />
+          {/* bg-surface override: ActorName's default pill fill (bg-surface-raised) is the
+           * exact colour this card's own background already is, making the pill nearly
+           * invisible here — the one place in the app where the pill's usual "stands out
+           * against a plain white card" assumption doesn't hold. */}
+          <ActorName name={decision.by} className="bg-surface" />
         </div>
         <div className="flex flex-col gap-[var(--space-1)]">
           <span className="text-body font-semibold font-body text-text-primary">Time</span>

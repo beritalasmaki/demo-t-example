@@ -87,5 +87,24 @@ describe('TimelineFilters', () => {
     // Unchecking a selected type removes it from hiddenTypes.
     await user.click(screen.getByRole('menuitemcheckbox', { name: 'Plan' }))
     expect(hiddenTypes).toEqual(new Set(['error']))
+
+    // "Deselect all" clears every selection at once. It's a real menu item (not a plain
+    // <button>) specifically so it joins the menu's own roving-focus arrow-key group —
+    // verified separately in a real browser, since jsdom doesn't run Radix's roving
+    // tabindex/focus wiring.
+    await user.click(screen.getByRole('menuitem', { name: 'Deselect all' }))
+    expect(hiddenTypes).toEqual(new Set())
+
+    // Once nothing is selected, "Deselect all" has nothing left to do.
+    rerender(
+      <TimelineFilters
+        hiddenTypes={hiddenTypes}
+        onHiddenTypesChange={(next) => (hiddenTypes = next)}
+      />,
+    )
+    expect(screen.getByRole('menuitem', { name: 'Deselect all' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   })
 })

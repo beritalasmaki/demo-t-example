@@ -67,7 +67,7 @@ describe('Timeline', () => {
 
     expect(screen.getByText('Read the config file.')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /Hide events/ }))
+    await user.click(screen.getByRole('button', { name: 'None selected' }))
     await user.click(screen.getByRole('menuitemcheckbox', { name: 'Tool calls' }))
 
     expect(screen.queryByText('Read the config file.')).not.toBeInTheDocument()

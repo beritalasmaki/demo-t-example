@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { PolicyGate } from './types'
 import {
+  formatConfidenceAreaLabel,
   formatConfidencePercent,
   formatDateTime,
+  formatDecisionOutcomeLabel,
   formatDuration,
   formatGateResultLabel,
   formatRelativeTime,
@@ -110,5 +112,22 @@ describe('formatConfidencePercent', () => {
   it('never shows a decimal', () => {
     expect(formatConfidencePercent(0.385)).toBe('39%')
     expect(formatConfidencePercent(0.9)).toBe('90%')
+  })
+})
+
+describe('formatConfidenceAreaLabel', () => {
+  it('labels every area from the fixed vocabulary', () => {
+    expect(formatConfidenceAreaLabel('implementation')).toBe('Implementation')
+    expect(formatConfidenceAreaLabel('tests')).toBe('Tests')
+    expect(formatConfidenceAreaLabel('security')).toBe('Security')
+    expect(formatConfidenceAreaLabel('side_effects')).toBe('Side effects')
+  })
+})
+
+describe('formatDecisionOutcomeLabel', () => {
+  it('labels every outcome from the fixed vocabulary', () => {
+    expect(formatDecisionOutcomeLabel('approved')).toBe('Approved')
+    expect(formatDecisionOutcomeLabel('changes_requested')).toBe('Changes requested')
+    expect(formatDecisionOutcomeLabel('rejected')).toBe('Rejected')
   })
 })

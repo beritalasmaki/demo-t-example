@@ -3,7 +3,7 @@ import { Disclosure } from '../../components/Disclosure'
 import { IconText } from '../../components/IconText'
 import { RegionCard } from '../../components/RegionCard'
 import { resolveConfidenceAreas } from '../../lib/confidence'
-import { formatConfidencePercent } from '../../lib/format'
+import { formatConfidenceAreaLabel, formatConfidencePercent } from '../../lib/format'
 import type { ConfidenceArea } from '../../lib/types'
 
 /**
@@ -22,13 +22,6 @@ import type { ConfidenceArea } from '../../lib/types'
 export interface ConfidencePanelProps {
   confidence: ConfidenceArea[]
   isLoading?: boolean
-}
-
-const AREA_LABEL: Record<ConfidenceArea['area'], string> = {
-  implementation: 'Implementation',
-  tests: 'Tests',
-  security: 'Security',
-  side_effects: 'Side effects',
 }
 
 const HEADING = (
@@ -66,7 +59,7 @@ export function ConfidencePanel({ confidence, isLoading = false }: ConfidencePan
             >
               <div className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-2)]">
                 <span className="text-item-title font-semibold font-body text-text-primary">
-                  {AREA_LABEL[area.area]}
+                  {formatConfidenceAreaLabel(area.area)}
                 </span>
                 <IconText icon={CircleHelp} iconClassName="text-status-unknown">
                   <span className="text-body font-normal font-body text-status-unknown">
@@ -82,7 +75,7 @@ export function ConfidencePanel({ confidence, isLoading = false }: ConfidencePan
                   <div className="flex flex-col gap-[var(--space-2)]">
                     <div className="flex items-center justify-between gap-[var(--space-3)]">
                       <span className="text-item-title font-semibold font-body text-text-primary">
-                        {AREA_LABEL[area.area]}
+                        {formatConfidenceAreaLabel(area.area)}
                       </span>
                       {/* An at-a-glance addition, not a replacement for the full "Confidence
                        * X% — basis" sentence below — same value, shown twice on purpose.

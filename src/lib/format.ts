@@ -1,4 +1,4 @@
-import type { GateResult, PolicyGate, RunStatus } from './types'
+import type { ConfidenceArea, Decision, GateResult, PolicyGate, RunStatus } from './types'
 
 /**
  * How values are turned into text. See src/lib/README.md and
@@ -51,6 +51,29 @@ const RUN_STATUS_LABEL: Record<RunStatus, string> = {
 
 export function formatRunStatusLabel(status: RunStatus): string {
   return RUN_STATUS_LABEL[status]
+}
+
+/** Region 5's fixed vocabulary of areas, as a reviewer reads them. */
+const CONFIDENCE_AREA_LABEL: Record<ConfidenceArea['area'], string> = {
+  implementation: 'Implementation',
+  tests: 'Tests',
+  security: 'Security',
+  side_effects: 'Side effects',
+}
+
+export function formatConfidenceAreaLabel(area: ConfidenceArea['area']): string {
+  return CONFIDENCE_AREA_LABEL[area]
+}
+
+/** Region 6's three outcomes, as a reviewer reads them — "Approved", not "approved". */
+const DECISION_OUTCOME_LABEL: Record<Decision['outcome'], string> = {
+  approved: 'Approved',
+  changes_requested: 'Changes requested',
+  rejected: 'Rejected',
+}
+
+export function formatDecisionOutcomeLabel(outcome: Decision['outcome']): string {
+  return DECISION_OUTCOME_LABEL[outcome]
 }
 
 /**

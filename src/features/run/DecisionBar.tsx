@@ -9,6 +9,7 @@ import type { SubmitDecisionOptions } from '../../lib/api'
 import { undoWindow } from '../../lib/decision'
 import {
   formatDateTime,
+  formatDecisionOutcomeLabel,
   formatDuration,
   formatRelativeTime,
   formatSignOffMessage,
@@ -171,7 +172,7 @@ function DecidedView({
   return (
     <div className="flex flex-col gap-[var(--space-2)] rounded-md border border-border-subtle bg-surface-raised p-[var(--space-4)]">
       <p className="text-item-title font-semibold font-body text-text-primary">
-        <span className="font-semibold">{outcomeVerb(decision.outcome)}</span> by{' '}
+        <span className="font-semibold">{formatDecisionOutcomeLabel(decision.outcome)}</span> by{' '}
         <span className="inline-flex items-center gap-[var(--space-2)]">
           <ActorIcon icon={isSystemActor(decision.by) ? Bot : User} />
           {decision.by}
@@ -197,15 +198,4 @@ function DecidedView({
       )}
     </div>
   )
-}
-
-function outcomeVerb(outcome: Decision['outcome']): string {
-  switch (outcome) {
-    case 'approved':
-      return 'Approved'
-    case 'changes_requested':
-      return 'Changes requested'
-    case 'rejected':
-      return 'Rejected'
-  }
 }

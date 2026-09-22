@@ -113,9 +113,9 @@ describe('DecisionBar', () => {
       />,
     )
 
-    expect(screen.getByText('Approved')).toBeVisible()
+    expect(screen.getByText('Approved by')).toBeVisible()
     expect(screen.getByText(/Jordan Ellis/)).toBeVisible()
-    expect(screen.getByText('Revision abc123')).toBeVisible()
+    expect(screen.getByText('Revision').nextElementSibling).toHaveTextContent('abc123')
     expect(screen.getByText('You can undo this for 7 min 0 s more.')).toBeVisible()
 
     act(() => {

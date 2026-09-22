@@ -38,7 +38,7 @@ describe('RunReviewPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Approve and release' }))
 
     const decisionRegion = screen.getByRole('region', { name: 'Decision' })
-    expect(await within(decisionRegion).findByText('Approved')).toBeVisible()
+    expect(await within(decisionRegion).findByText('Approved by')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Approve and release' })).not.toBeInTheDocument()
   })
 

@@ -91,7 +91,7 @@ export function RunReviewPage({ runId, getRunOptions, submitDecisionOptions }: R
   ]
 
   return (
-    <div className="flex items-start gap-[var(--space-5)]">
+    <div className="flex flex-col gap-[var(--space-5)] md:flex-row md:items-start">
       <AnchorNav items={navItems} label="Jump to a section" />
       <div className="flex min-w-0 flex-1 flex-col gap-[var(--space-7)]">
         <RunHeader run={run} />

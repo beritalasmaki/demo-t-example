@@ -362,4 +362,6 @@ already decided by someone else while this reviewer was reading.
 
 ## Out of scope
 
-Multi-run dashboards (filtering, search, aggregate stats), settings, authentication, mobile layouts, real backend. A minimal list of sample runs, for navigation only, is in scope — see DECISIONS.md.
+Multi-run dashboards (filtering, search, aggregate stats), settings, authentication, real backend. A minimal list of sample runs, for navigation only, is in scope — see DECISIONS.md.
+
+The page shell and navigation are responsive (a single column below Tailwind's `md` breakpoint, `AnchorNav` moving above the content) — see DECISIONS.md. A full per-region mobile design pass (density, touch targets) is not: that's still a real gap, not something this line is quietly claiming is done.

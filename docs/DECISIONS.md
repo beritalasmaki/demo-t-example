@@ -6,6 +6,49 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0024 · Mobile is now in scope — page shell and nav only, not a full per-region pass
+
+**Context.** `docs/spec-review-screen.md`'s "Out of scope" line listed "mobile layouts" since
+the project started; `AnchorNav.tsx` repeated it (and mis-cited the source as `AGENTS.md` —
+the real line was only ever in `spec-review-screen.md`). The user asked to fix the mobile
+version, specifically to put the navigation at the top, and confirmed — asked directly, since
+this reverses a standing scope line rather than being a pure style tweak — that mobile should
+come into scope generally, not just for this one screen.
+
+**What was actually broken, checked in a real browser before deciding anything**: at 375px,
+`RunReviewPage.tsx`'s outer container (`flex items-start`, no responsive variant) never
+stacked `AnchorNav`'s fixed `w-44` column above the content — it just squeezed the content
+column to roughly 180px, clipping the run's own system name mid-word and forcing real
+horizontal overflow (measured: the page was forced to 459px inside a 375px viewport).
+
+**Options.** (a) Design a full mobile pass in one session — every region's density, touch
+targets, table-like layouts. (b) Fix the page shell and navigation (what was both asked for
+and measurably broken), name the rest as a real, still-open gap rather than let "mobile is in
+scope" quietly imply it's all been designed.
+
+**Choice.** (b). `App.tsx`/`RunReviewPage.tsx`/`AnchorNav.tsx` now use Tailwind's default `md`
+breakpoint (768px) — no custom value invented, nothing added to `tokens.css` (a breakpoint is
+structural, not a design token this app restricts). Below `md`: `RunReviewPage`'s container is
+`flex-col` (nav stacks above content — nav is already first in DOM order, so this alone puts
+it "at the top"), `AnchorNav` itself switches from a sticky vertical column to a horizontal,
+scrollable, non-sticky strip (`overflow-x-auto`, each link `shrink-0` so the scroll container
+can't squeeze a label mid-word), and `App.tsx`'s page padding scales down
+(`px-4 py-8` → `md:px-6 md:py-12`). `md` and up: pixel-identical to before this change,
+confirmed by screenshot.
+
+**Consequence.** Verified in a real browser (not just from source) at 375px and at the `md`
+boundary, across all three fixtures, both themes: zero horizontal scroll, all seven nav links
+reachable and activatable by keyboard (focus auto-scrolls the strip; Enter still jumps the
+page), and every already-existing `flex-wrap` group (`RunHeader`'s tag row, `PolicyGateRow`'s
+summary row, `DecisionBar`'s action buttons, `TimelineFilters`' chips) reflowed cleanly once
+given real width back — none of them needed their own fix. `docs/spec-review-screen.md`'s
+"Out of scope" line now says exactly this: the shell is responsive, a full per-region mobile
+design pass is not — the next thing to design, if a phone-width reviewer turns out to matter
+enough to invest further in, is density and touch-target sizing per region, not named here as
+already handled.
+
+---
+
 ## 0023 · A person's name gets a pill; a system's name-and-version doesn't
 
 **Context.** Every actor name on screen already got an icon (`ActorIcon`, person vs system

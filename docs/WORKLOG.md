@@ -39,6 +39,69 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-22 · Mobile: nav to the top, and bringing mobile into scope
+
+**Goal**
+Fix a real bug on phone-width screens (the review page overflowed horizontally, clipping
+text) by moving `AnchorNav` above the content instead of squeezing it into a fixed side
+column — the user's specific ask — and, since that reverses a standing "mobile layouts are
+out of scope" line, confirm with the user first whether to bring mobile into scope generally.
+
+**What changed**
+- `docs/spec-review-screen.md` — "mobile layouts" dropped from "Out of scope"; one line added
+  naming what's actually responsive now (the page shell and nav) versus what still isn't (a
+  full per-region mobile pass — density, touch targets).
+- `src/components/AnchorNav.tsx` — below Tailwind's `md` breakpoint (768px): a horizontal,
+  scrollable, non-sticky strip instead of the sticky vertical column. `md` and up: unchanged.
+  Doc comment corrected (the old one mis-cited `AGENTS.md`; the real "out of scope" line was
+  only ever in `spec-review-screen.md`).
+- `src/features/run/RunReviewPage.tsx` — outer container is `flex-col` below `md`, `md:flex-row
+  md:items-start` at and above it. Nav was already first in DOM order, so stacking it above
+  the content is the entire "put navigation to the top" fix.
+- `src/app/App.tsx` — page padding scales down below `md` (`px-4 py-8` vs `md:px-6 md:py-12`).
+
+**Steps, in order**
+1. Audited the actual breakage in a real browser at 375px before proposing anything: measured
+   the page forced to 459px inside a 375px viewport, traced it to `RunReviewPage.tsx`'s
+   `flex items-start` never stacking `AnchorNav`'s fixed-width column.
+2. Asked the user directly whether to formally bring mobile into scope (updating the docs) or
+   treat this as a narrow one-off nav fix, since the request reversed a standing scope line
+   rather than being a pure style tweak. User chose to bring mobile into scope.
+3. Used `EnterPlanMode`: named the scope boundary explicitly — page shell and nav fixed now
+   (what was asked for and measurably broken); a full per-region mobile design pass named as
+   a real, separate, still-open gap, not silently claimed as done.
+4. Implemented the three files, using Tailwind's existing default `md` breakpoint rather than
+   inventing a custom one.
+5. `npm run check` green; verified in a real browser at 375px, at the `md` boundary, and at
+   1280px (desktop, confirming pixel-identical to before), across all three fixtures, both
+   themes: zero horizontal scroll, all seven nav links keyboard-reachable (focus auto-scrolls
+   the strip) and keyboard-activatable, every existing `flex-wrap` group elsewhere on the page
+   reflowed cleanly once given real width back.
+
+**Why it was done this way**
+Scoped to the page shell and nav, not a full mobile redesign, because that's what was both
+asked for and actually broken — see docs/DECISIONS.md 0024 for the full reasoning, including
+why the "Out of scope" line now says exactly what is and isn't responsive rather than a bare
+"mobile is in scope" that would overstate what this session built.
+
+**How to do this by hand**
+Same as the steps above — no separate manual procedure beyond the file list under "What
+changed."
+
+**Verification**
+`npm run check` (40 test files, 220 tests, typecheck, lint, both custom browser-based checks)
+green throughout — no test needed updating, since the change is layout-only, not behavior.
+Manual Playwright pass at 375px/768px/1280px across all three fixtures, both themes: no
+horizontal scroll, keyboard operability of the nav strip confirmed, desktop confirmed
+unchanged by screenshot comparison.
+
+**Open questions / next**
+A full per-region mobile pass (Timeline's dense rows, touch-target sizing) is still open —
+named in docs/spec-review-screen.md and docs/DECISIONS.md 0024 as a real gap, not implied
+done by "mobile is in scope."
+
+---
+
 ### 2026-09-22 · Friendlier UI, inspired by a reference mockup
 
 **Goal**

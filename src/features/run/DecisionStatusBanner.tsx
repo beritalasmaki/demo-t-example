@@ -44,15 +44,25 @@ export interface DecisionStatusBannerProps {
 export function DecisionStatusBanner({ decision }: DecisionStatusBannerProps) {
   return (
     <RegionCard className="flex flex-col gap-[var(--space-2)]">
-      <p className="text-body font-normal font-body text-text-primary">
-        <IconText
-          icon={OUTCOME_ICON[decision.outcome]}
-          iconClassName={OUTCOME_ICON_CLASSNAME[decision.outcome]}
-        >
-          <span className="font-semibold">{formatDecisionOutcomeLabel(decision.outcome)}</span>
-        </IconText>{' '}
-        by <ActorName name={decision.by} /> · {formatRelativeTime(decision.at)}
-      </p>
+      {/* A flex row, not a `<p>` with inline children: `ActorName`'s pill is `inline-flex`,
+       * and mixing that with plain text inside a `<p>` aligns it to the text's baseline —
+       * visibly off-center against "Approved by". A flex row's `items-center` aligns both by
+       * their actual box centers instead. The timestamp is a separate flex item pushed to the
+       * row's far right (`justify-between`), not folded into the same sentence. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-[var(--space-3)] gap-y-[var(--space-1)]">
+        <p className="text-body flex flex-wrap items-center gap-x-[var(--space-1)] font-normal font-body text-text-primary">
+          <IconText
+            icon={OUTCOME_ICON[decision.outcome]}
+            iconClassName={OUTCOME_ICON_CLASSNAME[decision.outcome]}
+          >
+            <span className="font-semibold">{formatDecisionOutcomeLabel(decision.outcome)}</span>
+          </IconText>{' '}
+          by <ActorName name={decision.by} />
+        </p>
+        <p className="text-body font-normal font-body text-text-secondary">
+          {formatRelativeTime(decision.at)}
+        </p>
+      </div>
 
       <hr className="border-border-subtle" />
 

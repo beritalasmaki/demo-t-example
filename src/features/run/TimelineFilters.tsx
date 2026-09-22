@@ -61,24 +61,43 @@ export function TimelineFilters({ hiddenTypes, onHiddenTypesChange }: TimelineFi
           <DropdownMenu.Content
             align="start"
             sideOffset={4}
-            className="z-10 flex min-w-48 flex-col gap-[var(--space-1)] rounded-md border border-border bg-surface p-[var(--space-2)] shadow-md"
+            className="z-10 flex min-w-48 flex-col rounded-md border border-border bg-surface p-[var(--space-2)] shadow-md"
           >
-            {ALL_TYPES.map((type) => (
-              <DropdownMenu.CheckboxItem
-                key={type}
-                checked={hiddenTypes.has(type)}
-                onCheckedChange={(checked) => setTypeHidden(type, checked)}
-                onSelect={(event) => event.preventDefault()}
-                className="flex cursor-pointer items-center gap-[var(--space-2)] rounded-sm px-[var(--space-2)] py-[var(--space-1)] text-body font-normal font-body text-text-primary outline-none data-[highlighted]:bg-surface-raised"
-              >
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-border">
-                  <DropdownMenu.ItemIndicator>
-                    <Check aria-hidden className="h-3 w-3 text-primary" />
-                  </DropdownMenu.ItemIndicator>
-                </span>
-                {TYPE_LABEL[type]}
-              </DropdownMenu.CheckboxItem>
-            ))}
+            {/* Fast reset — clears every selection at once rather than unchecking each item
+             * one at a time. Disabled (not hidden) when there's nothing to clear, so the
+             * menu's layout doesn't shift depending on state. A real DropdownMenu.Item, not
+             * a plain <button>: a raw button here doesn't join Radix's own roving-focus
+             * arrow-key group, so it would render and even take Tab focus but be silently
+             * unreachable by the ArrowUp/ArrowDown navigation the rest of this menu uses. */}
+            <DropdownMenu.Item
+              disabled={hiddenTypes.size === 0}
+              onSelect={(event) => {
+                event.preventDefault()
+                onHiddenTypesChange(new Set())
+              }}
+              className="cursor-pointer rounded-sm px-[var(--space-2)] py-[var(--space-1)] text-body font-semibold font-body text-primary outline-none hover:underline data-[highlighted]:underline data-[disabled]:cursor-not-allowed data-[disabled]:text-text-disabled data-[disabled]:no-underline"
+            >
+              Deselect all
+            </DropdownMenu.Item>
+            <div className="my-[var(--space-1)] border-t border-border-subtle" />
+            <div className="flex flex-col gap-[var(--space-1)]">
+              {ALL_TYPES.map((type) => (
+                <DropdownMenu.CheckboxItem
+                  key={type}
+                  checked={hiddenTypes.has(type)}
+                  onCheckedChange={(checked) => setTypeHidden(type, checked)}
+                  onSelect={(event) => event.preventDefault()}
+                  className="flex cursor-pointer items-center gap-[var(--space-2)] rounded-sm px-[var(--space-2)] py-[var(--space-1)] text-body font-normal font-body text-text-primary outline-none data-[highlighted]:bg-surface-raised"
+                >
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-border">
+                    <DropdownMenu.ItemIndicator>
+                      <Check aria-hidden className="h-3 w-3 text-primary" />
+                    </DropdownMenu.ItemIndicator>
+                  </span>
+                  {TYPE_LABEL[type]}
+                </DropdownMenu.CheckboxItem>
+              ))}
+            </div>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>

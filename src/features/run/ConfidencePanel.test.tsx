@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import type { ConfidenceArea } from '../../lib/types'
@@ -36,11 +36,12 @@ describe('ConfidencePanel', () => {
     expect(security).toHaveTextContent('Not checked')
   })
 
-  it('shows what could not be verified before the confidence value, never a bare number', () => {
+  it('shows what could not be verified and the value is never a bare number', () => {
     render(<ConfidencePanel confidence={confidence} />)
     const row = screen.getByText('Implementation').closest('li')!
     expect(row).toHaveTextContent('Could not verify')
-    expect(row).toHaveTextContent('Confidence 72% — 14 passing tests')
+    expect(row).toHaveTextContent('Confidence 72%')
+    expect(row).toHaveTextContent('14 passing tests covering 3 of 5 changed files.')
   })
 
   it('hides the rationale until the row is opened, by keyboard', async () => {
@@ -51,7 +52,8 @@ describe('ConfidencePanel', () => {
       screen.getByText('The change mirrors an existing pattern in the same file.'),
     ).not.toBeVisible()
 
-    const toggle = screen.getByText('Implementation').closest('summary')!
+    const row = screen.getByText('Implementation').closest('li')!
+    const toggle = within(row).getByText('Show details').closest('summary')!
     await user.click(toggle)
     expect(
       screen.getByText('The change mirrors an existing pattern in the same file.'),

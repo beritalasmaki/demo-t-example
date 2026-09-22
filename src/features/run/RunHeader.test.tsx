@@ -47,7 +47,9 @@ describe('RunHeader', () => {
 
     expect(screen.getByText('Staging')).toBeVisible()
     expect(screen.getByText('Awaiting review')).toBeVisible()
-    expect(screen.getByText(longInitiative).closest('p')).toHaveClass('truncate')
+    // Truncated only at md and up — see RunHeader.tsx's own comment: below md, the `title`
+    // tooltip this relies on to reveal the rest never fires on a touchscreen.
+    expect(screen.getByText(longInitiative).closest('p')).toHaveClass('md:truncate')
   })
 
   it('keeps agent, model, run id and the full time zone name closed by default', () => {

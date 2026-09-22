@@ -89,10 +89,13 @@ export function RunHeader({ run }: RunHeaderProps) {
       </div>
 
       {/* Second tier — a separate row from the first, so a long initiative name can truncate
-       * without any risk of clipping the environment or status above it. */}
+       * without any risk of clipping the environment or status above it. Truncated only at
+       * md and up: below that, the `title` tooltip this relies on to reveal the rest never
+       * fires on a touchscreen, which would otherwise silently hide "what was asked for" —
+       * the first reviewer question (docs/spec-review-screen.md) — with no way to read it. */}
       <div className="flex min-w-0 flex-col gap-[var(--space-2)]">
         <p
-          className="text-body min-w-0 truncate font-normal font-body text-text-secondary"
+          className="text-body min-w-0 font-normal font-body text-text-secondary md:truncate"
           title={run.initiative}
         >
           <span className="text-text-primary">{run.initiative}</span> — requested by{' '}

@@ -115,7 +115,10 @@ export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryP
               key={sentence.text}
               className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-1)]"
             >
-              <IconText icon={icon} iconClassName={iconClassName}>
+              {/* items-start, overriding IconText's own items-center: a sentence can wrap to
+               * several lines at narrow widths, same reasoning as TimelineEventRow.tsx's
+               * identical override. */}
+              <IconText icon={icon} iconClassName={iconClassName} className="items-start">
                 <span
                   className={cn(
                     'font-body',

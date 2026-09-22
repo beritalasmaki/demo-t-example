@@ -6,6 +6,140 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0023 · A person's name gets a pill; a system's name-and-version doesn't
+
+**Context.** Every actor name on screen already got an icon (`ActorIcon`, person vs system
+via `isSystemActor`), but the two read too similarly at a glance — same size, same weight,
+distinguished only by which small icon sat next to the text. The user asked, with a reference
+image, for a human name to be visually set apart as its own pill/chip, not just plain text
+next to an icon.
+
+**Options.** (a) Give every actor name (person and system alike) the same pill chrome,
+differing only by icon. (b) Pill only the person case; leave a system's name-and-version as
+plain icon + text, unchanged.
+
+**Choice.** (b). The ask was specifically to "emphasize that this is a human" — giving both
+kinds the same chrome would restore the exact ambiguity being fixed. The contrast (one gets a
+pill, the other doesn't) is what does the emphasizing; the icon distinction alone stays for
+the system case, as before.
+
+**Implementation note.** `ActorName` was previously duplicated — a local function in
+`PolicyGateRow.tsx`, and the identical JSX inlined again in `DecisionBar.tsx`. Pulled out to
+`features/run/ActorName.tsx` (not `components/`, matching the boundary `ActorIcon`'s own doc
+comment already draws: the generic circle-around-an-icon shape lives in `components/`, but
+deciding *which* icon from a raw name string is product-specific and lives in `features/run/`).
+Now used by `PolicyGateRow.tsx`, `DecisionBar.tsx`, and the new `DecisionStatusBanner.tsx`
+alike, so the human/system distinction is consistent everywhere an actor's name appears
+instead of three places that could quietly drift apart.
+
+**Consequence.** The pill's own border (`border-border-subtle`) is deliberately a step
+subtler than `ActorIcon`'s own ring (`border-border`) rather than reusing the same token for
+both — nesting two identically-weighted borders a few pixels apart read as visual clutter in
+review; keeping them at different strengths reads as one shape (the pill) with a smaller
+detail (the avatar) inside it, not two competing outlines.
+
+---
+
+## 0022 · The "Before you rely on this" digest is a new region, not part of the spec's six
+
+**Context.** A reference mockup (shared as inspiration for "make the UI more user-friendly,"
+tokens unchanged) showed a synthesized card near the top pulling together the failed/not-run
+gates, the weakest confidence area, and a flagged audit note — one scannable pre-flight list
+with jump links. `docs/spec-review-screen.md` defines exactly six regions and doesn't have
+one for this.
+
+**Options.** (a) Skip it — stay to visual/layout refinements of the existing six regions.
+(b) Build it as a seventh, clearly-separate region, sourced from real data only.
+
+**Choice.** (b), confirmed with the user before building (this was asked as a scope question,
+since it's new content architecture, not styling). `lib/attention.ts`'s `buildAttentionItems`
+is deliberately conservative about what qualifies, the same discipline `isSystemActor`
+(0016) and `classifySummarySentence` were held to — a fact, never a threshold judgment:
+
+- A gate group only exists for `fail`/`unknown`/`waived` gates that are actually present
+  (`lib/gates.ts`'s `gateAttentionGroups`) — the exact same three results `PolicyGateList` now
+  treats as "needs attention" (0021), not a separate definition of "risky."
+- The confidence bullet is the single weakest area, but *only* among areas that name
+  something concrete they could not verify (`unverified.length > 0`). There is deliberately no
+  "confidence below X%" threshold — docs/spec-review-screen.md says "low confidence is normal
+  and should look normal, not alarming," so the trigger is a specific, sourced fact ("could
+  not verify Y"), never a number judged low on its own.
+- The audit-note bullet only ever comes from `severity: 'warning'` `note` events.
+  `severity: 'error'` events are excluded on purpose: those are already always-visible in the
+  Audit log's own step/error/retry summary (Region 4's own hierarchy rule), so repeating them
+  here would be the same fact twice, not a new one.
+
+**Consequence.** Verified by hand against all three fixtures, not just written and trusted:
+`run-clean` (the "boring" case) still gets one bullet — a confidence area with something real
+it couldn't verify — proving the digest doesn't manufacture urgency where none exists;
+`run-blocked` gets three (a failed gate, a waived gate, the weakest confidence area);
+`run-messy` gets three (two not-run gates, the weakest confidence area, the reconciliation
+note) — which happens to match the reference mockup's own three bullets exactly. If a future
+region ever needs the same "which gates need looking at" grouping `PolicyGateList` and the
+digest both now use, it has a single source (`gateAttentionGroups`), not two definitions to
+keep in sync.
+
+---
+
+## 0021 · Policy gates: settled results collapse only once something needs attention
+
+**Context.** The same reference mockup collapsed passing/not-applicable gates behind "Show N
+passed checks," with failed/not-run gates always visible above an eyebrow count. But Scenario
+S2 in docs/spec-review-screen.md is explicit: for an all-pass run, a design "fails when...
+[it] hides what was checked behind a single green summary" — collapsing everything in the
+common, boring case is exactly the failure that scenario names.
+
+**Options.** (a) Always collapse settled (pass/not_applicable) gates behind the disclosure,
+matching the mockup literally. (b) Collapse settled gates only when at least one gate needs
+attention (`fail`/`waived`/`unknown`); render the flat list, exactly as before, when every
+gate is pass/not_applicable.
+
+**Choice.** (b). `PolicyGateList.tsx` computes `attention`/`settled` from the existing
+`sortGates` order; `attention.length === 0` renders unchanged from before this session (the
+literal S2 case), `attention.length > 0` adds a "Needs attention · N" eyebrow above the
+always-visible attention rows and wraps `settled` in the existing `Disclosure` component
+("Show N passed checks") — no new component, no new tokens.
+
+**Consequence.** `PolicyGateList.test.tsx`'s existing sort-order test now opens the
+disclosure before asserting order (closed native `<details>` content is correctly excluded
+from `getAllByRole`, the same behaviour `ConfidencePanel.test.tsx` already relies on) — the
+sort behaviour it checks didn't change, only that it's sometimes behind one extra click now.
+Two new tests cover the two branches directly: settled gates collapse when something needs
+attention, and nothing collapses when everything passed.
+
+---
+
+## 0020 · `AttentionDigest`'s own chrome stays colour-neutral, not a status colour
+
+**Context.** `src/styles/README.md`'s usage rules: `--color-status-*` is for an icon, border
+or swatch reporting one specific `GateResult` — "if something needs colour and it is not
+reporting a pass/fail/waived/not-applicable/unknown result, it does not get a status colour."
+The new `AttentionDigest` card (0022) needed some visual weight for its heading icon and
+border, and the reference mockup it took inspiration from used a solid amber/brown fill for
+the equivalent card.
+
+**Options.** (a) Give the card's heading icon/border a status colour — `--color-status-waived`
+(amber) reads closest to "caution." (b) Keep the card's own chrome fully neutral
+(`border-border-subtle`, `text-text-secondary`/`text-text-primary`), the same treatment
+`RunHeader.tsx` already gives `RunStatus` for an analogous reason (see that component's own
+doc comment).
+
+**Choice.** (b). The digest is not itself reporting one `GateResult` — a single card can
+carry a failed-gate bullet, a confidence bullet and an audit-note bullet all at once, so no
+single status tone is accurate for the card as a whole, and the usage rule is explicit that
+status colour doesn't get reused once something stops being a status claim. (A full
+background fill, which the mockup used, was also never on the table: `styles/README.md`
+already established status colour as "icon, border and swatch — never the text itself," and a
+solid amber fill is the same kind of reuse the "never a fill" line in tokens.css's own status
+block already rules out for `StatusBadge`.)
+
+**Consequence.** The card reads calmer than the reference's amber box; each item's own lead
+sentence, not the card's chrome, is what tells a reviewer this is a "worth checking" list, the
+same way `RunSummary.tsx` and `PolicyGateRow.tsx` already carry their own status meaning at
+the item level rather than tinting a whole container. No new token was added or considered.
+
+---
+
 ## 0019 · Smooth scroll for section nav: CSS `scroll-behavior`, not `scrollIntoView`
 
 **Context.** AnchorNav's links (`#run-header-heading` etc.) jumped instantly. The ask was a

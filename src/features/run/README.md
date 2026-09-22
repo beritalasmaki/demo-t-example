@@ -64,6 +64,10 @@ written the code: a compliance officer, a security lead, a product owner. Design
 - `DecisionStatusBanner.tsx` — "Approved by X · 4 minutes ago", right under the run header, so
   an already-decided run says so immediately rather than only at the bottom Decision region.
   A pointer to `DecisionBar.tsx`'s `DecidedView`, never a second place the decision is recorded
+- `ActorName.tsx` — the shared "who did this" display: a person's name gets a pill (border,
+  filled background, `ActorIcon`); a system's name-and-version stays plain icon + text — the
+  contrast is what marks "a person did this" (docs/DECISIONS.md). Used by `PolicyGateRow.tsx`
+  (`evaluatedBy`, `waiver.by`), `DecisionBar.tsx` and `DecisionStatusBanner.tsx` (`decision.by`)
 - `useRun.ts` — loading, not-found and error handling via `lib/api`'s `getRun`. No
   stale-while-revalidating: nothing in `lib/api` yet signals that a run moved on during a
   read the way `submitDecision`'s `DecisionConflictError` does for a decision in flight

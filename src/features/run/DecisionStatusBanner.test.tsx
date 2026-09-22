@@ -16,17 +16,25 @@ function decision(overrides: Partial<Decision> & Pick<Decision, 'outcome'>): Dec
 describe('DecisionStatusBanner', () => {
   it('names who decided and the outcome, for approved', () => {
     render(<DecisionStatusBanner decision={decision({ outcome: 'approved' })} />)
-    expect(screen.getByText(/Approved by Marcus Webb/)).toBeVisible()
+    expect(screen.getByText('Approved').closest('p')).toHaveTextContent('Approved by Marcus Webb')
   })
 
   it('names who decided and the outcome, for changes requested', () => {
     render(<DecisionStatusBanner decision={decision({ outcome: 'changes_requested' })} />)
-    expect(screen.getByText(/Changes requested by Marcus Webb/)).toBeVisible()
+    expect(screen.getByText('Changes requested').closest('p')).toHaveTextContent(
+      'Changes requested by Marcus Webb',
+    )
   })
 
   it('names who decided and the outcome, for rejected', () => {
     render(<DecisionStatusBanner decision={decision({ outcome: 'rejected' })} />)
-    expect(screen.getByText(/Rejected by Marcus Webb/)).toBeVisible()
+    expect(screen.getByText('Rejected').closest('p')).toHaveTextContent('Rejected by Marcus Webb')
+  })
+
+  it("puts a human decider's name in a pill", () => {
+    render(<DecisionStatusBanner decision={decision({ outcome: 'approved' })} />)
+    const pill = screen.getByText('Marcus Webb').closest('span')!
+    expect(pill.className).toMatch(/rounded-full/)
   })
 
   it('links to the Decision region', () => {

@@ -4,6 +4,7 @@ import { IconText } from '../../components/IconText'
 import { RegionCard } from '../../components/RegionCard'
 import { formatDecisionOutcomeLabel, formatRelativeTime } from '../../lib/format'
 import type { Decision } from '../../lib/types'
+import { ActorName } from './ActorName'
 
 /**
  * A compact "this run is already decided" note, right under the run header — so a reviewer
@@ -36,11 +37,9 @@ export function DecisionStatusBanner({ decision }: DecisionStatusBannerProps) {
     <RegionCard className="flex flex-col gap-[var(--space-1)]">
       <p className="text-body font-normal font-body text-text-primary">
         <IconText icon={OUTCOME_ICON[decision.outcome]}>
-          <span className="font-semibold">
-            {formatDecisionOutcomeLabel(decision.outcome)} by {decision.by}
-          </span>
+          <span className="font-semibold">{formatDecisionOutcomeLabel(decision.outcome)}</span>
         </IconText>{' '}
-        · {formatRelativeTime(decision.at)}
+        by <ActorName name={decision.by} /> · {formatRelativeTime(decision.at)}
       </p>
       <p className="text-body font-normal font-body text-text-secondary">
         This decision already stands.{' '}

@@ -1,10 +1,8 @@
-import { Bot, CheckSquare, User } from 'lucide-react'
+import { CheckSquare } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { ActorIcon } from '../../components/ActorIcon'
 import { Checkbox } from '../../components/Checkbox'
 import { IconText } from '../../components/IconText'
 import { RegionCard } from '../../components/RegionCard'
-import { isSystemActor } from '../../lib/actors'
 import type { SubmitDecisionOptions } from '../../lib/api'
 import { undoWindow } from '../../lib/decision'
 import {
@@ -16,6 +14,7 @@ import {
 } from '../../lib/format'
 import { gateAcknowledgement } from '../../lib/gates'
 import type { Decision, Run } from '../../lib/types'
+import { ActorName } from './ActorName'
 import { DecisionDialog } from './DecisionDialog'
 import type { DecisionAction } from './DecisionDialog'
 
@@ -173,11 +172,8 @@ function DecidedView({
     <div className="flex flex-col gap-[var(--space-2)] rounded-md border border-border-subtle bg-surface-raised p-[var(--space-4)]">
       <p className="text-item-title font-semibold font-body text-text-primary">
         <span className="font-semibold">{formatDecisionOutcomeLabel(decision.outcome)}</span> by{' '}
-        <span className="inline-flex items-center gap-[var(--space-2)]">
-          <ActorIcon icon={isSystemActor(decision.by) ? Bot : User} />
-          {decision.by}
-        </span>{' '}
-        — {formatDateTime(decision.at)} ({formatRelativeTime(decision.at)})
+        <ActorName name={decision.by} /> — {formatDateTime(decision.at)} (
+        {formatRelativeTime(decision.at)})
       </p>
       <p className="text-meta font-normal font-body text-text-secondary">
         Revision {decision.revision}

@@ -27,11 +27,11 @@ describe('PolicyGateList', () => {
         timeline={[]}
       />,
     )
-    // 'Security review' (pass) is settled, collapsed behind "Show N passed checks" since
-    // 'Data retention' needs attention — open it so both names are in the accessibility tree.
-    await user.click(screen.getByText('Show 1 passed check'))
-    expect(screen.getByText('Security review')).toBeVisible()
+    // 'Security review' (pass) is settled, under the "Passed checks" tab, while 'Data
+    // retention' needs attention and is on the tab shown by default.
     expect(screen.getByText('Data retention')).toBeVisible()
+    await user.click(screen.getByRole('tab', { name: 'Passed checks (1)' }))
+    expect(screen.getByText('Security review')).toBeVisible()
   })
 
   it('sorts failed and waived first, then unknown, then not applicable, then passed', async () => {
@@ -48,27 +48,28 @@ describe('PolicyGateList', () => {
       />,
     )
 
-    // 'a' (pass) and 'b' (not_applicable) are settled — collapsed behind "Show N passed
-    // checks" since 'd' needs attention. Open it so every gate is in the accessibility tree.
-    await user.click(screen.getByText('Show 2 passed checks'))
+    // 'd' (fail) and 'c' (unknown) need attention, shown by default; 'a' (pass) and
+    // 'b' (not_applicable) are settled, under the "Passed checks" tab.
+    const attentionIds = screen
+      .getAllByRole('listitem')
+      .map((item) => item.querySelector('summary')!.textContent)
+    expect(attentionIds.findIndex((t) => t?.includes('Failed'))).toBeLessThan(
+      attentionIds.findIndex((t) => t?.includes('Not run')),
+    )
 
-    const ids = screen
+    await user.click(screen.getByRole('tab', { name: 'Passed checks (2)' }))
+    const settledIds = screen
       .getAllByRole('listitem')
       .map((item) => item.querySelector('summary')!.textContent)
     // Only checking relative order here, since each row's full text also includes the
     // (empty, in this test) plain-language description.
-    expect(ids.findIndex((t) => t?.includes('Failed'))).toBeLessThan(
-      ids.findIndex((t) => t?.includes('Not run')),
-    )
-    expect(ids.findIndex((t) => t?.includes('Not run'))).toBeLessThan(
-      ids.findIndex((t) => t?.includes('Not applicable')),
-    )
-    expect(ids.findIndex((t) => t?.includes('Not applicable'))).toBeLessThan(
-      ids.findIndex((t) => t?.includes('Passed')),
+    expect(settledIds.findIndex((t) => t?.includes('Not applicable'))).toBeLessThan(
+      settledIds.findIndex((t) => t?.includes('Passed')),
     )
   })
 
-  it('collapses passed and not-applicable gates behind "Show N passed checks" once something needs attention', () => {
+  it('splits into "Needs attention" and "Passed checks" tabs once something needs attention', async () => {
+    const user = userEvent.setup()
     render(
       <PolicyGateList
         gates={[
@@ -78,10 +79,16 @@ describe('PolicyGateList', () => {
         timeline={[]}
       />,
     )
-    expect(screen.getByText('Needs attention · 1')).toBeVisible()
+    expect(screen.getByRole('tab', { name: 'Needs attention (1)' })).toHaveAttribute(
+      'data-state',
+      'active',
+    )
     expect(screen.getByText('Failed gate')).toBeVisible()
-    expect(screen.getByText('Passed gate')).not.toBeVisible()
-    expect(screen.getByText('Show 1 passed check')).toBeVisible()
+    expect(screen.queryByText('Passed gate')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: 'Passed checks (1)' }))
+    expect(screen.getByText('Passed gate')).toBeVisible()
+    expect(screen.queryByText('Failed gate')).not.toBeInTheDocument()
   })
 
   it('collapses nothing when every gate passed — S2, "hides what was checked" is a failure', () => {
@@ -94,8 +101,7 @@ describe('PolicyGateList', () => {
         timeline={[]}
       />,
     )
-    expect(screen.queryByText(/Needs attention/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/Show \d+ passed/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
     expect(screen.getByText('First passed gate')).toBeVisible()
     expect(screen.getByText('Second passed gate')).toBeVisible()
   })

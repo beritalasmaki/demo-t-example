@@ -8,16 +8,6 @@ import type { TimelineEvent } from '../../lib/types'
 import { TimelineEventRow } from './TimelineEventRow'
 import { TimelineFilters } from './TimelineFilters'
 
-const ALL_TYPES: TimelineEvent['type'][] = [
-  'plan',
-  'tool_call',
-  'file_change',
-  'test_run',
-  'gate_eval',
-  'error',
-  'note',
-]
-
 function pluralize(count: number, singular: string, plural = `${singular}s`) {
   return count === 1 ? singular : plural
 }
@@ -38,19 +28,19 @@ export interface TimelineProps {
   /** The run's own start time — used only for the empty-state message. */
   startedAt: string
   isLoading?: boolean
-  /** Which types start active. Defaults to all of them; mainly for stories and tests that
-   * need to render an already-filtered state rather than simulate clicking every chip. */
-  defaultActiveTypes?: ReadonlySet<TimelineEvent['type']>
+  /** Which types start hidden. Defaults to none; mainly for stories and tests that need to
+   * render an already-filtered state rather than simulate opening the dropdown. */
+  defaultHiddenTypes?: ReadonlySet<TimelineEvent['type']>
 }
 
 export function Timeline({
   events,
   startedAt,
   isLoading = false,
-  defaultActiveTypes,
+  defaultHiddenTypes,
 }: TimelineProps) {
-  const [activeTypes, setActiveTypes] = useState<Set<TimelineEvent['type']>>(
-    new Set(defaultActiveTypes ?? ALL_TYPES),
+  const [hiddenTypes, setHiddenTypes] = useState<Set<TimelineEvent['type']>>(
+    new Set(defaultHiddenTypes ?? []),
   )
 
   const heading = (
@@ -87,7 +77,7 @@ export function Timeline({
   }
 
   const shape = timelineShape(events)
-  const { visible, forcedVisibleIds, hiddenCount } = filterTimeline(events, activeTypes)
+  const { visible, forcedVisibleIds, hiddenCount } = filterTimeline(events, hiddenTypes)
 
   return (
     <RegionCard className="flex flex-col gap-[var(--space-3)]">
@@ -98,11 +88,11 @@ export function Timeline({
         {pluralize(shape.retries, 'retry', 'retries')}
       </p>
 
-      <TimelineFilters activeTypes={activeTypes} onActiveTypesChange={setActiveTypes} />
+      <TimelineFilters hiddenTypes={hiddenTypes} onHiddenTypesChange={setHiddenTypes} />
 
       {/* Acceptance criteria: "Filters state what is hidden and how many items that is." */}
       <p aria-live="polite" className="text-meta font-normal font-body text-text-secondary">
-        {hiddenCount} {pluralize(hiddenCount, 'event')} hidden by the active filters.
+        {hiddenCount} {pluralize(hiddenCount, 'event')} hidden by the filters.
       </p>
 
       <ul className="flex max-h-96 flex-col gap-[var(--space-3)] overflow-y-auto">

@@ -87,7 +87,10 @@ Consumed through Tailwind's arbitrary-value syntax instead — `gap-[var(--space
 - **Status and accent colours are for the icon, border and swatch — never the text itself.**
   The label next to a status icon or inside an accent pill uses `--color-text-primary` or
   `--color-text-secondary`, not the status/accent colour. This is not a style preference: see
-  the contrast numbers below.
+  the contrast numbers below. **One scoped exception:** `StatusBadge`'s `success`/`warning`
+  tones are a filled tint (background, border, icon and text all the status colour) — see
+  `StatusBadge.tsx`'s own doc comment and `docs/DECISIONS.md` for why, and why it stops at
+  exactly those two tones.
 
 ## Contrast
 

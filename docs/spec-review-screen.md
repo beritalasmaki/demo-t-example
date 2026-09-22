@@ -209,9 +209,11 @@ For each region: what is most important, what is secondary, and what stays hidde
 reader asks for it. Nothing in the audit trail is ever deleted from the screen — it is
 collapsed, and the collapse says how much is inside.
 
-**Run header.** First: what system, which environment, and current status. Second: initiative
-name and who requested it. Hidden until opened: agent version, model version, run id,
-time zone detail. Never hidden: the environment, because it changes what approval means.
+**Run header.** First: environment and current status. Second: the initiative — the card's
+headline, since what changed is what a reviewer scans for first (docs/DECISIONS.md). Third:
+which system it affects, when it ran, and who requested it. Hidden until opened: agent
+version, model version, run id, time zone detail. Never hidden: the environment, because it
+changes what approval means — moved out of the first tier's row, but still always visible.
 
 **Summary.** First: three to five plain sentences, each linking to its evidence. Second: counts
 (files changed, tests, gates). Hidden: nothing — if a sentence needs hiding, it should not be

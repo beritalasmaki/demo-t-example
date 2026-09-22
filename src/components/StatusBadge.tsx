@@ -8,18 +8,32 @@ import { cn } from '../lib/utils'
  *
  * The icon is fixed per tone inside this component, not a prop: a caller cannot render a
  * status with colour but no icon, because there is no way to ask for one without the other.
+ *
+ * `success` and `warning` are filled (a light tint background, `--color-status-*-tint-fg`
+ * for icon/border/text) — the one deliberate exception to "status colour is never a fill,
+ * never the text" (src/styles/README.md), scoped to exactly these two tones because only
+ * green and light-yellow tint tokens exist (docs/DECISIONS.md). `danger`/`neutral`/`info`
+ * stay icon-and-border-only, unchanged. `info` (the only `GateResult` it renders,
+ * `unknown`/"Not run") uses a plain neutral colour rather than `--color-status-unknown`
+ * (blue) — see docs/DECISIONS.md for why.
  */
 export type StatusBadgeTone = 'success' | 'danger' | 'warning' | 'neutral' | 'info'
 
 const TONE = {
-  success: { icon: CircleCheckBig, className: 'text-status-pass border-status-pass' },
+  success: {
+    icon: CircleCheckBig,
+    className: 'border-transparent bg-status-pass-tint-bg text-status-pass-tint-fg',
+  },
   danger: { icon: CircleX, className: 'text-status-fail border-status-fail' },
-  warning: { icon: TriangleAlert, className: 'text-status-waived border-status-waived' },
+  warning: {
+    icon: TriangleAlert,
+    className: 'border-transparent bg-status-waived-tint-bg text-status-waived-tint-fg',
+  },
   neutral: {
     icon: CircleMinus,
     className: 'text-status-not-applicable border-status-not-applicable',
   },
-  info: { icon: CircleHelp, className: 'text-status-unknown border-status-unknown' },
+  info: { icon: CircleHelp, className: 'text-text-secondary border-border' },
 } satisfies Record<
   StatusBadgeTone,
   { icon: React.ComponentType<{ className?: string }>; className: string }

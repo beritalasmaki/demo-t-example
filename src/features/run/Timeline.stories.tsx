@@ -49,12 +49,18 @@ const filteredEvents: TimelineEvent[] = [
   { id: 'f7', at: '2026-03-04T14:08:00Z', type: 'gate_eval', title: 'Security review passed.' },
 ]
 
-/** Only "plan" is active on load — everything else is filtered out, except the error and the
- * retry, which stay visible with a note explaining why, and don't count toward "hidden". */
+/** Everything except "plan" is hidden on load — the error and the retry stay visible with a
+ * note explaining why, and don't count toward "hidden". */
 export const Filtered: Story = {
   args: {
     events: filteredEvents,
     startedAt: '2026-03-04T14:02:00Z',
-    defaultActiveTypes: new Set<TimelineEvent['type']>(['plan']),
+    defaultHiddenTypes: new Set<TimelineEvent['type']>([
+      'tool_call',
+      'file_change',
+      'error',
+      'test_run',
+      'gate_eval',
+    ]),
   },
 }

@@ -58,7 +58,7 @@ written the code: a compliance officer, a security lead, a product owner. Design
   (only when `lib/attention.ts`'s `buildAttentionItems` found something worth flagging — see
   docs/DECISIONS.md). Holds the run in local state so a decision (or a conflict — or an undo)
   updates the screen immediately, without a refetch
-- `AttentionDigest.tsx` — the "Before you rely on this" digest: not one of the spec's six
+- `AttentionDigest.tsx` — the "Before you approve" digest: not one of the spec's six
   regions, a synthesized shortcut to what `lib/attention.ts` found. Every item links to the
   region it came from; renders nothing when there's nothing to flag
 - `DecisionStatusBanner.tsx` — "Approved by X · 4 minutes ago", right under the run header, so

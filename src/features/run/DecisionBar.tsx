@@ -1,4 +1,4 @@
-import { CheckSquare } from 'lucide-react'
+import { CheckSquare, RotateCcw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Checkbox } from '../../components/Checkbox'
 import { IconText } from '../../components/IconText'
@@ -169,23 +169,52 @@ function DecidedView({
   }
 
   return (
-    <div className="flex flex-col gap-[var(--space-2)] rounded-md border border-border-subtle bg-surface-raised p-[var(--space-4)]">
-      <p className="text-item-title font-semibold font-body text-text-primary">
-        <span className="font-semibold">{formatDecisionOutcomeLabel(decision.outcome)}</span> by{' '}
-        <ActorName name={decision.by} /> — {formatDateTime(decision.at)} (
-        {formatRelativeTime(decision.at)})
-      </p>
-      <p className="text-meta font-normal font-body text-text-secondary">
-        Revision {decision.revision}
-      </p>
+    <div className="flex flex-col gap-[var(--space-3)] rounded-md border border-border-subtle bg-surface-raised p-[var(--space-4)]">
+      <div className="grid grid-cols-3 gap-[var(--space-3)]">
+        <div className="flex flex-col gap-[var(--space-1)]">
+          <span className="text-meta font-semibold font-body tracking-wide text-text-secondary uppercase">
+            {formatDecisionOutcomeLabel(decision.outcome)} by
+          </span>
+          <ActorName name={decision.by} />
+        </div>
+        <div className="flex flex-col gap-[var(--space-1)]">
+          <span className="text-meta font-semibold font-body tracking-wide text-text-secondary uppercase">
+            Time
+          </span>
+          <span className="text-body font-normal font-body text-text-primary">
+            {formatDateTime(decision.at)} ({formatRelativeTime(decision.at)})
+          </span>
+        </div>
+        <div className="flex flex-col gap-[var(--space-1)]">
+          <span className="text-meta font-semibold font-body tracking-wide text-text-secondary uppercase">
+            Revision
+          </span>
+          <span className="text-body font-normal font-body text-text-primary">
+            {decision.revision}
+          </span>
+        </div>
+      </div>
+
+      <hr className="border-border-subtle" />
+
       {undo.active ? (
-        <div className="flex flex-col items-start gap-[var(--space-2)]">
+        <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)]">
+          {/* The one filled, non-neutral button in this whole feature — Scenario S2's "no
+           * brand colour on any of the three actions" is deliberately scoped to those three;
+           * Undo is a different, later action, and this neutral dark/light inversion (no
+           * --color-primary) gives it enough visual weight to be found quickly on an
+           * already-decided card without introducing a brand colour anywhere. */}
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="inline-flex items-center gap-[var(--space-2)] rounded-md bg-text-primary px-[var(--space-4)] py-[var(--space-2)] text-sm font-medium text-surface hover:opacity-90"
+          >
+            <RotateCcw aria-hidden className="h-4 w-4" />
+            Undo
+          </button>
           <p className="text-meta font-normal font-body text-text-secondary" aria-live="polite">
             You can undo this for {formatDuration(undo.remainingMs)} more.
           </p>
-          <button type="button" onClick={handleUndo} className={BUTTON_CLASSNAME}>
-            Undo
-          </button>
         </div>
       ) : (
         <p className="text-meta font-normal font-body text-text-secondary">

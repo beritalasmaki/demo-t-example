@@ -14,11 +14,11 @@ describe('StatusBadge', () => {
   })
 
   it.each([
-    ['success', 'text-status-pass'],
+    ['success', 'text-status-pass-tint-fg'],
     ['danger', 'text-status-fail'],
-    ['warning', 'text-status-waived'],
+    ['warning', 'text-status-waived-tint-fg'],
     ['neutral', 'text-status-not-applicable'],
-    ['info', 'text-status-unknown'],
+    ['info', 'text-text-secondary'],
   ] as const)('renders %s with the %s token', (tone, expectedClass) => {
     render(<StatusBadge tone={tone} label="Label" />)
     expect(screen.getByText('Label').closest('span')).toHaveClass(expectedClass)

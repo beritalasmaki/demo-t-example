@@ -39,7 +39,13 @@ describe('DecisionStatusBanner', () => {
 
   it('links to the Decision region', () => {
     render(<DecisionStatusBanner decision={decision({ outcome: 'approved' })} />)
-    const link = screen.getByRole('link', { name: 'See the decision, and undo it if needed' })
+    const link = screen.getByRole('link', { name: 'View the decision details' })
     expect(link).toHaveAttribute('href', '#decision-heading')
+  })
+
+  it("colours the outcome icon for approved, but not the surrounding text or the actor pill", () => {
+    render(<DecisionStatusBanner decision={decision({ outcome: 'approved' })} />)
+    const outcomeText = screen.getByText('Approved')
+    expect(outcomeText.className).not.toMatch(/text-status/)
   })
 })

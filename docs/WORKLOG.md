@@ -39,6 +39,107 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-22 · Ledger redesign: 9 Figma mockups across every region
+
+**Goal**
+The user supplied 9 Figma mockup images (wordmark, RunHeader, DecisionStatusBanner,
+AttentionDigest, RunSummary, PolicyGateList, Timeline, ConfidencePanel, DecisionBar) asking
+for a visual restyle to match, then a follow-up image plus the wordmark's real SVG source
+asking for the logo specifically.
+
+**What changed**
+- `src/styles/tokens.css` — new tint tokens for a filled `StatusBadge` exception (see
+  docs/DECISIONS.md 0027); `check:theme-bridge` verifies 38 colours across 3 themes.
+- `src/components/StatusBadge.tsx` — `success`/`warning` tones filled; `info` tone recoloured
+  blue → neutral (0028).
+- `src/app/App.tsx` — wordmark is now the literal Figma SVG (inlined, `currentColor`), not a
+  re-typeset text lockup (0035); `index.html`'s `<title>` is "Ledger — demo".
+- `src/features/run/RunHeader.tsx` — initiative name promoted to the headline; environment/
+  status row unchanged; `RunStatus` colour scoped to `approved`/`changes_requested` only
+  (0029); Started/Finished split onto labelled lines; "Show details" replaces "Run details".
+- `src/features/run/DecisionStatusBanner.tsx`, `AttentionDigest.tsx`, `RunSummary.tsx` — each
+  restyled with a right-aligned `ActionLink` (new, `src/components/ActionLink.tsx`, replacing
+  the retired `EvidenceLink`) instead of an inline underlined link; `RunSummary` keeps its
+  `FileText` heading icon and `AttentionDigest`'s heading becomes "Before you approve".
+- `src/features/run/PolicyGateList.tsx` — the "Needs attention" list + "Show N passed"
+  disclosure became two real tabs (new `src/components/Tabs.tsx`, wrapping `radix-ui`'s
+  `Tabs`), still falling back to one flat list when nothing needs attention (S2).
+- `src/lib/timeline.ts`, `TimelineFilters.tsx`, `Timeline.tsx`, `TimelineEventRow.tsx` — the
+  `ToggleChip` row became a `radix-ui` `DropdownMenu` ("Hide events · N selected"), and the
+  underlying semantics inverted from `activeTypes` (show) to `hiddenTypes` (hide), empty by
+  default (0031); every event row now shows title-then-timestamp on its own line, always
+  (0030).
+- `src/features/run/ConfidencePanel.tsx` — restructured into a banded row (big percentage,
+  neutral tone for every reported area regardless of value — 0032); the hidden/shown split
+  (rationale only) is unchanged, now behind an explicit "Show details" `Disclosure`.
+- `src/features/run/DecisionBar.tsx` — `DecidedView` restructured into a three-column
+  labelled grid (Approved by / Time / Revision) plus a divider and an Undo row; Undo is now
+  the one filled, non-brand-colour button in the app (0033).
+- `vitest.setup.ts` — jsdom polyfills for `hasPointerCapture`/`scrollIntoView` (missing
+  entirely in jsdom, needed by `radix-ui`'s popper-based components).
+- `docs/DECISIONS.md` — nine new entries (0027–0035); `src/styles/README.md` — Usage rules
+  note the filled-`StatusBadge` exception.
+
+**Steps, in order**
+1. Read all 9 images at full resolution; cross-referenced them against
+   `src/styles/README.md`'s Usage/Contrast rules and found four places the mockup
+   contradicted an existing, deliberate rule — asked the user directly (via clarifying
+   questions) before planning, rather than guessing or silently overriding either the mockup
+   or the existing rule.
+2. `EnterPlanMode`, wrote a full per-region plan, got it approved.
+3. Implemented region by region; after each region: `npx vitest run <file>`,
+   `npx eslint <files>`, `npx tsc -b`, then a real-browser Playwright screenshot pass (light +
+   dark) before moving to the next region.
+4. Mid-session, the user asked for the wordmark to use the actual logo image, then supplied
+   its SVG source directly — replaced the text lockup with the inlined SVG (0035).
+5. Hit a jsdom-only testing issue building `TimelineFilters`' new `DropdownMenu` (couldn't be
+   opened a second time by any method after a prior test's open/close, verified as jsdom-only
+   against a real browser) — root-caused it and restructured the affected test files
+   accordingly (0034).
+6. Final pass: `npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`,
+   full test suite), a real-browser pass across all three fixtures in both themes, and a
+   keyboard-only pass over every new interactive element (`Tabs`, the filter `DropdownMenu`,
+   `Disclosure`).
+
+**Why it was done this way**
+Every mockup choice that contradicted an existing rule got a direct question to the user
+before implementation, not a silent guess either way — see docs/DECISIONS.md 0027–0032 for
+the reasoning behind each answer. Three renderings that looked like unreviewed Figma leftovers
+(a duplicated warning-triangle icon, a plural typo, an inconsistent timestamp layout) were
+identified by cross-referencing multiple mockup instances against each other, and kept
+un-replicated with the reasoning recorded (0030) rather than either blindly copying them or
+silently "fixing" them with no note.
+
+**How to do this by hand**
+For a new `radix-ui`-based component (`Tabs`, `DropdownMenu`): style it with this repo's own
+tokens (`--space-*`, `--color-*`), not the `shadcn`-default classes already present in
+`src/components/ui/` (those are unused scaffolding from an earlier `shadcn` init, not wired
+into the real app — don't copy their token usage). For a filled/coloured treatment that
+reverses an existing "never a fill" rule: verify contrast with the WCAG relative-luminance
+formula (docs/DECISIONS.md 0005's method) before picking a hex value, never by eye.
+
+**Verification**
+`npm run check` green: typecheck clean, lint clean (one pre-existing, unrelated warning in
+`src/components/ui/button.tsx`), `check:theme-bridge` (38 colours verified across 3 themes),
+`check:format-locale` clean, `vitest run` (222 tests, 40 files, all passing). Real-browser
+Playwright pass across `run-clean`/`run-blocked`/`run-messy`, both themes: S2's flat-list
+fallback confirmed on `run-clean` (0 gates need attention → no tabs); filled green/amber
+badges, the neutral "Not run"/"Not checked" grey, and the neutral confidence bands all
+confirmed regardless of value. Keyboard pass: `Tabs` (arrow-key switches panel), the audit-log
+`DropdownMenu` (Enter opens, arrow+Space toggles a type, Escape closes and returns focus to
+the trigger), and `ConfidencePanel`'s `Disclosure` (Enter on the `<summary>` opens it) all
+confirmed working without a mouse.
+
+**Open questions / next**
+None outstanding — every task in this batch (`AskUserQuestion`-confirmed scope, all nine
+regions, verification) is complete. `--color-status-unknown` (the blue token `StatusBadge`'s
+`info` tone no longer uses) is still used by `RunSummary.tsx`'s own `unknown`-kind sentence
+styling — left unchanged since no mockup showed that specific case, so the two are now
+deliberately inconsistent (badge: neutral, inline sentence: blue) until there's real evidence
+either way.
+
+---
+
 ### 2026-09-22 · RunHeader's requester gets the actor pill too
 
 **Goal**

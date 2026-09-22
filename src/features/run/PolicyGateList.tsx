@@ -1,13 +1,14 @@
 import { ShieldCheck } from 'lucide-react'
-import { Disclosure } from '../../components/Disclosure'
+import { useState } from 'react'
 import { IconText } from '../../components/IconText'
 import { RegionCard } from '../../components/RegionCard'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs'
 import { sortGates } from '../../lib/gates'
 import type { GateResult, PolicyGate, TimelineEvent } from '../../lib/types'
 import { PolicyGateRow } from './PolicyGateRow'
 
 /** The three results worth surfacing before the rest — same set `lib/gates.ts`'s
- * `gateAttentionGroups` flags for the "Before you rely on this" digest. */
+ * `gateAttentionGroups` flags for the "Before you approve" digest. */
 const NEEDS_ATTENTION: ReadonlySet<GateResult> = new Set(['fail', 'waived', 'unknown'])
 
 /**
@@ -33,6 +34,8 @@ const HEADING = (
 )
 
 export function PolicyGateList({ gates, timeline, isLoading = false }: PolicyGateListProps) {
+  const [tab, setTab] = useState<'attention' | 'passed'>('attention')
+
   if (isLoading) {
     return (
       <RegionCard className="flex flex-col gap-[var(--space-3)]">
@@ -77,29 +80,26 @@ export function PolicyGateList({ gates, timeline, isLoading = false }: PolicyGat
   return (
     <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {HEADING}
-      <p className="text-meta font-semibold font-body uppercase tracking-wide text-text-secondary">
-        Needs attention · {attention.length}
-      </p>
-      <ul className="flex flex-col gap-[var(--space-3)]">
-        {attention.map((gate) => (
-          <PolicyGateRow key={gate.id} gate={gate} timeline={timeline} />
-        ))}
-      </ul>
-      {settled.length > 0 && (
-        <Disclosure
-          summary={
-            <span className="text-item-title font-semibold font-body text-text-secondary">
-              Show {settled.length} passed check{settled.length === 1 ? '' : 's'}
-            </span>
-          }
-        >
+      <Tabs value={tab} onValueChange={(value) => setTab(value as 'attention' | 'passed')}>
+        <TabsList>
+          <TabsTrigger value="attention">Needs attention ({attention.length})</TabsTrigger>
+          <TabsTrigger value="passed">Passed checks ({settled.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="attention" className="pt-[var(--space-3)]">
+          <ul className="flex flex-col gap-[var(--space-3)]">
+            {attention.map((gate) => (
+              <PolicyGateRow key={gate.id} gate={gate} timeline={timeline} />
+            ))}
+          </ul>
+        </TabsContent>
+        <TabsContent value="passed" className="pt-[var(--space-3)]">
           <ul className="flex flex-col gap-[var(--space-3)]">
             {settled.map((gate) => (
               <PolicyGateRow key={gate.id} gate={gate} timeline={timeline} />
             ))}
           </ul>
-        </Disclosure>
-      )}
+        </TabsContent>
+      </Tabs>
     </RegionCard>
   )
 }

@@ -1,5 +1,6 @@
-import { CircleCheckBig, CircleX, RotateCcw } from 'lucide-react'
+import { CircleCheckBig, CircleX, Eye, RotateCcw } from 'lucide-react'
 import type { ComponentType } from 'react'
+import { ActionLink } from '../../components/ActionLink'
 import { IconText } from '../../components/IconText'
 import { RegionCard } from '../../components/RegionCard'
 import { formatDecisionOutcomeLabel, formatRelativeTime } from '../../lib/format'
@@ -18,14 +19,22 @@ import { ActorName } from './ActorName'
  * entries, and `Decision['outcome']` and `RunStatus` are different types that happen to share
  * these three string values, not the same type.
  *
- * Colour-neutral, not `--color-status-*`, for the same reason `RunHeader.tsx` gives `RunStatus`
- * a neutral `Tag` rather than a status colour: neither is a claim about a policy check (a
- * `GateResult`), which is what that palette is reserved for (src/styles/README.md).
+ * The outcome icon (only) is coloured for `approved`/`changes_requested` — the same two tint
+ * foregrounds `RunHeader.tsx`'s `StatusBadge` uses, for visual consistency with that badge —
+ * but the surrounding text stays neutral and this never becomes a filled pill: unlike
+ * `RunStatus` in the header, this line is a sentence, not a status chip, so only the "filled
+ * badge" exception (docs/DECISIONS.md) applies, not a second, different exception for icon-
+ * only colour in running text.
  */
 const OUTCOME_ICON: Record<Decision['outcome'], ComponentType<{ className?: string }>> = {
   approved: CircleCheckBig,
   changes_requested: RotateCcw,
   rejected: CircleX,
+}
+
+const OUTCOME_ICON_CLASSNAME: Partial<Record<Decision['outcome'], string>> = {
+  approved: 'text-status-pass-tint-fg',
+  changes_requested: 'text-status-waived-tint-fg',
 }
 
 export interface DecisionStatusBannerProps {
@@ -34,22 +43,27 @@ export interface DecisionStatusBannerProps {
 
 export function DecisionStatusBanner({ decision }: DecisionStatusBannerProps) {
   return (
-    <RegionCard className="flex flex-col gap-[var(--space-1)]">
+    <RegionCard className="flex flex-col gap-[var(--space-2)]">
       <p className="text-body font-normal font-body text-text-primary">
-        <IconText icon={OUTCOME_ICON[decision.outcome]}>
+        <IconText
+          icon={OUTCOME_ICON[decision.outcome]}
+          iconClassName={OUTCOME_ICON_CLASSNAME[decision.outcome]}
+        >
           <span className="font-semibold">{formatDecisionOutcomeLabel(decision.outcome)}</span>
         </IconText>{' '}
         by <ActorName name={decision.by} /> · {formatRelativeTime(decision.at)}
       </p>
-      <p className="text-body font-normal font-body text-text-secondary">
-        This decision already stands.{' '}
-        <a
-          href="#decision-heading"
-          className="text-primary underline decoration-1 underline-offset-2 hover:text-primary-hover"
-        >
-          See the decision, and undo it if needed
-        </a>
-      </p>
+
+      <hr className="border-border-subtle" />
+
+      <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)]">
+        <p className="text-body font-normal font-body text-text-secondary">
+          This decision already stands.
+        </p>
+        <ActionLink href="#decision-heading" icon={Eye} iconPosition="start">
+          View the decision details
+        </ActionLink>
+      </div>
     </RegionCard>
   )
 }

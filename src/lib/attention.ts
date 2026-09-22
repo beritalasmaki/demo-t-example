@@ -5,7 +5,7 @@ import type { GateAttentionGroup } from './gates'
 import type { Run } from './types'
 
 /**
- * Small domain helper for the "Before you rely on this" digest — not UI, not one of
+ * Small domain helper for the "Before you approve" digest — not UI, not one of
  * docs/spec-review-screen.md's six regions. It synthesizes the handful of things most worth
  * a reviewer's attention before they decide, from real `Run` data only (AGENTS.md
  * non-negotiable 3: "no claim without a source") — nothing here is invented to read well.

@@ -49,7 +49,7 @@ describe('RunHeader', () => {
     expect(screen.getByText('Awaiting review')).toBeVisible()
     // Truncated only at md and up — see RunHeader.tsx's own comment: below md, the `title`
     // tooltip this relies on to reveal the rest never fires on a touchscreen.
-    expect(screen.getByText(longInitiative).closest('p')).toHaveClass('md:truncate')
+    expect(screen.getByText(longInitiative).closest('h2')).toHaveClass('md:truncate')
   })
 
   it('keeps agent, model, run id and the full time zone name closed by default', () => {
@@ -59,7 +59,7 @@ describe('RunHeader', () => {
     // src/components/Disclosure.test.tsx), so "hidden until opened" is verified the same way
     // that file does: the <details> has no `open` attribute — never by asserting the content
     // is absent from the DOM.
-    const details = screen.getByText('Run details').closest('details')
+    const details = screen.getByText('Show details').closest('details')
     expect(details).not.toHaveAttribute('open')
     expect(details).toHaveTextContent(runClean.id)
     expect(details).toHaveTextContent(runClean.agent.model)
@@ -68,7 +68,29 @@ describe('RunHeader', () => {
 
   it('shows the started and finished time, with the time zone stated once', () => {
     render(<RunHeader run={runClean} />)
-    expect(screen.getByText(/^Started /)).toBeVisible()
-    expect(screen.getByText(/Finished/)).toBeVisible()
+    expect(screen.getByText('Started').closest('p')).toHaveTextContent(/^Started /)
+    expect(screen.getByText('Finished').closest('p')).toHaveTextContent(/Finished/)
+  })
+
+  it('renders approved and changes_requested status as a filled StatusBadge', () => {
+    render(<RunHeader run={withRun({ status: 'approved' })} />)
+    expect(screen.getByText('Approved').closest('span')).toHaveClass('bg-status-pass-tint-bg')
+  })
+
+  it('renders every other status as the plain neutral Tag, not a StatusBadge', () => {
+    for (const status of ['running', 'blocked', 'awaiting_review', 'rejected'] as const) {
+      const { unmount } = render(<RunHeader run={withRun({ status })} />)
+      const label = screen.getByText(
+        {
+          running: 'Running',
+          blocked: 'Blocked',
+          awaiting_review: 'Awaiting review',
+          rejected: 'Rejected',
+        }[status],
+      )
+      expect(label.closest('span')).not.toHaveClass('bg-status-pass-tint-bg')
+      expect(label.closest('span')).not.toHaveClass('bg-status-waived-tint-bg')
+      unmount()
+    }
   })
 })

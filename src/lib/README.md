@@ -50,7 +50,7 @@ and `lib` can be tested on its own with no UI at all.
   gates: turns `Run.confidence` (which simply omits an area the model didn't report) into a
   fixed, always-complete list, so a missing area renders as "Not checked" instead of silently
   disappearing.
-- **`attention.ts`** — `buildAttentionItems`, which synthesizes the "Before you rely on this"
+- **`attention.ts`** — `buildAttentionItems`, which synthesizes the "Before you approve"
   digest from real `gates`/`confidence`/`timeline` data (gate groups via `gates.ts`'s
   `gateAttentionGroups`, the weakest confidence area, and any `note` event flagged
   `severity: 'warning'`) — not one of docs/spec-review-screen.md's six regions, so it isn't

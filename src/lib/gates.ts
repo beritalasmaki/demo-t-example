@@ -53,7 +53,7 @@ export interface GateAttentionGroup {
 
 /**
  * `gates`, grouped by the three results worth flagging before a reviewer relies on this run —
- * used by `lib/attention.ts` to build the "Before you rely on this" digest. Same rank order as
+ * used by `lib/attention.ts` to build the "Before you approve" digest. Same rank order as
  * `sortGates` (failed and not-run before an already-granted exception), empty groups dropped
  * rather than shown with a "0" count.
  */

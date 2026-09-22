@@ -64,28 +64,28 @@ describe('filterTimeline', () => {
     event({ id: 'e', type: 'test_run', title: 'Ran the full suite.' }),
   ]
 
-  it('shows only the active types when nothing needs to be forced in', () => {
-    const result = filterTimeline(events, new Set(['plan']))
+  it('hides every selected type, except an error or retry among them', () => {
+    const result = filterTimeline(events, new Set(['tool_call', 'error', 'test_run']))
     expect(result.visible.map((e) => e.id)).toEqual(['a', 'c', 'd'])
     expect(result.forcedVisibleIds).toEqual(new Set(['c', 'd']))
     expect(result.hiddenCount).toBe(2)
   })
 
-  it('never hides an error or a retry, even with its type filter off', () => {
-    const result = filterTimeline(events, new Set())
+  it('never hides an error or a retry, even with its type selected', () => {
+    const result = filterTimeline(events, new Set(['plan', 'tool_call', 'error', 'test_run']))
     expect(result.visible.map((e) => e.id)).toEqual(['c', 'd'])
     expect(result.forcedVisibleIds).toEqual(new Set(['c', 'd']))
     expect(result.hiddenCount).toBe(3)
   })
 
-  it('reports zero hidden when every type is active', () => {
-    const result = filterTimeline(events, new Set(['plan', 'tool_call', 'error', 'test_run']))
+  it('reports zero hidden when nothing is selected', () => {
+    const result = filterTimeline(events, new Set())
     expect(result.hiddenCount).toBe(0)
     expect(result.forcedVisibleIds.size).toBe(0)
   })
 
   it('keeps original order, not filter-tier order', () => {
-    const result = filterTimeline(events, new Set(['plan', 'tool_call', 'error', 'test_run']))
+    const result = filterTimeline(events, new Set())
     expect(result.visible.map((e) => e.id)).toEqual(['a', 'b', 'c', 'd', 'e'])
   })
 })

@@ -28,7 +28,7 @@ describe('AttentionDigest', () => {
 
   it('renders every item, each linking to the region it came from', () => {
     render(<AttentionDigest items={items} />)
-    expect(screen.getByRole('heading', { name: 'Before you rely on this' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Before you approve' })).toBeVisible()
 
     expect(screen.getByText(/1 check failed\./)).toBeVisible()
     const gateLink = screen.getByRole('link', { name: 'See policy gates' })

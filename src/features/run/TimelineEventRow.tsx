@@ -60,7 +60,10 @@ export function TimelineEventRow({
 
   const summary = (
     <div className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-2)]">
-      <IconText icon={Icon} iconClassName={iconClassName}>
+      {/* items-start, overriding IconText's own items-center: a long title wraps to several
+       * lines at narrow widths, and centering the icon against the whole wrapped block floats
+       * it down toward the middle line instead of sitting next to the first one. */}
+      <IconText icon={Icon} iconClassName={iconClassName} className="items-start">
         <span className="text-item-title font-semibold font-body text-text-primary">
           {event.title}
         </span>

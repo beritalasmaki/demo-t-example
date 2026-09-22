@@ -6,6 +6,59 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0025 · The mobile region pass: two real bugs fixed, touch-target size left alone
+
+**Context.** 0024 fixed the page shell and nav but explicitly left "a full per-region mobile
+pass" as an open gap. Audited every region in a real browser at 375px before changing
+anything, rather than guessing what "mobile polish" might mean. Found two concrete bugs and
+one thing that looked like it might need fixing but, checked against the actual accessibility
+standard, didn't:
+
+1. **`TimelineEventRow` and `RunSummary`**: `IconText`'s icon vertically centers against its
+   whole content by default (`items-center`). Fine for the ten other call sites, which are all
+   single-line labels — but an event title or a summary sentence can wrap to several lines at
+   375px, and centering the icon against the *whole wrapped block* floats it down toward a
+   middle line instead of sitting next to the first one.
+2. **`RunHeader`**: the initiative name truncates to one line with a `title` attribute as the
+   way to read the rest — a tooltip that never fires on a touchscreen, so on a phone the only
+   way to reach "what was asked for" (Reviewer question 1, docs/spec-review-screen.md) was
+   gone entirely, not just visually compressed.
+3. **Touch-target size** (nav links ~33px tall, filter chips ~30px tall): looked undersized
+   against the common "44px" mobile guideline. Checked against WCAG 2.5.8 (AA) instead of
+   going by that guideline alone: its actual minimum is 24×24 CSS px, which both already
+   clear. 44px is Apple/Material's *comfortable* recommendation, not a compliance gap.
+
+**Options, for (1) and (2).** (a) Fold the fix into `IconText`/keep truncate unconditional,
+accepting the small side effect elsewhere. (b) Scope each fix to exactly where the real
+problem is.
+
+**Choice.** (b), both times.
+- `IconText`'s own default (`items-center`) is untouched — changing it globally would nudge
+  every heading icon in the app by a few pixels (`items-center` vs `items-start` differ
+  slightly even for single-line content, since the icon is shorter than a line box) for a
+  problem that only exists at two call sites. `className="items-start"` on just those two
+  `IconText` usages relies on `cn()`'s `tailwind-merge`, which already resolves a conflicting
+  utility in favour of the later class — no change to the shared component at all.
+- `RunHeader`'s truncate becomes `md:truncate` (unconditional wrap below `md`, today's
+  single-line truncate unchanged at `md` and up) rather than removing it altogether — the
+  desktop reasoning it was added for (bounding the row's height in a side-by-side layout)
+  still holds there; only the touchscreen case where the `title` fallback is unreachable
+  changes.
+
+**Choice, for (3).** Left as-is. Bumping shared components (`Tag`, `ToggleChip`) used
+everywhere to hit a stricter guideline, with no actual failure against the standard this app
+already holds itself to elsewhere (WCAG, per AGENTS.md's accessibility non-negotiable), isn't
+a fix — it's a redesign with no bug behind it. Named here rather than silently skipped, so the
+choice is visible rather than looking like an oversight.
+
+**Consequence.** `RunHeader.test.tsx`'s existing assertion updated from `toHaveClass('truncate')`
+to `toHaveClass('md:truncate')` — the behaviour it guards (desktop still truncates) is
+unchanged, just correctly scoped now. Verified in a real browser at 375px, both fixes, both
+themes: the icon sits against the first line, and the full initiative name reads without
+needing a tooltip. Confirmed unchanged at `md` and up by comparison screenshot.
+
+---
+
 ## 0024 · Mobile is now in scope — page shell and nav only, not a full per-region pass
 
 **Context.** `docs/spec-review-screen.md`'s "Out of scope" line listed "mobile layouts" since

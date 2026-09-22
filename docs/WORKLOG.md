@@ -39,6 +39,64 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-22 · Mobile region pass: icon alignment on wrap, initiative name truncation
+
+**Goal**
+Follow up on the previous session's page-shell mobile fix with the "full per-region mobile
+pass" it left as an open gap — audit every region at 375px in a real browser, then fix
+whatever's actually broken, rather than guess at generic "mobile polish."
+
+**What changed**
+- `src/features/run/TimelineEventRow.tsx`, `src/features/run/RunSummary.tsx` — the `IconText`
+  usage for an event title / summary sentence gets `className="items-start"`, overriding
+  `IconText`'s own default `items-center` (via `cn()`'s `tailwind-merge`, no change to the
+  shared component). Fixes the icon floating down to a middle line when the text wraps to
+  several lines at narrow widths.
+- `src/features/run/RunHeader.tsx` — the initiative name's `truncate` class becomes
+  `md:truncate`: wraps freely below `md`, truncates to one line (as before) at `md` and up.
+- `src/features/run/RunHeader.test.tsx` — the existing "never hides the environment or status
+  behind a long initiative name" test now asserts `md:truncate`, not a bare `truncate`.
+
+**Steps, in order**
+1. Audited every region in a real browser at 375px (Playwright, this sandbox's Chromium)
+   before proposing anything — screenshotted each region, measured a few tap-target heights
+   programmatically, and opened the confirm dialog and a policy-gate disclosure on a phone
+   viewport to check they actually work, not just look plausible in a static screenshot.
+2. Found two concrete bugs (icon alignment on wrap; the initiative name's `title`-tooltip
+   fallback being unreachable on a touchscreen) and one thing that looked like a problem but
+   wasn't: nav links/filter chips read small against the common "44px" mobile guideline, but
+   checked against WCAG 2.5.8 (AA)'s actual 24×24px minimum, both already clear it — 44px is a
+   *comfortable* recommendation, not a compliance gap, so left alone and named rather than
+   silently skipped or silently "fixed" with no real problem behind it.
+3. Scoped both real fixes to exactly where the problem is rather than the shared component or
+   removing the desktop behaviour entirely — see docs/DECISIONS.md 0025 for the specific
+   reasoning each time.
+4. `npm run check` green; updated the one test whose assertion named the now-conditional class.
+5. Re-verified in a real browser at 375px (both fixes visibly correct, in both themes) and at
+   1280px (confirmed unchanged from before this session).
+
+**Why it was done this way**
+See docs/DECISIONS.md 0025 — in particular, why the icon-alignment fix touches two call sites
+instead of `IconText` itself (avoiding an app-wide pixel shift on every heading icon for a
+problem that only exists where text can wrap), and why touch-target sizing was checked against
+the real WCAG minimum rather than the more popular 44px guideline before deciding not to
+touch it.
+
+**How to do this by hand**
+Same as the steps above — no separate manual procedure beyond the file list under "What
+changed."
+
+**Verification**
+`npm run check` (40 test files, 220 tests, typecheck, lint, both custom browser-based checks)
+green. Manual Playwright pass at 375px and 1280px, both themes: icon alignment and initiative
+name both confirmed fixed on mobile, both confirmed unchanged on desktop.
+
+**Open questions / next**
+None outstanding — the "full per-region mobile pass" asked for is complete for what an audit
+actually turned up; nothing further was found broken.
+
+---
+
 ### 2026-09-22 · Mobile: nav to the top, and bringing mobile into scope
 
 **Goal**

@@ -67,10 +67,10 @@ export function TabsTrigger({ value, children, icon: Icon, iconClassName, classN
     <TabsPrimitive.Trigger
       value={value}
       className={cn(
-        'flex flex-1 cursor-pointer items-center justify-center gap-[var(--space-2)] px-[var(--space-4)] py-[var(--space-3)]',
-        'text-item-title font-semibold font-body text-text-secondary transition-colors',
-        'duration-[var(--motion-duration-fast)] bg-surface-raised hover:bg-border-subtle',
-        'data-[state=active]:bg-surface data-[state=active]:text-text-primary data-[state=active]:hover:bg-surface-raised',
+        'flex flex-1 cursor-pointer items-center justify-center gap-[var(--space-2)] px-[var(--space-5)] py-[var(--space-3)]',
+        'text-item-title font-semibold font-body text-text-secondary underline-offset-4 transition-colors',
+        'duration-[var(--motion-duration-fast)] bg-surface-raised hover:underline',
+        'data-[state=active]:bg-surface data-[state=active]:text-text-primary',
         'focus-visible:relative focus-visible:z-10 focus-visible:outline focus-visible:outline-2',
         'focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring',
         className,

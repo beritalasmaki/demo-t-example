@@ -23,7 +23,7 @@ export function RegionCard({ as: Tag = 'div', children, className }: RegionCardP
   return (
     <Tag
       className={cn(
-        'rounded-md border border-border-subtle bg-surface p-[var(--space-4)]',
+        'rounded-md border border-border-subtle bg-surface p-[var(--space-5)]',
         className,
       )}
     >

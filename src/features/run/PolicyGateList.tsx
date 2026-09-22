@@ -81,11 +81,11 @@ export function PolicyGateList({ gates, timeline, isLoading = false }: PolicyGat
     <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {HEADING}
       <Tabs value={tab} onValueChange={(value) => setTab(value as 'attention' | 'passed')}>
-        {/* -mx-[var(--space-4)]: bleeds the segmented bar to RegionCard's own outer edges
+        {/* -mx-[var(--space-5)]: bleeds the segmented bar to RegionCard's own outer edges
          * (matching the mockup, where the tab row's top/bottom rules and fill span the full
          * card width, not just the content column) — each TabsTrigger's own internal padding
-         * re-adds that same space-4 inset so its label still lines up with everything else. */}
-        <TabsList className="-mx-[var(--space-4)]">
+         * re-adds that same space-5 inset so its label still lines up with everything else. */}
+        <TabsList className="-mx-[var(--space-5)]">
           <TabsTrigger value="attention" icon={CircleAlert}>
             Needs attention ({attention.length})
           </TabsTrigger>

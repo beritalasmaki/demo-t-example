@@ -121,41 +121,45 @@ export function RunHeader({ run }: RunHeaderProps) {
 
       <hr className="border-border-subtle" />
 
-      {/* items-start, not -center: once "Show details" is open, its own panel grows taller
-       * than "Requested by" — centering the row would drift "Requested by" down to match. */}
-      <div className="flex flex-wrap items-start justify-between gap-[var(--space-3)]">
-        <p className="text-body flex flex-wrap items-center gap-x-[var(--space-1)] font-normal font-body text-text-secondary">
-          <span className="font-semibold text-text-primary">Requested by</span>{' '}
-          <ActorName name={run.requestedBy} />
-        </p>
-
-        {/* Hidden until opened. Sized to its own content (a flex item with no grow), not the
-         * full row, so it sits at the row's right edge next to "Requested by" instead of
-         * stacking below as a full-width block. */}
-        <Disclosure
-          className="w-fit border-none bg-transparent"
-          summary={
+      {/* "Requested by [pill]" and "Show details" live inside the one `<summary>` row (not
+       * as two independent flex siblings) specifically so the revealed content below can be a
+       * full-width block instead of being squeezed into a `w-fit` column under the trigger
+       * alone — a real, not just cosmetic, difference: the old layout visually clipped the
+       * Agent/Model/Run ID/Time zone list into a narrow right-aligned box. `summaryClassName`/
+       * `contentClassName` strip Disclosure's own default padding, since `RegionCard` already
+       * supplies the card's padding and a second inset would misalign this row against every
+       * other row above it. */}
+      <Disclosure
+        className="border-none bg-transparent"
+        summaryClassName="px-0 py-0"
+        contentClassName="px-0 pt-[var(--space-3)] pb-0"
+        summary={
+          <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)]">
+            <p className="text-body flex flex-wrap items-center gap-x-[var(--space-1)] font-normal font-body text-text-secondary">
+              <span className="font-semibold text-text-primary">Requested by</span>{' '}
+              <ActorName name={run.requestedBy} />
+            </p>
             <span className="text-body font-normal font-body text-text-secondary">
               Show details
             </span>
-          }
-        >
-          <dl className="text-meta grid grid-cols-[auto_1fr] gap-x-[var(--space-2)] gap-y-[var(--space-3)] font-normal font-body">
-            <dt className="text-text-secondary">Agent</dt>
-            <dd className="text-text-primary">
-              {run.agent.name} {run.agent.version}
-            </dd>
-            <dt className="text-text-secondary">Model</dt>
-            <dd className="text-text-primary">{run.agent.model}</dd>
-            <dt className="text-text-secondary">Run ID</dt>
-            <dd className="text-text-primary">{run.id}</dd>
-            <dt className="text-text-secondary">Time zone</dt>
-            <dd className="text-text-primary">
-              Times shown in {Intl.DateTimeFormat().resolvedOptions().timeZone}.
-            </dd>
-          </dl>
-        </Disclosure>
-      </div>
+          </div>
+        }
+      >
+        <dl className="text-meta grid grid-cols-[auto_1fr] gap-x-[var(--space-2)] gap-y-[var(--space-3)] font-normal font-body">
+          <dt className="text-text-secondary">Agent</dt>
+          <dd className="text-text-primary">
+            {run.agent.name} {run.agent.version}
+          </dd>
+          <dt className="text-text-secondary">Model</dt>
+          <dd className="text-text-primary">{run.agent.model}</dd>
+          <dt className="text-text-secondary">Run ID</dt>
+          <dd className="text-text-primary">{run.id}</dd>
+          <dt className="text-text-secondary">Time zone</dt>
+          <dd className="text-text-primary">
+            Times shown in {Intl.DateTimeFormat().resolvedOptions().timeZone}.
+          </dd>
+        </dl>
+      </Disclosure>
     </RegionCard>
   )
 }

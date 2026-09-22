@@ -172,23 +172,19 @@ function DecidedView({
     <div className="flex flex-col gap-[var(--space-3)] rounded-md border border-border-subtle bg-surface-raised p-[var(--space-4)]">
       <div className="grid grid-cols-3 gap-[var(--space-3)]">
         <div className="flex flex-col gap-[var(--space-1)]">
-          <span className="text-meta font-semibold font-body tracking-wide text-text-secondary uppercase">
+          <span className="text-body font-semibold font-body text-text-primary">
             {formatDecisionOutcomeLabel(decision.outcome)} by
           </span>
           <ActorName name={decision.by} />
         </div>
         <div className="flex flex-col gap-[var(--space-1)]">
-          <span className="text-meta font-semibold font-body tracking-wide text-text-secondary uppercase">
-            Time
-          </span>
+          <span className="text-body font-semibold font-body text-text-primary">Time</span>
           <span className="text-body font-normal font-body text-text-primary">
             {formatDateTime(decision.at)} ({formatRelativeTime(decision.at)})
           </span>
         </div>
         <div className="flex flex-col gap-[var(--space-1)]">
-          <span className="text-meta font-semibold font-body tracking-wide text-text-secondary uppercase">
-            Revision
-          </span>
+          <span className="text-body font-semibold font-body text-text-primary">Revision</span>
           <span className="text-body font-normal font-body text-text-primary">
             {decision.revision}
           </span>

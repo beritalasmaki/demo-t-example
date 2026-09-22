@@ -6,6 +6,55 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0036 · Correction pass: alignment, spacing and two component-API extensions
+
+**Context.** After PR #7 merged, the user compared the result against the original mockups
+directly (not from memory) and found real drift: `ActorName` pills misaligned against their
+label text, `RunHeader`'s "Show details" panel squeezed into a narrow right-aligned box
+instead of the full card width, inter-item spacing under the mockup's ~24px rhythm in several
+regions, and `PolicyGateList`'s tabs looking nothing like the mockup's full-width segmented
+control. Fixed all of it against the actual mockup images, not approximated from memory.
+
+**Two shared components needed real API extensions, not just call-site tweaks:**
+
+1. **`Disclosure` gained `summaryClassName`/`contentClassName`.** `RunHeader`'s and
+   `ConfidencePanel`'s "Show details" rows need to sit flush inside a card that already
+   supplies its own padding — Disclosure's default `px-4 py-3` on both the summary and the
+   content wrapper doubled that inset. The existing single `className` prop only reaches the
+   outer `<details>`, not those two inner elements, so reaching them required two new,
+   narrowly-scoped override props rather than duplicating Disclosure's whole structure at
+   each call site.
+2. **`Tabs`/`TabsTrigger` gained an `icon` prop and a full-bleed-friendly `TabsList`.** The
+   mockup's tabs are a full-width segmented bar with an icon per tab and no rounding (so a
+   caller's own `-mx-[var(--space-4)]` can bleed it to the card's edge) — a real visual
+   language change from the small underlined text-link tabs shipped in PR #7, not a colour
+   tweak.
+
+**Two mockup details deliberately not matched exactly, and why:**
+
+- **Tab width.** The mockup's two tab segments look asymmetric (~25%/75%), which reads like
+  two manually-sized Figma rectangles rather than a deliberate rule — nothing in the design
+  ties the ratio to tab content length or active state in a way that would generalise. Built
+  both tabs `flex-1` (equal width) instead: a standard, predictable segmented-control
+  behaviour that doesn't depend on which tab happens to be active or which label is longer.
+- **`ConfidencePanel`'s "Not checked" icon.** The Confidence mockup's icon for this state
+  looks like a plain exclamation-in-a-circle, slightly different from `CircleHelp`. Kept
+  `CircleHelp` anyway: it's the same icon `StatusBadge`'s `info` tone already uses for the
+  identical semantic state (`docs/DECISIONS.md` 0028), and switching just here would break
+  that one deliberate cross-region consistency for a difference that reads as mockup noise,
+  not a signal.
+
+**Consequence.** `Disclosure`'s two new props are optional and backward compatible — every
+other existing call site (`PolicyGateRow`, `TimelineEventRow`, `PolicyGateList`'s old
+disclosure) is unaffected. `ConfidencePanel`'s reported-area rows are now `<li><Disclosure>…`
+instead of a bare `<Disclosure>` as a direct `<ul>` child, fixing an invalid-HTML issue
+(`<details>` was a direct child of `<ul>`) that the earlier version had introduced without
+anyone noticing. Every fixed region was re-verified against its actual mockup image
+side-by-side, not just re-tested — this correction pass exists precisely because that step
+was skipped, or done from memory, the first time.
+
+---
+
 ## 0035 · The logo is the real Figma SVG, not a re-typeset lockup
 
 **Context.** 0034 (below) approximated the mockup's wordmark as two lines of styled text:

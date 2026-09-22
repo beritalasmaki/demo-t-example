@@ -16,9 +16,24 @@ export interface DisclosureProps {
   children: ReactNode
   defaultOpen?: boolean
   className?: string
+  /** Overrides the `<summary>`'s own padding/layout — e.g. `px-0` when the caller's own
+   * container already supplies the card padding this row sits inside (`RunHeader`'s
+   * "Requested by ... Show details" row), so the trigger's text lines up flush with every
+   * other row instead of getting a second, redundant inset. */
+  summaryClassName?: string
+  /** Same, for the revealed content's own wrapper (kept separate from `summaryClassName`
+   * since a caller may want to strip one but not the other). */
+  contentClassName?: string
 }
 
-export function Disclosure({ summary, children, defaultOpen = false, className }: DisclosureProps) {
+export function Disclosure({
+  summary,
+  children,
+  defaultOpen = false,
+  className,
+  summaryClassName,
+  contentClassName,
+}: DisclosureProps) {
   return (
     <details
       open={defaultOpen}
@@ -28,6 +43,7 @@ export function Disclosure({ summary, children, defaultOpen = false, className }
         className={cn(
           'flex cursor-pointer list-none items-center justify-between gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)]',
           '[&::-webkit-details-marker]:hidden',
+          summaryClassName,
         )}
       >
         <div className="min-w-0 flex-1">{summary}</div>
@@ -57,7 +73,12 @@ export function Disclosure({ summary, children, defaultOpen = false, className }
         )}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-border-subtle px-[var(--space-4)] py-[var(--space-3)]">
+          <div
+            className={cn(
+              'border-t border-border-subtle px-[var(--space-4)] py-[var(--space-3)]',
+              contentClassName,
+            )}
+          >
             {children}
           </div>
         </div>

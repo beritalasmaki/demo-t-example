@@ -39,6 +39,66 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-22 · Correction pass on the Ledger redesign, plus a favicon
+
+**Goal**
+After the previous session's PR merged, the user compared the live result against the
+original mockups directly and found real drift — alignment, spacing, and one region (Policy
+gates' tabs) that didn't match the mockup's visual language at all. Fix every one of them
+against the actual mockup images, not from memory. Also asked for a favicon from a supplied
+image.
+
+**What changed**
+- `src/components/Disclosure.tsx` — new optional `summaryClassName`/`contentClassName` props,
+  so a caller whose own container already supplies padding isn't stuck with a doubled inset.
+- `src/features/run/RunHeader.tsx` — "Requested by [pill]" and "Show details" now live inside
+  one `Disclosure` summary (not two independent flex siblings), so the opened detail panel
+  spans the full card width instead of being squeezed under the trigger alone; this also
+  fixed the pill's vertical alignment as a side effect (a flex row's `items-center` instead of
+  `<p>`-inline baseline alignment).
+- `src/features/run/DecisionStatusBanner.tsx` — "Approved by [pill]" and the timestamp are now
+  a `justify-between` flex row (timestamp pushed to the far right), not one flowing sentence.
+- `src/features/run/RunSummary.tsx`, `AttentionDigest.tsx`, `PolicyGateList.tsx`,
+  `ConfidencePanel.tsx`, `Timeline.tsx` — inter-item gaps bumped from `--space-3` (12px) to
+  `--space-5` (24px) where they were a plain flex `gap` (not already compounding via
+  `divide-y` padding, which already totalled 24px).
+- `src/components/Tabs.tsx`, `src/features/run/PolicyGateList.tsx` — tabs rebuilt as a
+  full-width segmented control with per-tab icons, a visible hover fill, and `cursor-pointer`
+  — the mockup's actual visual language, not the small underlined text-link tabs shipped
+  before. See docs/DECISIONS.md 0036.
+- `src/features/run/ConfidencePanel.tsx` — reported-area rows restructured into three columns
+  (band / content / "Show details", the last vertically centered against the whole row), each
+  wrapped in `<li>` (fixing an invalid-HTML `<details>`-direct-child-of-`<ul>` issue from the
+  previous session).
+- `src/features/run/DecisionBar.tsx` — grid labels ("Approved by"/"Time"/"Revision") changed
+  from small-caps tracked uppercase to plain bold text, matching the mockup.
+- `src/features/run/TimelineFilters.tsx`, `Timeline.tsx` — "Hide events" is now a plain label
+  outside the dropdown trigger (the trigger itself just reads "N selected"), and the "N events
+  hidden by the filters" text sits inline on the same row instead of a line below.
+- `public/favicon.svg` (new), `index.html` — a favicon built from the user's supplied image
+  (dark square, white "L", mint accent square), since no source SVG was given this time (see
+  docs/DECISIONS.md 0035 for the precedent where one was).
+
+**Why it was done this way**
+See docs/DECISIONS.md 0036 for the two real trade-offs (Disclosure's new override props, and
+Tabs' full-bleed-friendly restructure) and the two mockup details deliberately not matched
+exactly (tab width ratio, Confidence's "Not checked" icon).
+
+**Verification**
+`npm run check` green (typecheck, lint — one pre-existing unrelated warning, `check:theme-bridge`
+38 colours across 3 themes, `check:format-locale`, 222 tests / 40 files). Every fixed region
+re-screenshotted and compared side-by-side against its actual mockup image (not memory) before
+moving to the next. Real-browser pass across all three fixtures, both themes, full page,
+zero console/page errors. Keyboard pass on every touched interactive element: Tabs (arrow-key
+switches panel), RunHeader's and ConfidencePanel's Disclosures (Enter opens), the audit-log
+dropdown (Enter opens, Escape closes with focus returned to the trigger).
+
+**Open questions / next**
+None outstanding. Pushed to the branch; a PR was opened but not auto-merged this time, since
+the point of this session was closer review before shipping again.
+
+---
+
 ### 2026-09-22 · Ledger redesign: 9 Figma mockups across every region
 
 **Goal**

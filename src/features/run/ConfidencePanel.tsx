@@ -53,78 +53,85 @@ export function ConfidencePanel({ confidence, isLoading = false }: ConfidencePan
   return (
     <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {HEADING}
-      <ul className="flex flex-col gap-[var(--space-3)]">
+      <ul className="flex flex-col gap-[var(--space-5)]">
         {resolveConfidenceAreas(confidence).map((area) =>
           area.missing ? (
             <li
               key={area.area}
-              className="flex items-center gap-[var(--space-4)] rounded-md border border-border-subtle bg-surface p-[var(--space-4)]"
+              className="flex items-stretch gap-[var(--space-4)] rounded-md border border-border-subtle bg-surface p-[var(--space-4)]"
             >
               {/* Same band width as a reported area's percentage, so missing and reported
                * rows still line up — just neutral icon instead of a value, not a colour. */}
-              <div className="flex w-20 shrink-0 items-center justify-center self-stretch rounded-md bg-surface-raised">
+              <div className="flex w-20 shrink-0 items-center justify-center rounded-md bg-surface-raised">
                 <CircleHelp aria-hidden className="h-6 w-6 text-text-secondary" />
               </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-[var(--space-1)]">
-                <span className="text-item-title font-semibold font-body text-text-primary">
-                  {formatConfidenceAreaLabel(area.area)}
-                </span>
-                <span className="text-body font-normal font-body text-text-secondary">
-                  Not checked
-                </span>
-              </div>
+              <span className="flex min-w-0 flex-1 items-center text-item-title font-semibold font-body text-text-primary">
+                {formatConfidenceAreaLabel(area.area)}
+              </span>
+              {/* Third column, vertically centered against the whole row — "Not checked" is
+               * static text here (nothing to expand), matching the trigger column's position
+               * for a reported area without being a control itself. */}
+              <span className="flex shrink-0 items-center gap-[var(--space-2)] text-body font-normal font-body text-text-secondary">
+                <CircleHelp aria-hidden className="h-4 w-4 shrink-0" />
+                Not checked
+              </span>
             </li>
           ) : (
-            <li
-              key={area.area}
-              className="flex gap-[var(--space-4)] rounded-md border border-border-subtle bg-surface p-[var(--space-4)]"
-            >
-              {/* One consistent neutral band for every reported area, regardless of value —
-               * not coloured by how high or low the percentage is (see this file's own doc
-               * comment). */}
-              <div className="flex w-20 shrink-0 flex-col items-center justify-center self-stretch rounded-md bg-surface-raised">
-                <span className="text-page-title font-bold font-body text-text-primary">
-                  {/* sr-only prefix: the big number reads as "Confidence 72%" to assistive
-                   * tech even though the band's own position already supplies that context
-                   * visually — never a bare number, per Content rules. */}
-                  <span className="sr-only">Confidence </span>
-                  {formatConfidencePercent(area.value)}
-                </span>
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-[var(--space-2)]">
-                <span className="text-item-title font-semibold font-body text-text-primary">
-                  {formatConfidenceAreaLabel(area.area)}
-                </span>
-                {area.unverified.length > 0 && (
-                  <div className="flex flex-col gap-[var(--space-1)]">
-                    <span className="text-meta font-semibold font-body text-text-secondary">
-                      Could not verify
-                    </span>
-                    <ul className="text-body flex list-disc flex-col gap-[var(--space-1)] pl-5 font-normal font-body text-text-primary">
-                      {area.unverified.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <span className="text-body font-normal font-body text-text-primary">
-                  {area.basis}
-                </span>
-                {/* Hidden until opened — only the longer reasoning; could-not-verify and
-                 * basis above stay always visible, unchanged from before this restructure. */}
-                <Disclosure
-                  className="w-fit border-none bg-transparent"
-                  summary={
-                    <span className="text-body font-normal font-body text-text-secondary">
+            <li key={area.area}>
+              <Disclosure
+                className="rounded-md border border-border-subtle bg-surface"
+                summaryClassName="gap-[var(--space-4)] p-[var(--space-4)]"
+                contentClassName="px-[var(--space-4)] pt-0 pb-[var(--space-4)]"
+                summary={
+                  <div className="flex min-w-0 flex-1 items-stretch gap-[var(--space-4)]">
+                    {/* One consistent neutral band for every reported area, regardless of
+                     * value — not coloured by how high or low the percentage is (see this
+                     * file's own doc comment). */}
+                    <div className="flex w-20 shrink-0 flex-col items-center justify-center rounded-md bg-surface-raised">
+                      <span className="text-page-title font-bold font-body text-text-primary">
+                        {/* sr-only prefix: the big number reads as "Confidence 72%" to
+                         * assistive tech even though the band's own position already
+                         * supplies that context visually — never a bare number, per
+                         * Content rules. */}
+                        <span className="sr-only">Confidence </span>
+                        {formatConfidencePercent(area.value)}
+                      </span>
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col justify-center gap-[var(--space-2)]">
+                      <span className="text-item-title font-semibold font-body text-text-primary">
+                        {formatConfidenceAreaLabel(area.area)}
+                      </span>
+                      {area.unverified.length > 0 && (
+                        <div className="flex flex-col gap-[var(--space-1)]">
+                          <span className="text-meta font-semibold font-body text-text-secondary">
+                            Could not verify
+                          </span>
+                          <ul className="text-body flex list-disc flex-col gap-[var(--space-1)] pl-5 font-normal font-body text-text-primary">
+                            {area.unverified.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <span className="text-body font-normal font-body text-text-primary">
+                        {area.basis}
+                      </span>
+                    </div>
+                    {/* Third column, vertically centered against the whole row (not
+                     * stacked below the middle column) — the trigger label itself;
+                     * Disclosure's own chevron renders right after this, also centered. */}
+                    <span className="flex shrink-0 items-center text-body font-normal font-body text-text-secondary">
                       Show details
                     </span>
-                  }
-                >
-                  <p className="text-body font-normal font-body text-text-primary">
-                    {area.rationale}
-                  </p>
-                </Disclosure>
-              </div>
+                  </div>
+                }
+              >
+                {/* Hidden until opened — only the longer reasoning; could-not-verify and
+                 * basis above stay always visible, unchanged from before this restructure. */}
+                <p className="text-body font-normal font-body text-text-primary">
+                  {area.rationale}
+                </p>
+              </Disclosure>
             </li>
           ),
         )}

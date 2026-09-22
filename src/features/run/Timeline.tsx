@@ -88,14 +88,17 @@ export function Timeline({
         {pluralize(shape.retries, 'retry', 'retries')}
       </p>
 
-      <TimelineFilters hiddenTypes={hiddenTypes} onHiddenTypesChange={setHiddenTypes} />
+      {/* The filter control and the count of what it's currently hiding share one row —
+       * "Filters state what is hidden and how many items that is" reads as a single fact,
+       * not two separate lines. */}
+      <div className="flex flex-wrap items-center gap-x-[var(--space-4)] gap-y-[var(--space-2)]">
+        <TimelineFilters hiddenTypes={hiddenTypes} onHiddenTypesChange={setHiddenTypes} />
+        <p aria-live="polite" className="text-meta font-normal font-body text-text-secondary">
+          {hiddenCount} {pluralize(hiddenCount, 'event')} hidden by the filters.
+        </p>
+      </div>
 
-      {/* Acceptance criteria: "Filters state what is hidden and how many items that is." */}
-      <p aria-live="polite" className="text-meta font-normal font-body text-text-secondary">
-        {hiddenCount} {pluralize(hiddenCount, 'event')} hidden by the filters.
-      </p>
-
-      <ul className="flex max-h-96 flex-col gap-[var(--space-3)] overflow-y-auto">
+      <ul className="flex max-h-96 flex-col gap-[var(--space-5)] overflow-y-auto">
         {visible.map((event) => (
           <TimelineEventRow
             key={event.id}

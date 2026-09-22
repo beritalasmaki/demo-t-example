@@ -18,9 +18,10 @@ function setupUser() {
 }
 
 describe('TimelineFilters', () => {
-  it('shows how many types are hidden on the trigger, none by default', () => {
+  it('shows the plain "Hide events" label and the trigger reads "None selected" by default', () => {
     render(<TimelineFilters hiddenTypes={new Set()} onHiddenTypesChange={() => {}} />)
-    expect(screen.getByRole('button', { name: /Hide events/ })).toHaveTextContent('None selected')
+    expect(screen.getByText('Hide events')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'None selected' })).toBeInTheDocument()
   })
 
   it('shows the count of hidden types on the trigger', () => {
@@ -30,7 +31,7 @@ describe('TimelineFilters', () => {
         onHiddenTypesChange={() => {}}
       />,
     )
-    expect(screen.getByRole('button', { name: /Hide events/ })).toHaveTextContent('2 selected')
+    expect(screen.getByRole('button', { name: '2 selected' })).toBeInTheDocument()
   })
 
   it('opens to list every type, checked to match hiddenTypes, and toggles types on click', async () => {
@@ -43,7 +44,7 @@ describe('TimelineFilters', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /Hide events/ }))
+    await user.click(screen.getByRole('button', { name: '1 selected' }))
 
     // One checkbox item per type, in an open menu.
     for (const label of [

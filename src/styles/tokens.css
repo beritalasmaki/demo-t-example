@@ -65,6 +65,26 @@
   --status-slate-dark: #9aa1ac;
   --status-blue-light: #3d5a80;
   --status-blue-dark: #8fb8e0;
+
+  /*
+   * Status "tint" pair — a light fill plus its own foreground, for the one deliberate
+   * exception to "status colour is never a fill, never the text" (docs/DECISIONS.md):
+   * a filled StatusBadge (`success`/`warning` tones only — see StatusBadge.tsx). Contrast
+   * verified with the WCAG relative-luminance formula (docs/DECISIONS.md, same method as
+   * 0005), not eyeballed.
+   *
+   * Only one genuinely new colour here: --status-green-tint-fg-light. --status-green-light
+   * itself cannot be reused as on-tint text — it already tops out at ~4.3:1 on any light
+   * background (src/styles/README.md's own documented limit), which is mathematically the
+   * *best* case (pure white); no tint can do better. --status-amber-light and the two
+   * dark-theme status colours all had enough headroom to reuse directly (4.8–7.9:1 against
+   * their tints below), so only green needed a dedicated darker shade.
+   */
+  --status-green-tint-bg-light: #e6f6ec;
+  --status-green-tint-fg-light: #1a7a3e; /* 4.81:1 on the tint above — new, see comment */
+  --status-green-tint-bg-dark: #16301f; /* paired with --status-green-dark: 7.87:1 */
+  --status-amber-tint-bg-light: #fdf3d9; /* paired with --status-amber-light: 5.36:1 */
+  --status-amber-tint-bg-dark: #3a2c0a; /* paired with --status-amber-dark: 6.44:1 */
 }
 
 @theme {
@@ -111,6 +131,14 @@
   --color-status-waived: var(--status-amber-light);
   --color-status-not-applicable: var(--status-slate-light);
   --color-status-unknown: var(--status-blue-light);
+
+  /* The filled-badge exception only (StatusBadge.tsx's success/warning tones) — see the
+   * primitives above for the contrast reasoning. Every other status usage stays icon/border
+   * only, unchanged. */
+  --color-status-pass-tint-bg: var(--status-green-tint-bg-light);
+  --color-status-pass-tint-fg: var(--status-green-tint-fg-light);
+  --color-status-waived-tint-bg: var(--status-amber-tint-bg-light);
+  --color-status-waived-tint-fg: var(--status-amber-light);
 
   /* Radius */
   --radius-sm: 0.25rem;
@@ -191,6 +219,11 @@
     --color-status-waived: var(--status-amber-dark);
     --color-status-not-applicable: var(--status-slate-dark);
     --color-status-unknown: var(--status-blue-dark);
+
+    --color-status-pass-tint-bg: var(--status-green-tint-bg-dark);
+    --color-status-pass-tint-fg: var(--status-green-dark);
+    --color-status-waived-tint-bg: var(--status-amber-tint-bg-dark);
+    --color-status-waived-tint-fg: var(--status-amber-dark);
   }
 }
 
@@ -218,6 +251,11 @@
   --color-status-waived: var(--status-amber-dark);
   --color-status-not-applicable: var(--status-slate-dark);
   --color-status-unknown: var(--status-blue-dark);
+
+  --color-status-pass-tint-bg: var(--status-green-tint-bg-dark);
+  --color-status-pass-tint-fg: var(--status-green-dark);
+  --color-status-waived-tint-bg: var(--status-amber-tint-bg-dark);
+  --color-status-waived-tint-fg: var(--status-amber-dark);
 }
 
 /*

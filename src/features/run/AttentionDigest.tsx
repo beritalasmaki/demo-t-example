@@ -1,11 +1,12 @@
 import { TriangleAlert } from 'lucide-react'
+import { ActionLink } from '../../components/ActionLink'
 import { IconText } from '../../components/IconText'
 import { RegionCard } from '../../components/RegionCard'
 import type { AttentionItem } from '../../lib/attention'
 
 /**
- * The "Before you rely on this" digest — not one of docs/spec-review-screen.md's six regions,
- * but a synthesized shortcut to the handful of things `lib/attention.ts`'s `buildAttentionItems`
+ * The "Before you approve" digest — not one of docs/spec-review-screen.md's six regions, but
+ * a synthesized shortcut to the handful of things `lib/attention.ts`'s `buildAttentionItems`
  * found worth a reviewer's attention before they decide. Every item links to the region it
  * came from, so nothing here is a claim without its source right next to it.
  *
@@ -30,24 +31,19 @@ export function AttentionDigest({ items }: AttentionDigestProps) {
         id="needs-attention-heading"
         className="text-section-heading font-semibold text-text-primary"
       >
-        <IconText icon={TriangleAlert}>Before you rely on this</IconText>
+        <IconText icon={TriangleAlert}>Before you approve</IconText>
       </h2>
       <ul className="flex flex-col divide-y divide-border-subtle">
         {items.map((item) => (
           <li
             key={item.id}
-            className="flex flex-col gap-[var(--space-1)] py-[var(--space-3)] first:pt-0 last:pb-0"
+            className="flex flex-wrap items-center justify-between gap-x-[var(--space-4)] gap-y-[var(--space-2)] py-[var(--space-3)] first:pt-0 last:pb-0"
           >
-            <p className="text-body font-normal font-body text-text-primary">
+            <p className="text-body min-w-0 flex-1 font-normal font-body text-text-primary">
               <span className="font-semibold">{item.lead}</span>
               {item.body && ` ${item.body}`}
             </p>
-            <a
-              href={item.linkHref}
-              className="text-body w-fit font-normal font-body text-primary underline decoration-1 underline-offset-2 hover:text-primary-hover"
-            >
-              {item.linkLabel}
-            </a>
+            <ActionLink href={item.linkHref}>{item.linkLabel}</ActionLink>
           </li>
         ))}
       </ul>

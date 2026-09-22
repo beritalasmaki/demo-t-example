@@ -8,7 +8,7 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { EvidenceLink } from '../../components/EvidenceLink'
+import { ActionLink } from '../../components/ActionLink'
 import { IconText } from '../../components/IconText'
 import { RegionCard } from '../../components/RegionCard'
 import { classifySummarySentence, resolveSummarySentences } from '../../lib/summary'
@@ -104,7 +104,7 @@ export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryP
   return (
     <RegionCard className="flex flex-col gap-[var(--space-3)]">
       {HEADING}
-      <ul className="flex flex-col gap-[var(--space-3)]">
+      <ul className="flex flex-col divide-y divide-border-subtle">
         {sentences.map((sentence, index) => {
           const kind = classifySummarySentence(sentence.text)
           const { icon, iconClassName, textClassName } = KIND_STYLE[kind]
@@ -113,12 +113,16 @@ export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryP
           return (
             <li
               key={sentence.text}
-              className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-1)]"
+              className="flex flex-wrap items-center justify-between gap-x-[var(--space-4)] gap-y-[var(--space-2)] py-[var(--space-3)] first:pt-0 last:pb-0"
             >
               {/* items-start, overriding IconText's own items-center: a sentence can wrap to
                * several lines at narrow widths, same reasoning as TimelineEventRow.tsx's
                * identical override. */}
-              <IconText icon={icon} iconClassName={iconClassName} className="items-start">
+              <IconText
+                icon={icon}
+                iconClassName={iconClassName}
+                className="min-w-0 flex-1 items-start"
+              >
                 <span
                   className={cn(
                     'font-body',
@@ -129,11 +133,9 @@ export function RunSummary({ summary, timeline, isLoading = false }: RunSummaryP
                   {sentence.text}
                 </span>
               </IconText>
-              <EvidenceLink
-                href={`#timeline-event-${sentence.events[0].id}`}
-                label="Evidence"
-                count={sentence.events.length}
-              />
+              <ActionLink href={`#timeline-event-${sentence.events[0].id}`}>
+                Evidence ({sentence.events.length})
+              </ActionLink>
             </li>
           )
         })}

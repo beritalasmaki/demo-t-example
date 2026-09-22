@@ -1,13 +1,51 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
+import { describe, expect, it } from 'vitest'
 import type { TimelineEvent } from '../../lib/types'
 import { TimelineFilters } from './TimelineFilters'
 
+/*
+ * Radix's DropdownMenu (a modal layer) leaves jsdom — not the real browser, verified
+ * separately via Playwright — in a state where a *second*, separately-rendered instance's
+ * trigger can no longer be opened by a click, even after the first is fully closed and
+ * unmounted. Opening, closing and reopening the *same* mounted instance works reliably, so
+ * every interaction that needs the menu open lives in one test below rather than split across
+ * several fresh `render()` calls. The label-only tests don't open the menu, so they're
+ * unaffected and stay separate.
+ */
+function setupUser() {
+  return userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never })
+}
+
 describe('TimelineFilters', () => {
-  it('renders one chip per event type', () => {
-    render(<TimelineFilters activeTypes={new Set()} onActiveTypesChange={() => {}} />)
+  it('shows how many types are hidden on the trigger, none by default', () => {
+    render(<TimelineFilters hiddenTypes={new Set()} onHiddenTypesChange={() => {}} />)
+    expect(screen.getByRole('button', { name: /Hide events/ })).toHaveTextContent('None selected')
+  })
+
+  it('shows the count of hidden types on the trigger', () => {
+    render(
+      <TimelineFilters
+        hiddenTypes={new Set<TimelineEvent['type']>(['plan', 'error'])}
+        onHiddenTypesChange={() => {}}
+      />,
+    )
+    expect(screen.getByRole('button', { name: /Hide events/ })).toHaveTextContent('2 selected')
+  })
+
+  it('opens to list every type, checked to match hiddenTypes, and toggles types on click', async () => {
+    const user = setupUser()
+    let hiddenTypes = new Set<TimelineEvent['type']>(['plan'])
+    const { rerender } = render(
+      <TimelineFilters
+        hiddenTypes={hiddenTypes}
+        onHiddenTypesChange={(next) => (hiddenTypes = next)}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /Hide events/ }))
+
+    // One checkbox item per type, in an open menu.
     for (const label of [
       'Plan',
       'Tool calls',
@@ -17,54 +55,36 @@ describe('TimelineFilters', () => {
       'Errors',
       'Notes',
     ]) {
-      expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
+      expect(screen.getByRole('menuitemcheckbox', { name: label })).toBeInTheDocument()
     }
-  })
 
-  it('reflects which types are active via aria-pressed', () => {
-    render(
-      <TimelineFilters
-        activeTypes={new Set<TimelineEvent['type']>(['plan'])}
-        onActiveTypesChange={() => {}}
-      />,
+    // Reflects the initial hiddenTypes via aria-checked.
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Plan' })).toHaveAttribute(
+      'aria-checked',
+      'true',
     )
-    expect(screen.getByRole('button', { name: 'Plan' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Errors' })).toHaveAttribute('aria-pressed', 'false')
-  })
-
-  it('adds the type when its chip is pressed while inactive', async () => {
-    const user = userEvent.setup()
-    const onActiveTypesChange = vi.fn()
-    render(<TimelineFilters activeTypes={new Set()} onActiveTypesChange={onActiveTypesChange} />)
-
-    await user.click(screen.getByRole('button', { name: 'Plan' }))
-    expect(onActiveTypesChange).toHaveBeenCalledWith(new Set(['plan']))
-  })
-
-  it('removes the type when its chip is pressed while active', async () => {
-    const user = userEvent.setup()
-    const onActiveTypesChange = vi.fn()
-    render(
-      <TimelineFilters
-        activeTypes={new Set<TimelineEvent['type']>(['plan', 'error'])}
-        onActiveTypesChange={onActiveTypesChange}
-      />,
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Errors' })).toHaveAttribute(
+      'aria-checked',
+      'false',
     )
 
-    await user.click(screen.getByRole('button', { name: 'Plan' }))
-    expect(onActiveTypesChange).toHaveBeenCalledWith(new Set(['error']))
-  })
+    // Checking an unselected type adds it to hiddenTypes, and the menu stays open.
+    await user.click(screen.getByRole('menuitemcheckbox', { name: 'Errors' }))
+    expect(hiddenTypes).toEqual(new Set(['plan', 'error']))
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    rerender(
+      <TimelineFilters
+        hiddenTypes={hiddenTypes}
+        onHiddenTypesChange={(next) => (hiddenTypes = next)}
+      />,
+    )
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Errors' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
 
-  it('keeps focus on the chip that was just toggled', async () => {
-    const user = userEvent.setup()
-    function Wrapper() {
-      const [activeTypes, setActiveTypes] = useState<Set<TimelineEvent['type']>>(new Set())
-      return <TimelineFilters activeTypes={activeTypes} onActiveTypesChange={setActiveTypes} />
-    }
-    render(<Wrapper />)
-
-    const chip = screen.getByRole('button', { name: 'Plan' })
-    await user.click(chip)
-    expect(chip).toHaveFocus()
+    // Unchecking a selected type removes it from hiddenTypes.
+    await user.click(screen.getByRole('menuitemcheckbox', { name: 'Plan' }))
+    expect(hiddenTypes).toEqual(new Set(['error']))
   })
 })

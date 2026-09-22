@@ -1,11 +1,15 @@
-import { Filter } from 'lucide-react'
-import { IconText } from '../../components/IconText'
-import { ToggleChip } from '../../components/ToggleChip'
+import { Check, ChevronDown, Filter } from 'lucide-react'
+import { DropdownMenu } from 'radix-ui'
 import type { TimelineEvent } from '../../lib/types'
 
-/** Region 4: "Filterable by event type." Unchecking a type here never actually hides an
+/** Region 4: "Filterable by event type." Selecting a type here never actually hides an
  * error or a retry of that type — see lib/timeline.ts's filterTimeline, which Timeline uses
- * to enforce that, and TimelineEventRow's "Shown despite the active filters" note. */
+ * to enforce that, and TimelineEventRow's "Shown despite the active filters" note.
+ *
+ * `hiddenTypes` (not `activeTypes`): nothing is hidden by default, and selecting a type in
+ * this dropdown hides it — the inverse of the old chip row's "checked = shown". Matches the
+ * "N selected" trigger label reading as an exception state (something is being hidden), not
+ * the default. */
 const TYPE_LABEL: Record<TimelineEvent['type'], string> = {
   plan: 'Plan',
   tool_call: 'Tool calls',
@@ -19,44 +23,60 @@ const TYPE_LABEL: Record<TimelineEvent['type'], string> = {
 const ALL_TYPES = Object.keys(TYPE_LABEL) as TimelineEvent['type'][]
 
 export interface TimelineFiltersProps {
-  activeTypes: ReadonlySet<TimelineEvent['type']>
-  onActiveTypesChange: (types: Set<TimelineEvent['type']>) => void
+  hiddenTypes: ReadonlySet<TimelineEvent['type']>
+  onHiddenTypesChange: (types: Set<TimelineEvent['type']>) => void
 }
 
-export function TimelineFilters({ activeTypes, onActiveTypesChange }: TimelineFiltersProps) {
-  function setTypeActive(type: TimelineEvent['type'], active: boolean) {
-    const next = new Set(activeTypes)
-    if (active) {
+export function TimelineFilters({ hiddenTypes, onHiddenTypesChange }: TimelineFiltersProps) {
+  function setTypeHidden(type: TimelineEvent['type'], hidden: boolean) {
+    const next = new Set(hiddenTypes)
+    if (hidden) {
       next.add(type)
     } else {
       next.delete(type)
     }
-    onActiveTypesChange(next)
+    onHiddenTypesChange(next)
   }
 
   return (
-    <div className="flex flex-col gap-[var(--space-2)]">
-      <span
-        id="filter-logs-label"
-        className="text-meta font-semibold font-body uppercase tracking-wide text-text-secondary"
-      >
-        <IconText icon={Filter}>Filter logs</IconText>
-      </span>
-      <div
-        role="group"
-        aria-labelledby="filter-logs-label"
-        className="flex flex-wrap gap-[var(--space-3)]"
-      >
-        {ALL_TYPES.map((type) => (
-          <ToggleChip
-            key={type}
-            pressed={activeTypes.has(type)}
-            onPressedChange={(pressed) => setTypeActive(type, pressed)}
-          >
-            {TYPE_LABEL[type]}
-          </ToggleChip>
-        ))}
-      </div>
-    </div>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <button
+          type="button"
+          className="inline-flex w-fit items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-item-title font-semibold font-body text-text-primary hover:border-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          <Filter aria-hidden className="h-4 w-4 shrink-0 text-text-secondary" />
+          Hide events
+          <span className="text-meta font-normal text-text-secondary">
+            {hiddenTypes.size === 0 ? 'None selected' : `${hiddenTypes.size} selected`}
+          </span>
+          <ChevronDown aria-hidden className="h-4 w-4 shrink-0 text-text-secondary" />
+        </button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          align="start"
+          sideOffset={4}
+          className="z-10 flex min-w-48 flex-col gap-[var(--space-1)] rounded-md border border-border bg-surface p-[var(--space-2)] shadow-md"
+        >
+          {ALL_TYPES.map((type) => (
+            <DropdownMenu.CheckboxItem
+              key={type}
+              checked={hiddenTypes.has(type)}
+              onCheckedChange={(checked) => setTypeHidden(type, checked)}
+              onSelect={(event) => event.preventDefault()}
+              className="flex cursor-pointer items-center gap-[var(--space-2)] rounded-sm px-[var(--space-2)] py-[var(--space-1)] text-body font-normal font-body text-text-primary outline-none data-[highlighted]:bg-surface-raised"
+            >
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-border">
+                <DropdownMenu.ItemIndicator>
+                  <Check aria-hidden className="h-3 w-3 text-primary" />
+                </DropdownMenu.ItemIndicator>
+              </span>
+              {TYPE_LABEL[type]}
+            </DropdownMenu.CheckboxItem>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }

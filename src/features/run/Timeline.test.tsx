@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import type { TimelineEvent } from '../../lib/types'
 import { Timeline } from './Timeline'
@@ -36,38 +36,41 @@ describe('Timeline', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Loading the audit log')
   })
 
-  it('reports zero hidden events when every type is active', () => {
+  it('reports zero hidden events when nothing is selected in the filter', () => {
     render(<Timeline events={events} startedAt="2026-03-04T14:02:00Z" />)
-    expect(screen.getByText('0 events hidden by the active filters.')).toBeVisible()
+    expect(screen.getByText('0 events hidden by the filters.')).toBeVisible()
   })
 
-  it('never hides an error or a retry, even filtered down to a single unrelated type', () => {
+  it('never hides an error or a retry, even with every other type hidden', () => {
     render(
       <Timeline
         events={events}
         startedAt="2026-03-04T14:02:00Z"
-        defaultActiveTypes={new Set<TimelineEvent['type']>(['plan'])}
+        defaultHiddenTypes={new Set<TimelineEvent['type']>(['tool_call', 'error', 'test_run'])}
       />,
     )
 
-    // 5 total, 1 active ("plan") + 2 forced (error, retry) visible = 2 genuinely hidden.
-    expect(screen.getByText('2 events hidden by the active filters.')).toBeVisible()
+    // 5 total, 1 shown ("plan") + 2 forced (error, retry) visible = 2 genuinely hidden.
+    expect(screen.getByText('2 events hidden by the filters.')).toBeVisible()
     expect(screen.getByText('Test run failed to start.')).toBeVisible()
     expect(screen.getByText('Retried the test suite.')).toBeVisible()
     expect(screen.queryByText('Ran the full suite.')).not.toBeInTheDocument()
   })
 
-  it('updates the visible list and the hidden count when a filter is toggled, keeping focus on the chip', async () => {
-    const user = userEvent.setup()
+  it('updates the visible list and the hidden count when a type is hidden via the dropdown', async () => {
+    // Radix's DropdownMenu is a modal layer that jsdom (not a real browser, verified
+    // separately via Playwright) can leave unopenable by userEvent's default pointer-events
+    // check after a prior test's own open/close cycle — see TimelineFilters.test.tsx's own
+    // comment on the same issue.
+    const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never })
     render(<Timeline events={events} startedAt="2026-03-04T14:02:00Z" />)
 
     expect(screen.getByText('Read the config file.')).toBeInTheDocument()
 
-    const toolCallsChip = screen.getByRole('button', { name: 'Tool calls' })
-    await user.click(toolCallsChip)
+    await user.click(screen.getByRole('button', { name: /Hide events/ }))
+    await user.click(screen.getByRole('menuitemcheckbox', { name: 'Tool calls' }))
 
     expect(screen.queryByText('Read the config file.')).not.toBeInTheDocument()
-    expect(screen.getByText('1 event hidden by the active filters.')).toBeVisible()
-    expect(toolCallsChip).toHaveFocus()
+    expect(screen.getByText('1 event hidden by the filters.')).toBeVisible()
   })
 })

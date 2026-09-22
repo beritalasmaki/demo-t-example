@@ -58,20 +58,24 @@ export interface FilteredTimeline {
 
 /**
  * Acceptance criteria, Timeline: "Errors and retries are visible with all filters on" (i.e.
- * even with every relevant type filter off) and "Filters state what is hidden and how many
- * items that is." Filtering never actually removes an error or a retry — only the count of
+ * even with every relevant type hidden) and "Filters state what is hidden and how many items
+ * that is." Filtering never actually removes an error or a retry — only the count of
  * genuinely-excluded events shrinks.
+ *
+ * `hiddenTypes`, not `activeTypes`: empty means nothing is hidden (the default), and a type
+ * in the set is the one being excluded — the dropdown's "N selected" reads as an exception
+ * state, matching TimelineFilters.tsx's own inverted semantics.
  */
 export function filterTimeline(
   events: TimelineEvent[],
-  activeTypes: ReadonlySet<TimelineEvent['type']>,
+  hiddenTypes: ReadonlySet<TimelineEvent['type']>,
 ): FilteredTimeline {
   const visible: TimelineEvent[] = []
   const forcedVisibleIds = new Set<string>()
 
   for (const event of events) {
-    const matchesFilter = activeTypes.has(event.type)
-    if (matchesFilter) {
+    const isHidden = hiddenTypes.has(event.type)
+    if (!isHidden) {
       visible.push(event)
     } else if (isError(event) || isRetry(event)) {
       visible.push(event)

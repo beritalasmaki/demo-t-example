@@ -59,7 +59,7 @@ export function TimelineEventRow({
       : 'text-text-secondary'
 
   const summary = (
-    <div className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-2)]">
+    <div className="flex flex-col gap-[var(--space-1)]">
       {/* items-start, overriding IconText's own items-center: a long title wraps to several
        * lines at narrow widths, and centering the icon against the whole wrapped block floats
        * it down toward the middle line instead of sitting next to the first one. */}
@@ -68,14 +68,21 @@ export function TimelineEventRow({
           {event.title}
         </span>
       </IconText>
-      <span className="text-meta font-normal font-body text-text-secondary">
-        {formatDateTime(event.at)} ({formatRelativeTime(event.at)})
-      </span>
-      {forcedVisible && (
+      {/* Title and timestamp always on their own lines — one consistent layout for every
+       * row, rather than inline for some and stacked for others, avoiding the icon-wrap
+       * alignment issue an inline timestamp can trigger when the title itself wraps. */}
+      {/* pl-[var(--space-5)]: 24px = the icon's own 16px (h-4) plus IconText's --space-2 gap,
+       * so the timestamp lines up under the title text, not under the icon. */}
+      <div className="flex flex-wrap items-center gap-x-[var(--space-2)] gap-y-[var(--space-1)] pl-[var(--space-5)]">
         <span className="text-meta font-normal font-body text-text-secondary">
-          Shown despite the active filters
+          {formatDateTime(event.at)} ({formatRelativeTime(event.at)})
         </span>
-      )}
+        {forcedVisible && (
+          <span className="text-meta font-normal font-body text-text-secondary">
+            Shown despite the active filters
+          </span>
+        )}
+      </div>
     </div>
   )
 

@@ -7,3 +7,16 @@ import { afterEach } from 'vitest'
 afterEach(() => {
   cleanup()
 })
+
+// jsdom doesn't implement the Pointer Events capture methods or scrollIntoView, which
+// radix-ui's popper-based components (DropdownMenu, Tabs' overflow handling) call internally
+// when a trigger opens — without these, the open interaction silently no-ops in tests, even
+// though it works in a real browser (verified separately via Playwright).
+for (const method of ['hasPointerCapture', 'setPointerCapture', 'releasePointerCapture']) {
+  if (!(method in Element.prototype)) {
+    Object.defineProperty(Element.prototype, method, { value: () => false, writable: true })
+  }
+}
+if (!('scrollIntoView' in Element.prototype)) {
+  Object.defineProperty(Element.prototype, 'scrollIntoView', { value: () => {}, writable: true })
+}

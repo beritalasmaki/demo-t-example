@@ -6,6 +6,71 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0037 · Second correction pass: card padding, band bleed, pill contrast, tab hover
+
+**Context.** After PR #8 merged, the user supplied four more reference images and asked for a
+second round of fixes: a "Deselect all" quick action on the timeline filter dropdown,
+`ConfidencePanel`'s percentage band matching the mockup's edge-to-edge look (it still had
+padding around it after 0036's restructure), the `ActorName` pill in `DecisionBar`'s decided
+view no longer blending into its own card background, more padding and gap around
+`RegionCard` content generally, and tab hover changed from a background fill to an underline.
+
+**"Deselect all": a real `DropdownMenu.Item`, not a plain `<button>`.** The natural first
+build was a plain `<button>` dropped into the menu next to the checkbox items — it renders
+and is reachable by `Tab`, so it looks correct at a glance. A Playwright keyboard trace showed
+the real problem: a raw button doesn't join Radix's roving-focus `ArrowUp`/`ArrowDown` group,
+so once a user is navigating the menu by arrow key (the expected pattern once any item is
+focused), "Deselect all" is silently unreachable — present, focusable by `Tab` alone, but
+invisible to the same navigation everything else in the menu uses. Converting it to a real
+`DropdownMenu.Item` (disabled when `hiddenTypes` is already empty, `onSelect` calling
+`event.preventDefault()` to keep the menu open, matching the existing checkbox items'
+behaviour) fixed this — it now participates in the same roving-focus group as every other row.
+A follow-up trace also caught a false alarm worth recording: `Tab` and the initial auto-focus
+correctly skip a *disabled* item, per standard ARIA behaviour, which briefly looked like a
+second bug before a cleaner trace ruled it out.
+
+**`RegionCard`'s default padding moved from `--space-4` (16px) to `--space-5` (24px), app-wide,
+not per-region.** The user's ask ("Summary and before-you-approve card sections should have
+more padding") named two regions, but every `RegionCard` in the app shares the same default —
+special-casing two call sites would have meant carrying two padding scales side by side for no
+visible reason, since the mockups don't show tighter padding anywhere else either. `Tabs`'
+horizontal padding and `PolicyGateList`'s tab-bleed negative margin were both bumped from
+`--space-4` to `--space-5` in the same change, since both exist specifically to align with
+`RegionCard`'s own inset.
+
+**`ConfidencePanel`'s band bleeds to the row's own edges via `overflow-hidden` + the parent's
+`rounded-md`, not its own border-radius.** 0036 already established this "zero the shared
+padding, re-add it only where content needs it" pattern for `RunHeader`'s Disclosure and
+`PolicyGateList`'s tab bar; this is the same pattern applied a third time. The alternative —
+giving the band its own `rounded-l-md` to match the card's corner radius — was rejected
+because it hard-codes a radius value that has to be kept in sync with the parent's whenever
+either changes; `overflow-hidden` clips whatever radius the parent actually has, so there is
+nothing to keep in sync.
+
+**`ActorName`'s `bg-surface-raised` default was overridden with `className="bg-surface"` at
+exactly one call site (`DecisionBar`'s `DecidedView`), not changed globally.** Every other
+place `ActorName` renders sits on a plain `RegionCard` (`bg-surface`), where the pill's default
+fill already contrasts correctly — `DecidedView` is the one context that itself uses
+`bg-surface-raised`, which is what caused the collision. Changing the component's own default
+would have fixed this one case and broken every other one.
+
+**Tab hover: `hover:underline`, not `hover:bg-surface-raised`.** A pure CSS property swap on
+`TabsTrigger` — the mockup's inactive-tab hover state is a text underline, not a background
+change, and Playwright confirmed both `text-decoration-line: underline` and `cursor: pointer`
+on hover after the change.
+
+**Consequence.** `RegionCard`'s padding bump is the one change in this round with real
+downstream reach — it affects every card in the app, not just the two the user pointed at, so
+any future card-density work (a denser "compact" variant, say) should treat 24px as the new
+baseline, not 16px. Every other change in this round is scoped to one component or one call
+site. Re-verified end to end: full `npm run check` (typecheck, lint, theme-bridge,
+format-locale, 222 tests) green, and a real-browser Playwright pass across all three fixtures
+in both themes confirmed no console/page errors from the app itself (one `ERR_CERT_AUTHORITY_
+INVALID` on the Google Fonts `<link>` is this sandbox's own egress policy blocking an external
+resource, unrelated to any change here, and not present outside this environment).
+
+---
+
 ## 0036 · Correction pass: alignment, spacing and two component-API extensions
 
 **Context.** After PR #7 merged, the user compared the result against the original mockups

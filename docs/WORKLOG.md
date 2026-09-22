@@ -39,6 +39,83 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-22 · Second correction pass, plus a new wordmark
+
+**Goal**
+After the previous correction pass's PR merged, the user sent four more reference images and
+asked for another round: a fast "Deselect all" action on the timeline filter, the confidence
+band bleeding edge-to-edge like the mockup instead of sitting inside padding, the decided-view
+actor pill no longer blending into its own card, more padding around `RegionCard` content, tab
+hover as an underline instead of a background fill, and — mid-turn — a new text-only wordmark
+to replace the SVG logo from the previous round.
+
+**What changed**
+- `src/features/run/TimelineFilters.tsx` — added a "Deselect all" action as a real
+  `DropdownMenu.Item` (disabled when nothing is hidden), not a plain `<button>`, so it joins
+  Radix's roving-focus arrow-key group like every other item in the menu.
+- `src/features/run/TimelineFilters.test.tsx` — updated the one test that opens the dropdown
+  to click "Deselect all" via its `menuitem` role and assert `aria-disabled`, matching the
+  role change from the `<button>` → `DropdownMenu.Item` conversion.
+- `src/features/run/ConfidencePanel.tsx` — restructured both row variants so the
+  percentage/icon band touches the row's own edges directly (`overflow-hidden` on the row
+  clips it to the card's own `rounded-md`), with content moved into a separately-padded inner
+  wrapper using `Disclosure`'s `summaryClassName`/`contentClassName` props from the previous
+  round.
+- `src/features/run/DecisionBar.tsx` — `DecidedView`'s `ActorName` pill gets
+  `className="bg-surface"` to override its default `bg-surface-raised` fill, which was the
+  same colour as this one card variant's own background.
+- `src/components/RegionCard.tsx` — default padding `--space-4` (16px) → `--space-5` (24px),
+  app-wide.
+- `src/components/Tabs.tsx` — hover changed from `hover:bg-border-subtle` to `hover:underline`;
+  horizontal padding bumped to `--space-5` to match `RegionCard`'s new default.
+- `src/features/run/PolicyGateList.tsx` — tab-bar bleed margin updated from `-space-4` to
+  `-space-5` to match.
+- `src/app/App.tsx` — `Wordmark` replaced: the SVG double-exposure logo from the previous
+  round is gone, in favour of a plain two-line text lockup ("LEDGER" / "DEMO" in
+  `--color-primary`), per the user's second logo image.
+
+**Steps, in order**
+1. Read all three new reference images side by side with the relevant existing component and
+   the original Figma mockups, not from memory.
+2. Fixed each issue in its own file, verifying visually via Playwright screenshots after each.
+3. Diagnosed the "Deselect all" keyboard reachability with a Playwright keyboard trace before
+   concluding a plain `<button>` was insufficient — see `docs/DECISIONS.md` 0037 for the full
+   trace and the false alarm it also ruled out along the way.
+4. Replaced the wordmark when the second logo image arrived mid-session.
+5. Ran `npm run check` (typecheck, lint, `check:theme-bridge`, `check:format-locale`, full
+   vitest suite) after all changes were in.
+6. Ran a full-page Playwright screenshot pass across all three fixtures (`run-clean`,
+   `run-blocked`, `run-messy`) in both themes, plus a keyboard pass covering tab hover/
+   navigation, the timeline dropdown (including "Deselect all"), and the `RunHeader`
+   Disclosure.
+
+**Why it was done this way**
+See `docs/DECISIONS.md` 0037 for the four real trade-offs from this round: the
+`DropdownMenu.Item` vs. plain-`<button>` choice for "Deselect all," why `RegionCard`'s padding
+change is global rather than per-region, why the confidence band's bleed reuses `overflow-
+hidden` + the parent's own radius rather than a hard-coded matching radius, and why the
+`ActorName` pill override is scoped to one call site.
+
+**How to do this by hand**
+Not identical to the steps above — the by-hand version has no Playwright pass: open each
+fixture in a browser directly, toggle both themes, and eyeball each changed region against
+its mockup; test keyboard behaviour by tabbing and arrow-keying through the timeline dropdown
+and the tabs by hand.
+
+**Verification**
+`npm run check` — 222/222 tests, 0 lint errors (1 pre-existing unrelated warning), typecheck,
+theme-bridge and format-locale checks all green. Playwright screenshot pass across
+`run-clean`/`run-blocked`/`run-messy` × light/dark — no console or page errors from the app
+itself (one `ERR_CERT_AUTHORITY_INVALID` on the Google Fonts `<link>` traced to this sandbox's
+own egress policy, unrelated to this round's changes). Keyboard pass confirmed: tab hover is
+underline + pointer cursor, tab switching works via arrow key + Enter, the timeline dropdown
+opens via Enter and "Deselect all" is reachable and functional once enabled.
+
+**Open questions / next**
+None outstanding from this round.
+
+---
+
 ### 2026-09-22 · Correction pass on the Ledger redesign, plus a favicon
 
 **Goal**

@@ -58,36 +58,41 @@ export function ConfidencePanel({ confidence, isLoading = false }: ConfidencePan
           area.missing ? (
             <li
               key={area.area}
-              className="flex items-stretch gap-[var(--space-4)] rounded-md border border-border-subtle bg-surface p-[var(--space-4)]"
+              className="flex items-stretch overflow-hidden rounded-md border border-border-subtle bg-surface"
             >
-              {/* Same band width as a reported area's percentage, so missing and reported
-               * rows still line up — just neutral icon instead of a value, not a colour. */}
-              <div className="flex w-20 shrink-0 items-center justify-center rounded-md bg-surface-raised">
+              {/* The band touches the card's own top/left/bottom edges directly — no
+               * padding and no rounding of its own; `overflow-hidden` above clips it to
+               * the card's rounded corners instead. Same width as a reported area's
+               * percentage band, so missing and reported rows still line up. */}
+              <div className="flex w-20 shrink-0 items-center justify-center bg-surface-raised">
                 <CircleHelp aria-hidden className="h-6 w-6 text-text-secondary" />
               </div>
-              <span className="flex min-w-0 flex-1 items-center text-item-title font-semibold font-body text-text-primary">
-                {formatConfidenceAreaLabel(area.area)}
-              </span>
-              {/* Third column, vertically centered against the whole row — "Not checked" is
-               * static text here (nothing to expand), matching the trigger column's position
-               * for a reported area without being a control itself. */}
-              <span className="flex shrink-0 items-center gap-[var(--space-2)] text-body font-normal font-body text-text-secondary">
-                <CircleHelp aria-hidden className="h-4 w-4 shrink-0" />
-                Not checked
-              </span>
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-[var(--space-4)] p-[var(--space-5)]">
+                <span className="text-item-title font-semibold font-body text-text-primary">
+                  {formatConfidenceAreaLabel(area.area)}
+                </span>
+                {/* Third column, vertically centered against the whole row — "Not checked"
+                 * is static text here (nothing to expand), matching the trigger column's
+                 * position for a reported area without being a control itself. */}
+                <span className="flex shrink-0 items-center gap-[var(--space-2)] text-body font-normal font-body text-text-secondary">
+                  <CircleHelp aria-hidden className="h-4 w-4 shrink-0" />
+                  Not checked
+                </span>
+              </div>
             </li>
           ) : (
             <li key={area.area}>
               <Disclosure
-                className="rounded-md border border-border-subtle bg-surface"
-                summaryClassName="gap-[var(--space-4)] p-[var(--space-4)]"
-                contentClassName="px-[var(--space-4)] pt-0 pb-[var(--space-4)]"
+                className="overflow-hidden rounded-md border border-border-subtle bg-surface"
+                summaryClassName="gap-0 p-0 pr-[var(--space-5)]"
+                contentClassName="px-[var(--space-5)] pt-0 pb-[var(--space-5)]"
                 summary={
-                  <div className="flex min-w-0 flex-1 items-stretch gap-[var(--space-4)]">
-                    {/* One consistent neutral band for every reported area, regardless of
-                     * value — not coloured by how high or low the percentage is (see this
-                     * file's own doc comment). */}
-                    <div className="flex w-20 shrink-0 flex-col items-center justify-center rounded-md bg-surface-raised">
+                  // The band touches the row's own top/left/bottom edges (summaryClassName
+                  // above zeroes Disclosure's usual padding on this side) — no padding and
+                  // no rounding of its own; the Disclosure's own overflow-hidden clips it to
+                  // the card's rounded corners instead.
+                  <div className="flex min-w-0 flex-1 items-stretch">
+                    <div className="flex w-20 shrink-0 flex-col items-center justify-center bg-surface-raised">
                       <span className="text-page-title font-bold font-body text-text-primary">
                         {/* sr-only prefix: the big number reads as "Confidence 72%" to
                          * assistive tech even though the band's own position already
@@ -97,32 +102,34 @@ export function ConfidencePanel({ confidence, isLoading = false }: ConfidencePan
                         {formatConfidencePercent(area.value)}
                       </span>
                     </div>
-                    <div className="flex min-w-0 flex-1 flex-col justify-center gap-[var(--space-2)]">
-                      <span className="text-item-title font-semibold font-body text-text-primary">
-                        {formatConfidenceAreaLabel(area.area)}
-                      </span>
-                      {area.unverified.length > 0 && (
-                        <div className="flex flex-col gap-[var(--space-1)]">
-                          <span className="text-meta font-semibold font-body text-text-secondary">
-                            Could not verify
-                          </span>
-                          <ul className="text-body flex list-disc flex-col gap-[var(--space-1)] pl-5 font-normal font-body text-text-primary">
-                            {area.unverified.map((item) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      <span className="text-body font-normal font-body text-text-primary">
-                        {area.basis}
+                    <div className="flex min-w-0 flex-1 items-stretch gap-[var(--space-4)] p-[var(--space-5)]">
+                      <div className="flex min-w-0 flex-1 flex-col justify-center gap-[var(--space-2)]">
+                        <span className="text-item-title font-semibold font-body text-text-primary">
+                          {formatConfidenceAreaLabel(area.area)}
+                        </span>
+                        {area.unverified.length > 0 && (
+                          <div className="flex flex-col gap-[var(--space-1)]">
+                            <span className="text-meta font-semibold font-body text-text-secondary">
+                              Could not verify
+                            </span>
+                            <ul className="text-body flex list-disc flex-col gap-[var(--space-1)] pl-5 font-normal font-body text-text-primary">
+                              {area.unverified.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <span className="text-body font-normal font-body text-text-primary">
+                          {area.basis}
+                        </span>
+                      </div>
+                      {/* Third column, vertically centered against the whole row (not
+                       * stacked below the middle column) — the trigger label itself;
+                       * Disclosure's own chevron renders right after this, also centered. */}
+                      <span className="flex shrink-0 items-center text-body font-normal font-body text-text-secondary">
+                        Show details
                       </span>
                     </div>
-                    {/* Third column, vertically centered against the whole row (not
-                     * stacked below the middle column) — the trigger label itself;
-                     * Disclosure's own chevron renders right after this, also centered. */}
-                    <span className="flex shrink-0 items-center text-body font-normal font-body text-text-secondary">
-                      Show details
-                    </span>
                   </div>
                 }
               >

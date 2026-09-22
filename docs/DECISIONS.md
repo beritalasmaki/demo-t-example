@@ -6,6 +6,276 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0035 · The logo is the real Figma SVG, not a re-typeset lockup
+
+**Context.** 0034 (below) approximated the mockup's wordmark as two lines of styled text:
+`LEDGER` (bold, uppercase, `--text-page-title`) over `demo` (`--text-body`,
+`--color-text-secondary`). The user then supplied the actual logo mark's SVG source directly
+— a double-exposure wordmark (a faded, oversized `LEDGER` behind a crisp, smaller one) that a
+type-and-token approximation cannot reproduce; that layered effect is the artwork, not
+something CSS letter-spacing and font-weight can fake.
+
+**Options.** (a) Keep refining the text lockup's tracking/weight/line-height to get visually
+closer. (b) Inline the supplied SVG verbatim as the wordmark, replacing the text lockup
+entirely.
+
+**Choice.** (b), with one change from the SVG exactly as given: every `fill="#555555"` and
+`fill="#C5C5C5"` became `fill="currentColor"`, and the wrapping `<h1>` sets
+`text-text-primary` — so the mark still resolves through the theme token instead of two fixed
+hex greys that would look wrong (too dark, low contrast) against the dark theme's background.
+Everything else (paths, the 0.2-opacity backdrop layer) is unchanged from the source.
+
+**Consequence.** `App.tsx`'s `Wordmark` component is now ~90 lines of inlined SVG path data —
+unusually large for this codebase's usual "no raw values, everything from tokens" components,
+but a brand mark's path geometry isn't a token candidate the way a colour or a spacing value
+is. Accessibility: the `<h1>` keeps its native heading role (nothing adds `role="img"` to it,
+which would replace that role); the `<svg>` itself carries `role="img"` and a `<title>Ledger —
+demo</title>`, so assistive tech gets one clean "Ledger — demo, heading level 1" announcement,
+not a heading immediately followed by a separately-announced image with the same label.
+
+---
+
+## 0034 · Testing a Radix modal layer (`DropdownMenu`) in jsdom: one open per test file
+
+**Context.** `TimelineFilters.tsx`'s new dropdown (0030, below) is built on `radix-ui`'s
+`DropdownMenu`, a modal layer (it locks `body { pointer-events: none }` while open). Two
+things about it don't behave the way every other interactive component in this codebase's
+test suite does:
+
+1. `userEvent.click()` on the trigger silently fails to open it — the click's own later
+   `pointerup`/`click` events land while the body's pointer-events are already locked to
+   `none`, and userEvent's default pointer-events visibility check reads that as "target
+   unreachable" and cancels the interaction partway through, even though the *first*
+   `pointerdown` already toggled it open a moment earlier.
+2. More surprising: once a `DropdownMenu` has been opened and closed in one test (however
+   cleanly — `Escape`, a full unmount, `document.body.style` reset all tried), a *separate,
+   freshly rendered* `DropdownMenu` instance in a *later* test in the same file can no longer
+   be opened at all, by any method (`userEvent`, raw `fireEvent.pointerDown`, with or without
+   `vi.resetModules()`). Verified this is jsdom-only, not a real bug: the exact same
+   open → close → open sequence works every time in a real browser (Playwright), and works
+   every time *within one still-mounted instance* in jsdom too — it's specifically a second
+   *mount* that fails, not a second *interaction*.
+
+**Options.** (a) Skip or stub out jsdom coverage for anything using `DropdownMenu`, relying on
+Playwright alone. (b) Set `pointerEventsCheck: PointerEventsCheckLevel.Never` on `userEvent`
+for these tests (fixes surprise 1), and restructure each affected test file so every
+interaction that opens the menu happens against one render, in one test, rather than split
+across several fresh `render()` calls (works around surprise 2, since re-mounting is what
+breaks, not repeated open/close on the same mount).
+
+**Choice.** (b). `TimelineFilters.test.tsx` and `Timeline.test.tsx`'s toggle test both follow
+this now: label-only assertions (no menu interaction) stay as ordinary separate tests; the
+"opens it, lists items, checks the initial state, toggles a type on, toggles it back off"
+coverage is one test with one `render()`, not four.
+
+**Consequence.** This is a real constraint on this repo's tests, not a one-off: **any future
+component built on a Radix modal-layer primitive (`DropdownMenu`, `Popover`, `Select`,
+`AlertDialog` — anything using `DismissableLayer`) needs the same two workarounds** if its
+tests open it more than once across the file. `Tabs` (0028, `PolicyGateList.test.tsx`) and the
+plain `Disclosure`/native `<details>` pattern do **not** have this problem — confirmed by
+running several fresh `render()`+interact cycles of each in one file with no issue — so this
+is specific to Radix's modal-layer machinery, not Radix components generally, and not a
+reason to avoid Radix elsewhere.
+
+---
+
+## 0033 · `DecisionBar`'s Undo gets the one filled, non-neutral button in the app
+
+**Context.** Every button in this codebase is deliberately neutral — `features/run/README.md`
+and Scenario S2 (docs/spec-review-screen.md) require "no brand colour on any of [the three
+decision] actions," so Approve/Request changes/Reject, and every other button built since,
+share one plain bordered style (`BUTTON_CLASSNAME` in `DecisionBar.tsx`). The mockup shows
+`DecidedView`'s Undo button filled solid dark (light text on a near-black fill in the light
+theme).
+
+**Options.** (a) Keep Undo on the same neutral bordered style as every other button, for
+absolute consistency. (b) Give Undo a filled treatment, matching the mockup.
+
+**Choice.** (b), reasoned as a *different* rule from S2's, not a violation of it: S2's "no
+brand colour" is specifically about not making one of the three *decision* actions look like
+"the recommended one." Undo is not a decision action — it only exists after a decision was
+already made, in a single-button context with no siblings to rank against. The fill itself
+uses `bg-text-primary`/`text-surface` — an inversion of the existing neutral text/background
+tokens, not `--color-primary` or any other brand/accent colour — so it stays inside "no brand
+colour anywhere," just not inside "every button looks identical."
+
+**Consequence.** `DecisionBar.tsx` now has two distinct button treatments where it previously
+had one; a future button added to this file should default to the existing neutral
+`BUTTON_CLASSNAME`, not the filled one — the filled treatment is Undo's alone until another
+genuine "single prominent action, no siblings" case shows up.
+
+---
+
+## 0032 · Confidence's percentage band stays one neutral tone, never coloured by value
+
+**Context.** The mockup colour-codes each `ConfidencePanel` row's percentage band by its
+value — green for ~81–88%, yellow for ~52%. This directly contradicts a principle the panel
+was already built around (`ConfidencePanel.tsx`'s own doc comment, predating this session):
+"Low confidence is normal information, not an alarm" (`features/run/README.md`'s glossary
+entry for **Confidence**). Asked the user directly before planning further (see the
+transcript) — confirmed: keep it colour-neutral, restyle only the *layout*.
+
+**Options.** (a) Follow the mockup's green/yellow split. (b) Restructure the layout (a left
+band with a large percentage, matching the mockup's visual weight) while keeping the band one
+consistent tone (`--color-surface-raised`) regardless of value.
+
+**Choice.** (b). A 52% side-effects confidence value in `run-blocked` is the model correctly
+reporting something ordinary it couldn't fully verify — not a failure. Colouring it yellow
+would read as a warning next to `PolicyGateList`'s actual warnings, undermining the one
+signal this app tries hardest to keep calm.
+
+**Consequence.** The big percentage number itself still needs to never read as "a bare
+number" (existing acceptance criterion) even without colour to carry that framing — solved
+with a visually-hidden `"Confidence "` prefix inside the same element as the number, so a
+screen reader always hears "Confidence 72%," not "72%" floating alone, while sighted users get
+the plain, unframed number the neutral band already contextualises.
+
+---
+
+## 0031 · Audit log: filter semantics invert to "hide," behind a dropdown
+
+**Context.** The mockup replaces `TimelineFilters`' row of `ToggleChip`s (checked = shown,
+matching `activeTypes`) with a single dropdown, "Hide events · N selected." Read literally,
+selecting an item now *hides* that type — the inverse of the current semantics, where
+selecting a chip *shows* it. Asked the user to confirm this was an intentional inversion, not
+a mockup-reading error, before implementing (see the transcript) — confirmed: yes, invert it.
+
+**Options.** (a) Keep `activeTypes`/show-semantics internally, translate to hide-language only
+in the label. (b) Actually invert the underlying data: `lib/timeline.ts`'s `filterTimeline`
+takes `hiddenTypes`, empty by default (nothing hidden — the least surprising starting state).
+
+**Choice.** (b). A dropdown reading "Hide events · 3 selected" while secretly tracking which
+3 types are *shown* is exactly the kind of naming mismatch that turns into a bug the next time
+someone touches this code without re-deriving the inversion from scratch. `filterTimeline`,
+`TimelineFilters`, `Timeline`'s `defaultHiddenTypes` prop, and every test/story/fixture that
+touched the old `activeTypes` shape were all updated together, not left half-converted.
+
+**Consequence.** The one acceptance criterion this must keep holding — "filtering never
+actually hides an error or a retry" — is unchanged in logic, just inverted in which set
+triggers it: `filterTimeline` now excludes an event only when its type is in `hiddenTypes`
+*and* it isn't an error or a retry, instead of excluding when the type is missing from
+`activeTypes`.
+
+---
+
+## 0030 · Three mockup renderings treated as unreviewed Figma artifacts, not replicated
+
+**Context.** Cross-referencing the 9 mockup images against each other and against this app's
+existing, deliberate content rules surfaced three places where a mockup's rendering looked
+like a leftover from building the Figma file, not a considered design choice:
+
+1. **`RunSummary`'s heading icon** shown as a warning triangle — identical to
+   `AttentionDigest`'s own icon on the same file, strongly suggesting a duplicated Figma
+   instance that was never swapped back. A warning triangle on the Summary region directly
+   contradicts Content rules' "no adjectives, no reassurance, no alarm" voice: the summary is
+   plain sourced fact, not a caution.
+2. **`DecisionStatusBanner`'s body text** reads "This decisions already stands" in the
+   mockup — a grammatical typo (plural "decisions," singular subject), not a wording change;
+   nothing else in the 9 images suggests the product voice moved to a plural there.
+3. **`TimelineEventRow`'s timestamp position** is inconsistent across the mockup's own five
+   visible rows — inline with the title for two, on its own line below for three — with no
+   pattern tied to event type, length, or anything else in the data that would explain the
+   split.
+
+**Options, each time.** (a) Replicate the mockup exactly, on the assumption every pixel was
+intentional. (b) Treat it as an artifact and keep (or choose, for #3) the version that's
+internally consistent with this app's own established rules.
+
+**Choice.** (b), all three times: `RunSummary` keeps its `FileText` icon; the banner keeps
+"This decision already stands" (singular); `TimelineEventRow` gets **one** consistent layout
+(title, then timestamp below, always) rather than mirroring the mockup's split — chosen
+specifically because a below-the-title timestamp is what avoids the icon/text wrap-alignment
+bug 0025 already fixed once for this exact component.
+
+**Consequence.** This is a judgment call, not a certainty — the alternative (asking about all
+three before touching anything) was rejected because none of them changes structure or data,
+only which of two very similar renderings gets kept, and the reasoning for each is recorded
+here rather than silently overriding what the mockup showed.
+
+---
+
+## 0029 · `RunStatus` gets colour, scoped to exactly two of its six values
+
+**Context.** `RunStatus` (`running`/`blocked`/`awaiting_review`/`approved`/
+`changes_requested`/`rejected`) was deliberately colour-neutral before this session — a
+workflow phase isn't a `GateResult` claim, so it never got `StatusBadge`'s vocabulary. The
+mockup colours "Approved" as a filled green pill. Asked the user directly (see the
+transcript) whether this meant reversing that rule generally — confirmed: yes, but only for
+what the mockups actually show.
+
+**Options.** (a) Invent a six-way colour mapping so every `RunStatus` value has *some* status
+colour, for visual consistency. (b) Colour only the two values the mockups have evidence for
+(`approved` → `StatusBadge success`, `changes_requested` → `StatusBadge warning`), and leave
+`running`/`blocked`/`awaiting_review`/`rejected` on the existing plain `Tag`.
+
+**Choice.** (b). No mockup shows a coloured "Blocked" or "Rejected" pill, and the new tint
+tokens (0027, below) were authorized for exactly green and amber — inventing colours for the
+other four would mean guessing at values nothing in this task ever specified.
+
+**Consequence.** `RunHeader.tsx` now branches on `run.status`: two values render via
+`StatusBadge`, the rest via the pre-existing `Tag` + a small icon map
+(`Loader2`/`OctagonAlert`/`Eye`/`CircleX`). The scope boundary is explicit in code
+(`STATUS_BADGE_TONE` is a `Partial<Record<...>>` covering only the two colourable values,
+not a `Record` that would need a case for all six) so a future contributor adding a colour
+for, say, `rejected` has to consciously widen that type, not just add a class string.
+
+---
+
+## 0028 · `info` tone recolours from blue to neutral grey
+
+**Context.** `StatusBadge`'s `info` tone (the only `GateResult` it covers: `unknown`, "Not
+run") used `--color-status-unknown`, a blue. Two independent mockups — Policy gates' "Not
+run" pill and Confidence's "Not checked" icon — both render this state in plain grey, never
+blue, across every instance shown.
+
+**Options.** (a) Keep blue, on the assumption the mockup simply didn't restyle this one
+state. (b) Recolour to neutral, since two independent images agree and neither shows blue
+anywhere.
+
+**Choice.** (b) — two independent, unprompted agreements is real evidence of intent, not a
+single ambiguous instance. `info`'s own `CircleHelp` icon (distinct from `neutral`'s
+`CircleMinus`) is what now distinguishes "not run" from "not applicable," since colour no
+longer does.
+
+**Consequence.** `--color-status-unknown` (the blue token) is now unused by `StatusBadge`
+entirely, but not orphaned: `RunSummary.tsx`'s own `unknown`-kind sentence (icon + text) still
+uses it, left unchanged since no mockup showed that specific case. The two are now
+deliberately inconsistent — a badge reads neutral grey, an inline summary sentence about the
+same kind of gate outcome still reads blue — until there's real evidence either way.
+
+---
+
+## 0027 · One new colour token, not a new palette, for the filled `StatusBadge` exception
+
+**Context.** The mockups show `success`/`warning` `StatusBadge` tones as filled pills (tint
+background, coloured icon/border/text) — reversing this app's own "status colour is never a
+fill, never the text" rule (`src/styles/README.md`, backed by 0005's contrast work). The user
+pre-authorized adding light-green/light-yellow tokens if needed, but that is not the same as
+authorizing a whole new colour system.
+
+**Options.** (a) Design a full new tint palette (background + foreground) for every status
+colour, for consistency with a hypothetical future need. (b) Reuse the *existing*, already
+contrast-verified `--status-green-light`/`-dark` and `--status-amber-light`/`-dark` as the
+on-tint foreground, adding only the light-background tints themselves as new tokens — and
+only a genuinely new foreground colour where the existing one can't reach 4.5:1.
+
+**Choice.** (b), and the WCAG relative-luminance check (same method as 0005) found that
+`--status-green-light` (#1e8a5a) is *mathematically incapable* of reaching 4.5:1 against any
+tint background — it already tops out at ~4.3:1 against pure white, the best possible case, so
+no darker tint could improve on that. `--status-amber-light` had enough headroom (5.36:1)
+against its own tint to reuse directly, as did both dark-theme colours (7.87:1, 6.44:1). Only
+one genuinely new primitive was needed: `--status-green-tint-fg-light` (#1a7a3e), verified at
+4.81:1 against its paired tint (#e6f6ec).
+
+**Consequence.** Four new tint-background primitives plus one new foreground primitive
+(`tokens.css`), surfaced as `--color-status-pass-tint-bg`/`-fg` and
+`--color-status-waived-tint-bg`/`-fg` in `@theme` — scoped to exactly the two tones with
+mockup evidence, not a blanket "every status gets a filled variant" system; `danger`/`neutral`
+stay icon-and-border-only. `npm run check:theme-bridge` still passes (38 colours verified
+across 3 themes), confirming the new tokens compute correctly in both light and dark.
+
+---
+
 ## 0026 · `RunHeader`'s requester gets the same pill, on its own line
 
 **Context.** 0023 gave every human actor's name a pill — but missed `RunHeader`'s

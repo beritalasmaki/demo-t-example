@@ -1,5 +1,5 @@
 import { Tabs as TabsPrimitive } from 'radix-ui'
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { cn } from '../lib/utils'
 
 /**
@@ -30,11 +30,18 @@ export interface TabsListProps {
   className?: string
 }
 
+/** A full-width segmented bar (each trigger fills an equal share of the row, not a small
+ * underlined text-link row) — the tab itself carries the "selected" affordance via its own
+ * fill colour, divided from its neighbour by a vertical rule and from the row above/below by
+ * a horizontal one. No rounding or side borders by default: the usual placement is edge-to-
+ * edge inside a card that already has its own border, and a caller wanting the bar to bleed
+ * to that card's outer edge supplies its own negative margin (this component doesn't assume
+ * a specific parent padding value). */
 export function TabsList({ children, className }: TabsListProps) {
   return (
     <TabsPrimitive.List
       className={cn(
-        'flex items-center gap-[var(--space-5)] border-b border-border-subtle',
+        'flex divide-x divide-border-subtle border-y border-border-subtle',
         className,
       )}
     >
@@ -46,21 +53,30 @@ export function TabsList({ children, className }: TabsListProps) {
 export interface TabsTriggerProps {
   value: string
   children: ReactNode
+  /** Shown before the label — every tab in this design carries one, unlike a plain text-link
+   * tab. Colour is the caller's call via `iconClassName` (e.g. reusing `StatusBadge`'s own
+   * "passed" green for a "settled" tab), since this component knows nothing about what the
+   * icon means. */
+  icon?: ComponentType<{ className?: string }>
+  iconClassName?: string
   className?: string
 }
 
-export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
+export function TabsTrigger({ value, children, icon: Icon, iconClassName, className }: TabsTriggerProps) {
   return (
     <TabsPrimitive.Trigger
       value={value}
       className={cn(
-        '-mb-px border-b-2 border-transparent px-[var(--space-1)] py-[var(--space-2)] text-item-title font-semibold font-body text-text-secondary transition-colors',
-        'duration-[var(--motion-duration-fast)] hover:text-text-primary',
-        'data-[state=active]:border-primary data-[state=active]:text-text-primary',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
+        'flex flex-1 cursor-pointer items-center justify-center gap-[var(--space-2)] px-[var(--space-4)] py-[var(--space-3)]',
+        'text-item-title font-semibold font-body text-text-secondary transition-colors',
+        'duration-[var(--motion-duration-fast)] bg-surface-raised hover:bg-border-subtle',
+        'data-[state=active]:bg-surface data-[state=active]:text-text-primary data-[state=active]:hover:bg-surface-raised',
+        'focus-visible:relative focus-visible:z-10 focus-visible:outline focus-visible:outline-2',
+        'focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring',
         className,
       )}
     >
+      {Icon && <Icon aria-hidden className={cn('h-4 w-4 shrink-0', iconClassName)} />}
       {children}
     </TabsPrimitive.Trigger>
   )

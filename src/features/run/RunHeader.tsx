@@ -22,6 +22,7 @@ import {
   formatTimeZoneLabel,
 } from '../../lib/format'
 import type { Run } from '../../lib/types'
+import { ActorName } from './ActorName'
 
 /**
  * Region 1: what this run is. See docs/spec-review-screen.md, Hierarchy and disclosure —
@@ -92,14 +93,20 @@ export function RunHeader({ run }: RunHeaderProps) {
        * without any risk of clipping the environment or status above it. Truncated only at
        * md and up: below that, the `title` tooltip this relies on to reveal the rest never
        * fires on a touchscreen, which would otherwise silently hide "what was asked for" —
-       * the first reviewer question (docs/spec-review-screen.md) — with no way to read it. */}
+       * the first reviewer question (docs/spec-review-screen.md) — with no way to read it.
+       * The requester gets its own line, not folded into this same truncating sentence: a
+       * pill (ActorName) clipped mid-shape by a text-overflow ellipsis would look broken, and
+       * every other place a person's name appears already gets its own line or clause rather
+       * than being buried inside truncated text. */}
       <div className="flex min-w-0 flex-col gap-[var(--space-2)]">
         <p
-          className="text-body min-w-0 font-normal font-body text-text-secondary md:truncate"
+          className="text-body min-w-0 font-normal font-body text-text-primary md:truncate"
           title={run.initiative}
         >
-          <span className="text-text-primary">{run.initiative}</span> — requested by{' '}
-          {run.requestedBy}
+          {run.initiative}
+        </p>
+        <p className="text-body flex flex-wrap items-center gap-x-[var(--space-1)] font-normal font-body text-text-secondary">
+          Requested by <ActorName name={run.requestedBy} />
         </p>
         <p className="text-meta font-normal font-body text-text-secondary">
           Started {formatDateTime(run.startedAt)} ({formatRelativeTime(run.startedAt)})

@@ -39,6 +39,31 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-22 · RunHeader's requester gets the actor pill too
+
+**Goal**
+The user pointed out `RunHeader`'s "requested by X" was still plain text — the human-actor
+pill from an earlier session (docs/DECISIONS.md 0023) never made it to this one place.
+
+**What changed**
+`src/features/run/RunHeader.tsx` — `run.requestedBy` now renders via `ActorName`, on its own
+line ("Requested by [pill]") rather than folded into the initiative name's sentence. The
+initiative name's own line no longer carries the em dash + requester text, so its `md:truncate`
+(docs/DECISIONS.md 0025) now only ever clips the initiative name itself.
+
+**Why it was done this way**
+A pill has real shape (border, padding, icon) — truncating it mid-shape with the initiative
+name's ellipsis would look broken. See docs/DECISIONS.md 0026.
+
+**Verification**
+`npm run check` (220 tests) green. Manual check, desktop + mobile, both themes: pill renders
+correctly, matches the existing `ActorName` treatment used everywhere else.
+
+**Open questions / next**
+None.
+
+---
+
 ### 2026-09-22 · Mobile region pass: icon alignment on wrap, initiative name truncation
 
 **Goal**

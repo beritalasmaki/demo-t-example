@@ -6,6 +6,30 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0026 · `RunHeader`'s requester gets the same pill, on its own line
+
+**Context.** 0023 gave every human actor's name a pill — but missed `RunHeader`'s
+`requestedBy`, which was still plain text folded into the same sentence as the initiative
+name: `"{initiative} — requested by {name}"`. That sentence also truncates to one line at
+`md` and up (0025).
+
+**Options.** (a) Wrap just the name in `ActorName`, in place, inside the existing truncating
+sentence. (b) Give the requester its own line, separate from the (still truncating)
+initiative name.
+
+**Choice.** (b). `ActorName`'s pill has real shape — border, padding, an icon — and a
+`text-overflow: ellipsis` truncation clipping it mid-pill when the sentence overflows would
+look broken, not just cut text short the way it does for a plain word. The em dash that used
+to join the two ("initiative — requested by name") is dropped; "Requested by [pill]" reads
+fine as its own line, the same shape `DecisionStatusBanner`/`DecidedView` already use for "by
+[pill]".
+
+**Consequence.** The initiative name's own `<p>` no longer carries `run.requestedBy` at all,
+so its truncation (`md:truncate`) now only ever clips the initiative name itself, never a
+person's name.
+
+---
+
 ## 0025 · The mobile region pass: two real bugs fixed, touch-target size left alone
 
 **Context.** 0024 fixed the page shell and nav but explicitly left "a full per-region mobile

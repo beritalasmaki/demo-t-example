@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import type { PolicyGate } from '../../lib/types'
 import { PolicyGateList } from './PolicyGateList'
@@ -15,7 +16,8 @@ function gate(overrides: Partial<PolicyGate> & Pick<PolicyGate, 'id' | 'result'>
 }
 
 describe('PolicyGateList', () => {
-  it('renders every gate name', () => {
+  it('renders every gate name', async () => {
+    const user = userEvent.setup()
     render(
       <PolicyGateList
         gates={[
@@ -25,11 +27,15 @@ describe('PolicyGateList', () => {
         timeline={[]}
       />,
     )
+    // 'Security review' (pass) is settled, collapsed behind "Show N passed checks" since
+    // 'Data retention' needs attention — open it so both names are in the accessibility tree.
+    await user.click(screen.getByText('Show 1 passed check'))
     expect(screen.getByText('Security review')).toBeVisible()
     expect(screen.getByText('Data retention')).toBeVisible()
   })
 
-  it('sorts failed and waived first, then unknown, then not applicable, then passed', () => {
+  it('sorts failed and waived first, then unknown, then not applicable, then passed', async () => {
+    const user = userEvent.setup()
     render(
       <PolicyGateList
         gates={[
@@ -41,6 +47,10 @@ describe('PolicyGateList', () => {
         timeline={[]}
       />,
     )
+
+    // 'a' (pass) and 'b' (not_applicable) are settled — collapsed behind "Show N passed
+    // checks" since 'd' needs attention. Open it so every gate is in the accessibility tree.
+    await user.click(screen.getByText('Show 2 passed checks'))
 
     const ids = screen
       .getAllByRole('listitem')
@@ -56,6 +66,38 @@ describe('PolicyGateList', () => {
     expect(ids.findIndex((t) => t?.includes('Not applicable'))).toBeLessThan(
       ids.findIndex((t) => t?.includes('Passed')),
     )
+  })
+
+  it('collapses passed and not-applicable gates behind "Show N passed checks" once something needs attention', () => {
+    render(
+      <PolicyGateList
+        gates={[
+          gate({ id: 'a', name: 'Passed gate', result: 'pass' }),
+          gate({ id: 'b', name: 'Failed gate', result: 'fail' }),
+        ]}
+        timeline={[]}
+      />,
+    )
+    expect(screen.getByText('Needs attention · 1')).toBeVisible()
+    expect(screen.getByText('Failed gate')).toBeVisible()
+    expect(screen.getByText('Passed gate')).not.toBeVisible()
+    expect(screen.getByText('Show 1 passed check')).toBeVisible()
+  })
+
+  it('collapses nothing when every gate passed — S2, "hides what was checked" is a failure', () => {
+    render(
+      <PolicyGateList
+        gates={[
+          gate({ id: 'a', name: 'First passed gate', result: 'pass' }),
+          gate({ id: 'b', name: 'Second passed gate', result: 'not_applicable' }),
+        ]}
+        timeline={[]}
+      />,
+    )
+    expect(screen.queryByText(/Needs attention/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Show \d+ passed/)).not.toBeInTheDocument()
+    expect(screen.getByText('First passed gate')).toBeVisible()
+    expect(screen.getByText('Second passed gate')).toBeVisible()
   })
 
   it('shows an explicit empty state rather than an empty list', () => {

@@ -54,8 +54,20 @@ written the code: a compliance officer, a security lead, a product owner. Design
 - `RunReviewPage.tsx` — composes the regions: loading, not-found and failed-load states, then
   `RunHeader`, `RunSummary`, `PolicyGateList`, `Timeline`, `ConfidencePanel` and `DecisionBar`
   once the run has loaded, alongside `components/AnchorNav.tsx` (quick links to each region's
-  heading id). Holds the run in local state so a decision (or a conflict — or an undo) updates
-  the screen immediately, without a refetch
+  heading id), `DecisionStatusBanner.tsx` (only when already decided) and `AttentionDigest.tsx`
+  (only when `lib/attention.ts`'s `buildAttentionItems` found something worth flagging — see
+  docs/DECISIONS.md). Holds the run in local state so a decision (or a conflict — or an undo)
+  updates the screen immediately, without a refetch
+- `AttentionDigest.tsx` — the "Before you rely on this" digest: not one of the spec's six
+  regions, a synthesized shortcut to what `lib/attention.ts` found. Every item links to the
+  region it came from; renders nothing when there's nothing to flag
+- `DecisionStatusBanner.tsx` — "Approved by X · 4 minutes ago", right under the run header, so
+  an already-decided run says so immediately rather than only at the bottom Decision region.
+  A pointer to `DecisionBar.tsx`'s `DecidedView`, never a second place the decision is recorded
+- `ActorName.tsx` — the shared "who did this" display: a person's name gets a pill (border,
+  filled background, `ActorIcon`); a system's name-and-version stays plain icon + text — the
+  contrast is what marks "a person did this" (docs/DECISIONS.md). Used by `PolicyGateRow.tsx`
+  (`evaluatedBy`, `waiver.by`), `DecisionBar.tsx` and `DecisionStatusBanner.tsx` (`decision.by`)
 - `useRun.ts` — loading, not-found and error handling via `lib/api`'s `getRun`. No
   stale-while-revalidating: nothing in `lib/api` yet signals that a run moved on during a
   read the way `submitDecision`'s `DecisionConflictError` does for a decision in flight

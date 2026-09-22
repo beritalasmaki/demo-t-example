@@ -46,6 +46,24 @@ export function explanationFor(gate: PolicyGate, timeline: TimelineEvent[]): str
   return resolveEvidence(gate, timeline).find((event) => event.detail)?.detail
 }
 
+export interface GateAttentionGroup {
+  result: 'fail' | 'unknown' | 'waived'
+  gates: PolicyGate[]
+}
+
+/**
+ * `gates`, grouped by the three results worth flagging before a reviewer relies on this run —
+ * used by `lib/attention.ts` to build the "Before you rely on this" digest. Same rank order as
+ * `sortGates` (failed and not-run before an already-granted exception), empty groups dropped
+ * rather than shown with a "0" count.
+ */
+export function gateAttentionGroups(gates: PolicyGate[]): GateAttentionGroup[] {
+  const order: GateAttentionGroup['result'][] = ['fail', 'unknown', 'waived']
+  return order
+    .map((result) => ({ result, gates: gates.filter((gate) => gate.result === result) }))
+    .filter((group) => group.gates.length > 0)
+}
+
 export interface GateAcknowledgement {
   failedCount: number
   waivedCount: number

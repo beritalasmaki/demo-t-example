@@ -39,6 +39,99 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-22 · Friendlier UI, inspired by a reference mockup
+
+**Goal**
+The user shared a dark-theme mockup of this same screen and asked to take styling
+inspiration from it to make the UI more user-friendly, keeping `tokens.css`'s values
+unchanged. Adopt its real information-architecture ideas — a synthesized pre-flight digest,
+an already-decided banner, decluttering settled policy gates, a plainer sidebar — without
+copying colours or colour *usage* the app's own token rules don't allow.
+
+**What changed**
+- `src/lib/attention.ts` (new) — `buildAttentionItems`, synthesizing the "Before you rely on
+  this" digest from real `gates`/`confidence`/`timeline` data only (no invented thresholds).
+- `src/lib/gates.ts` — `gateAttentionGroups` (fail/unknown/waived, non-empty groups only),
+  shared by the digest and by `PolicyGateList`'s own collapse logic.
+- `src/lib/format.ts` — `formatConfidenceAreaLabel`/`formatDecisionOutcomeLabel`, lifted out
+  of `ConfidencePanel.tsx`/`DecisionBar.tsx` (both now import them) since `lib/attention.ts`
+  needed the same labels and `lib/` can't import from `features/`.
+- `src/features/run/AttentionDigest.tsx` (new) — the digest card itself. Colour-neutral
+  chrome, not a status colour (docs/DECISIONS.md 0020); renders nothing when there's nothing
+  to flag.
+- `src/features/run/DecisionStatusBanner.tsx` (new) — "Approved by X · 4 minutes ago" right
+  under the run header on an already-decided run, linking to the Decision region.
+- `src/features/run/PolicyGateList.tsx` — gates needing attention (fail/waived/unknown) stay
+  always visible with a "Needs attention · N" eyebrow; settled gates (pass/not_applicable)
+  collapse behind "Show N passed checks" — but only when something actually needs attention,
+  never on an all-pass run (docs/DECISIONS.md 0021 — Scenario S2 compliance).
+- `src/components/AnchorNav.tsx` — dropped the card border/background for a plain sticky
+  list.
+- `src/features/run/RunReviewPage.tsx` — wires all of the above in; nav gains a conditional
+  "Needs attention" entry that only appears when the digest renders.
+- `src/features/run/ActorName.tsx` (new) — pulled out of a duplicated local function
+  (`PolicyGateRow.tsx`) and inlined JSX (`DecisionBar.tsx`); a person's name now renders in a
+  pill (border, filled background, `ActorIcon`), a system's name-and-version stays plain icon
+  + text — a follow-up request, mid-session, to visually set a human decision/evaluation apart
+  from an automated one, not only via the small icon next to it (docs/DECISIONS.md 0023). Now
+  also used by `DecisionStatusBanner.tsx`.
+
+**Steps, in order**
+1. Read the shared PDF mockup (rendered to PNG via `pymupdf`, since this sandbox had no
+   `pdftoppm`/poppler-utils and no network access to install it — `pip install pymupdf`
+   worked instead). Read `AGENTS.md` and `docs/spec-review-screen.md` fresh before planning.
+2. Used `EnterPlanMode`. Asked the user one clarifying question first: the mockup's
+   "Before you rely on this" digest is real new content architecture, not a style change —
+   include it this round, or stay to visual refinements of the existing six regions? User
+   chose to include it.
+3. Verified the plan's data rules against all three real fixtures by hand before writing any
+   code (not just after): confirmed `run-clean` → 1 digest item, `run-blocked` → 3,
+   `run-messy` → 3 (matching the reference mockup's own three bullets), and confirmed the
+   token-usage question (status colour reserved for one `GateResult`, never a multi-kind
+   summary card) against `src/styles/README.md`'s actual usage rules before deciding the
+   digest's chrome stays neutral.
+4. Built bottom-up: `lib/format.ts` extractions → `lib/gates.ts` → `lib/attention.ts` (+
+   tests, verified against real fixtures) → `AttentionDigest`/`DecisionStatusBanner` (new-
+   component workflow: states, tokens, a11y, Storybook stories, both themes) →
+   `PolicyGateList`'s collapse logic → `AnchorNav` → `RunReviewPage` wiring.
+5. `npm run check` (typecheck, lint, theme-bridge, locale, full suite) green throughout —
+   ran after each file, not only at the end.
+6. Verified in a real running browser across all three fixtures, both themes: digest content
+   matches the hand-verification from step 3; policy gates collapse only when something
+   needs attention, never on `run-clean`'s all-pass case; "Show N passed checks" opens by
+   keyboard (native `<summary>` focus + Enter, `Disclosure`'s existing behaviour, unchanged);
+   the digest's own links scroll (and, per the earlier smooth-scroll work, animate) to their
+   region; "Needs attention" appears in the nav only when the digest renders.
+
+**Why it was done this way**
+- The mockup's dark gradient header band and solid amber "needs attention" card fills were
+  deliberately not copied: both need either new colour values or a colour *usage*
+  (`--color-status-*` as a background fill, or on a card that isn't reporting one specific
+  `GateResult`) that `src/styles/README.md`'s existing rules already rule out — see
+  docs/DECISIONS.md 0020.
+- Policy gates only collapse once something needs attention, never on an all-pass run,
+  because Scenario S2 in docs/spec-review-screen.md explicitly fails a design that "hides
+  what was checked behind a single green summary" for that case — see docs/DECISIONS.md 0021.
+- The digest's confidence bullet triggers on "there is something concrete this area could not
+  verify," never on a "confidence below X%" threshold — docs/spec-review-screen.md: "low
+  confidence is normal and should look normal, not alarming." See docs/DECISIONS.md 0022.
+
+**How to do this by hand**
+Same as the steps above — no separate manual procedure beyond the file list under "What
+changed."
+
+**Verification**
+`npm run check` — 40 test files, 220 tests, typecheck, lint, both custom browser-based
+checks, all green. Manual Playwright pass across `run-clean`/`run-blocked`/`run-messy`, light
+and dark: digest content, gate collapsing, keyboard operability of the new disclosure, the
+conditional nav entry, and the human/system pill contrast all confirmed in a real browser,
+not just from source.
+
+**Open questions / next**
+None outstanding.
+
+---
+
 ### 2026-09-21 · Undo button layout, smooth section-nav scroll, Confidence heading badge
 
 **Goal**

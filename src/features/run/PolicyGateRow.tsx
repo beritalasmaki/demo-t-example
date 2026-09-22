@@ -1,12 +1,10 @@
-import { Bot, User } from 'lucide-react'
 import type { StatusBadgeTone } from '../../components/StatusBadge'
 import { StatusBadge } from '../../components/StatusBadge'
-import { ActorIcon } from '../../components/ActorIcon'
 import { Disclosure } from '../../components/Disclosure'
-import { isSystemActor } from '../../lib/actors'
 import { explanationFor, resolveEvidence } from '../../lib/gates'
 import { formatDateTime, formatGateResultLabel } from '../../lib/format'
 import type { GateResult, PolicyGate, TimelineEvent } from '../../lib/types'
+import { ActorName } from './ActorName'
 
 /**
  * One policy gate. See docs/spec-review-screen.md, Region 3 and "Hierarchy and disclosure":
@@ -26,21 +24,6 @@ export interface PolicyGateRowProps {
   gate: PolicyGate
   timeline: TimelineEvent[]
   defaultOpen?: boolean
-}
-
-/** Content rules, "Who did what": a person by name, a system by name and version — distinct
- * by icon too, not just by the shape of the string. See lib/actors.ts. */
-function actorIcon(name: string) {
-  return isSystemActor(name) ? Bot : User
-}
-
-function ActorName({ name }: { name: string }) {
-  return (
-    <span className="inline-flex items-center gap-[var(--space-2)]">
-      <ActorIcon icon={actorIcon(name)} />
-      {name}
-    </span>
-  )
 }
 
 export function PolicyGateRow({ gate, timeline, defaultOpen = false }: PolicyGateRowProps) {

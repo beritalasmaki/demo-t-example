@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
+import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent } from '../../components/Tabs'
 import type { GetRunOptions, SubmitDecisionOptions } from '../../lib/api'
 import type { Run } from '../../lib/types'
@@ -96,14 +97,7 @@ export function RunReviewPage({
   }, [view])
 
   if (state.status === 'loading') {
-    return (
-      <p
-        role="status"
-        className="mx-auto max-w-6xl p-[var(--space-6)] text-body text-text-secondary"
-      >
-        Loading run…
-      </p>
-    )
+    return <LoadingState label="Loading run…" />
   }
 
   if (state.status === 'not-found') {

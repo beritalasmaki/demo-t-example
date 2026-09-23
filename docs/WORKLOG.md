@@ -39,6 +39,70 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Story layout: the Claude Design redesign, built
+
+**Goal**
+Build the "Ledger Review Redesign" handoff from Claude Design: design 1a (before anyone
+decides) and 1b (approved, undo still open) as two states of one page.
+
+**What changed**
+- Data model (`lib/types.ts`): `Run.story` and `Run.assignment` added.
+  `Decision.acknowledgedGateIds` became `acknowledgedItemIds`. Spec updated to match.
+- Fixtures: Finnish names everywhere, run-messy moved to 2026-09-23, story data for all three
+  runs, a new `run-messy-pending` twin, and a reason on run-messy's approval.
+- `lib/`: new `openItems.ts`, `story.ts`, `steps.ts`, `evidence.ts`; `confidenceLevel`, time and
+  count formatters, `testsPassing`, `listRuns`; the approval-reason rule in `submitDecision`.
+  `attention.ts`, `gateAcknowledgement` and `formatSignOffMessage` removed.
+- `features/run/`: new `RunTopBar`, `RunOverview`, `UndoBox`, `StoryTimeline`, `ScoreCard`,
+  `CheckCard`, `EvidenceTab`, `StepsTab`, `DecisionPanel`, `UnverifiedList`, `RunShape`,
+  `ReviewList`, `SectionHeading`, each with a story and a test. `RunReviewPage` rewritten.
+  The eleven old region components were removed with their stories and tests.
+- `components/Tabs.tsx`: a `pill` variant. `lib/utils.ts`: `cn` knows the type scale.
+- `styles/tokens.css`: one red tint pair and three type sizes (`lead`, `caption`, `score`).
+- `App.tsx`: no wordmark; `?view=reviews` shows "My reviews".
+- Docs: DECISIONS 0038–0043, spec, folder READMEs.
+
+**Steps, in order**
+1. Read the handoff bundle's README, the chat transcript and `Ledger Review Redesign.dc.html`
+   in full. Listed where the design goes against a recorded decision (0032, 0033, the spec's
+   sign-off rule, 0035) and asked the user about each one. All four: follow the design.
+2. `git checkout -b feat/story-layout`, `npm ci`, and a baseline `npm run check` (222 tests).
+3. Data first: types, then fixtures, then lib helpers with their tests (`npx vitest run src/lib
+   src/fixtures`).
+4. Tokens, then components from the inside out (`ScoreCard`, `CheckCard` → `StoryTimeline` →
+   the tabs → `DecisionPanel` → `RunOverview` → `RunReviewPage`), then `git rm` of the old
+   regions.
+5. Tests and stories for every new component (the `new-component` skill); `npx prettier --write src`.
+6. `npm run check`, then a Playwright pass against `npx vite --port 5199`.
+
+**Why it was done this way**
+The story's prose can't be derived from events, and AGENTS.md rule 3 forbids unsourced claims.
+So the story is data with evidence ids, like the summary (0038). Pending and approved are one
+layout, not two pages, so undo can move between them in place.
+
+**How to do this by hand**
+Open the `.dc.html` next to Storybook's `Features/Run/RunReviewPage` stories
+(`AwaitingReview` and `Approved`), and compare region by region at 1440 px. Mockup values map
+onto the nearest token: 160 px page padding → `max-w-6xl`, 28/26/10/6 px gaps → `--space-*`.
+
+**Verification**
+- `npm run check`: typecheck and lint clean (the one existing `button.tsx` warning), both theme
+  checks ok, 43 test files and 233 tests passing.
+- Playwright (Chromium, 1440 px and 390 px, light and dark): no console errors apart from the
+  Google Fonts request, which this sandbox's proxy blocks. No horizontal scroll at 390 px.
+- The keyboard-only path passed: arrow keys between tabs, then Tab to each tick → Space →
+  reason → Approve and release → confirm → Undo.
+- The screenshots found two real bugs, both fixed and recorded in 0043.
+
+**Open questions / next**
+- The status labels keep the spec's exact words ("Awaiting review", "Approved"). The mockup
+  says "Awaiting your review" and "Approved and released". Change the spec if those are wanted.
+- "Run check again" and Undo are local only. The api store keeps a decision after an on-screen
+  undo (0017), so deciding the same run again in one session gives the conflict dialog.
+- `Run.summary` is no longer shown anywhere. Decide whether to drop it from the model.
+- The timeline type filters (0031) went with the redesign. Re-add them to the step list if
+  reviewers miss them.
+
 ### 2026-09-22 · Second correction pass, plus a new wordmark
 
 **Goal**

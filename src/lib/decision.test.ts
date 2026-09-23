@@ -5,9 +5,9 @@ import { UNDO_WINDOW_MINUTES, undoWindow } from './decision'
 function decision(overrides: Partial<Decision> = {}): Decision {
   return {
     outcome: 'approved',
-    by: 'Jordan Ellis',
+    by: 'Juhani Virtaleppäsoutu',
     at: '2026-01-01T00:00:00Z',
-    acknowledgedGateIds: [],
+    acknowledgedItemIds: [],
     revision: 'abc123',
     ...overrides,
   }

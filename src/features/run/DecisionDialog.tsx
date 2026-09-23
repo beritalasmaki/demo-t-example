@@ -42,8 +42,12 @@ export interface DecisionDialogProps {
   revision: string
   environment: Run['target']['environment']
   reviewerName: string
-  /** Only meaningful for `approved` — see `lib/gates.ts`'s `gateAcknowledgement`. */
-  acknowledgedGateIds: string[]
+  /** Only meaningful for `approved` — the open items the reviewer ticked
+   * (`lib/openItems.ts`'s `buildOpenItems`). */
+  acknowledgedItemIds: string[]
+  /** Only meaningful for `approved`: the reason written in `DecisionPanel`, shown back in the
+   * confirmation and recorded with the decision (docs/DECISIONS.md, 0040). */
+  approvalReason?: string
   onClose: () => void
   onDecided: (updatedRun: Run) => void
   /** Called as soon as a conflict is detected, independent of whether the dialog itself is
@@ -63,7 +67,8 @@ export function DecisionDialog({
   revision,
   environment,
   reviewerName,
-  acknowledgedGateIds,
+  acknowledgedItemIds,
+  approvalReason,
   onClose,
   onDecided,
   onConflict,
@@ -99,8 +104,8 @@ export function DecisionDialog({
     const input: DecisionInput = {
       outcome: action,
       by: reviewerName,
-      reason: reasonPrompt ? trimmedReason : undefined,
-      acknowledgedGateIds,
+      reason: reasonPrompt ? trimmedReason : approvalReason?.trim() || undefined,
+      acknowledgedItemIds,
       revision,
     }
     try {
@@ -139,10 +144,17 @@ export function DecisionDialog({
   return (
     <Modal title={TITLE[action]} onClose={onClose}>
       {action === 'approved' ? (
-        <p className="text-body font-normal font-body text-text-primary">
-          Release revision {revision} to {environment}? You can undo this for {UNDO_WINDOW_MINUTES}{' '}
-          minutes.
-        </p>
+        <div className="flex flex-col gap-[var(--space-2)]">
+          <p className="text-body font-normal font-body text-text-primary">
+            Release revision {revision} to {environment}? You can undo this for{' '}
+            {UNDO_WINDOW_MINUTES} minutes.
+          </p>
+          {approvalReason?.trim() && (
+            <p className="text-body font-normal font-body text-text-secondary">
+              Your reason: “{approvalReason.trim()}”
+            </p>
+          )}
+        </div>
       ) : (
         <div className="flex flex-col gap-[var(--space-2)]">
           <label

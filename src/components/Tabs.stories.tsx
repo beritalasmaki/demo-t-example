@@ -37,3 +37,37 @@ export const PassedActive: Story = {
   args: { value: 'passed', onValueChange: () => {}, children: null },
   render: () => <Interactive initialValue="passed" />,
 }
+
+function PillInteractive() {
+  const [value, setValue] = useState('story')
+  return (
+    <Tabs value={value} onValueChange={setValue}>
+      <TabsList variant="pill" label="Views">
+        <TabsTrigger variant="pill" value="story">
+          Story
+        </TabsTrigger>
+        <TabsTrigger variant="pill" value="evidence">
+          Evidence
+        </TabsTrigger>
+        <TabsTrigger variant="pill" value="steps">
+          All 200 steps
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="story" className="pt-[var(--space-3)] text-body text-text-primary">
+        The story view.
+      </TabsContent>
+      <TabsContent value="evidence" className="pt-[var(--space-3)] text-body text-text-primary">
+        The evidence view.
+      </TabsContent>
+      <TabsContent value="steps" className="pt-[var(--space-3)] text-body text-text-primary">
+        The step list.
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+/** The compact toolbar variant. Arrow keys move between tabs, as in the segmented bar. */
+export const Pill: Story = {
+  args: { value: 'story', onValueChange: () => {}, children: null },
+  render: () => <PillInteractive />,
+}

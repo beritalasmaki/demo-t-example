@@ -8,8 +8,8 @@ const baseProps = {
   runId: 'run-clean',
   revision: 'f3a9c2',
   environment: 'staging' as Run['target']['environment'],
-  reviewerName: 'Jordan Ellis',
-  acknowledgedGateIds: [],
+  reviewerName: 'Juhani Virtaleppäsoutu',
+  acknowledgedItemIds: [],
   onClose: vi.fn(),
   onDecided: vi.fn(),
   onConflict: vi.fn(),
@@ -81,7 +81,7 @@ describe('DecisionDialog', () => {
     await waitFor(() => expect(onDecided).toHaveBeenCalledTimes(1))
     const updated = onDecided.mock.calls[0][0] as Run
     expect(updated.status).toBe('changes_requested')
-    expect(updated.decision?.by).toBe('Jordan Ellis')
+    expect(updated.decision?.by).toBe('Juhani Virtaleppäsoutu')
     expect(updated.decision?.reason).toBe('Please add a test for the empty case.')
   })
 

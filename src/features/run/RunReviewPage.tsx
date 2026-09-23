@@ -1,130 +1,139 @@
-import {
-  CheckSquare,
-  FileText,
-  Gauge,
-  History,
-  ShieldCheck,
-  Target,
-  TriangleAlert,
-} from 'lucide-react'
 import { useState } from 'react'
-import { AnchorNav } from '../../components/AnchorNav'
-import { buildAttentionItems } from '../../lib/attention'
+import { Tabs, TabsContent } from '../../components/Tabs'
 import type { GetRunOptions, SubmitDecisionOptions } from '../../lib/api'
 import type { Run } from '../../lib/types'
-import { AttentionDigest } from './AttentionDigest'
-import { ConfidencePanel } from './ConfidencePanel'
-import { DecisionBar } from './DecisionBar'
-import { DecisionStatusBanner } from './DecisionStatusBanner'
-import { PolicyGateList } from './PolicyGateList'
-import { RunHeader } from './RunHeader'
-import { RunSummary } from './RunSummary'
-import { Timeline } from './Timeline'
+import { DecisionPanel } from './DecisionPanel'
+import { EvidenceTab } from './EvidenceTab'
+import { RunOverview } from './RunOverview'
+import { RunShape } from './RunShape'
+import { RunTopBar } from './RunTopBar'
+import { StepsTab } from './StepsTab'
+import { StoryTimeline } from './StoryTimeline'
+import { UnverifiedList } from './UnverifiedList'
 import { useRun } from './useRun'
 
 /**
- * Composes the review screen's regions around one run: header, summary, policy gates, the
- * audit-log timeline, confidence, and the decision bar — all six regions from
- * docs/spec-review-screen.md. Two more things sit alongside them, sourced from the same
- * `run` rather than being separate regions of their own: `DecisionStatusBanner` (only when
- * already decided) and `AttentionDigest` (only when `buildAttentionItems` found something
- * worth flagging) — see docs/DECISIONS.md.
+ * The review page — the "story layout" (docs/DECISIONS.md, 0038). From top to bottom: the
+ * page's own bar (breadcrumb and the three views), the overview (what this is, why, where it is
+ * now, and what is open), then two columns. The main column holds one view at a time — Story,
+ * Evidence or All steps. The right column stays in place for all three: the decision panel
+ * and what is not checked before a decision; what is still unverified and the run's shape
+ * after one. Below the `md` breakpoint the right column moves above the views, so the decision
+ * is never at the bottom of a long page.
  *
- * Loading, not-found and error states are handled here, once, rather than in every region —
- * `RunHeader`, `RunSummary`, `PolicyGateList`, `Timeline`, `ConfidencePanel` and `DecisionBar`
- * all assume a real `run` exists.
+ * Loading, not-found and error states are handled here, once. The run is held in local state
+ * so a decision, a conflict or an undo updates the screen immediately, without a refetch.
  */
+export type RunView = 'story' | 'evidence' | 'steps'
+
 export interface RunReviewPageProps {
   runId: string
-  /** Passed straight through to `useRun`. Mainly for stories and tests that need a fast or
-   * deliberately-failing load, rather than the real artificial delay. */
+  /** Where the breadcrumb's "My reviews" goes. */
+  reviewsHref?: string
+  /** Passed straight through to `useRun`. Mainly for stories and tests. */
   getRunOptions?: GetRunOptions
-  /** Passed straight through to `DecisionBar`. Mainly for stories and tests. */
+  /** Passed straight through to `DecisionPanel`. Mainly for stories and tests. */
   submitDecisionOptions?: SubmitDecisionOptions
+  /** Mainly for stories and tests: the view to open on. */
+  defaultView?: RunView
 }
 
-export function RunReviewPage({ runId, getRunOptions, submitDecisionOptions }: RunReviewPageProps) {
+export function RunReviewPage({
+  runId,
+  reviewsHref = '?view=reviews',
+  getRunOptions,
+  submitDecisionOptions,
+  defaultView = 'story',
+}: RunReviewPageProps) {
   const { state, refetch } = useRun(runId, getRunOptions)
-  // A decision (or a conflict) updates what's on screen without a refetch — `useRun` is only
-  // about the initial load, not about a change this page itself causes. `null` means "nothing
-  // has overridden the loaded run yet."
-  const [decidedRun, setDecidedRun] = useState<Run | null>(null)
+  // `null` means nothing on this page has changed the loaded run yet.
+  const [changedRun, setChangedRun] = useState<Run | null>(null)
+  const [view, setView] = useState<RunView>(defaultView)
+  const [focusEventId, setFocusEventId] = useState<string | undefined>(undefined)
 
   if (state.status === 'loading') {
     return (
-      <p role="status" className="text-text-secondary">
+      <p
+        role="status"
+        className="mx-auto max-w-6xl p-[var(--space-6)] text-body text-text-secondary"
+      >
         Loading run…
       </p>
     )
   }
 
   if (state.status === 'not-found') {
-    return <p className="text-text-secondary">Could not find a run with id "{runId}".</p>
+    return (
+      <p className="mx-auto max-w-6xl p-[var(--space-6)] text-body text-text-secondary">
+        Could not find a run with id "{runId}".{' '}
+        <a href={reviewsHref} className="text-primary underline">
+          Back to my reviews
+        </a>
+      </p>
+    )
   }
 
   if (state.status === 'error') {
     return (
-      <p className="text-text-secondary">
+      <p className="mx-auto max-w-6xl p-[var(--space-6)] text-body text-text-secondary">
         Could not load this run. {state.error.message}{' '}
-        <button type="button" onClick={refetch} className="text-primary underline">
+        <button type="button" onClick={refetch} className="cursor-pointer text-primary underline">
           Retry
         </button>
       </p>
     )
   }
 
-  const run = decidedRun ?? state.run
-  const attentionItems = buildAttentionItems(run)
+  const run = changedRun ?? state.run
+  const decided = run.decision != null
 
-  // "Needs attention" only appears once there's a digest for it to jump to — a nav link with
-  // nothing to scroll to would be worse than no link at all.
-  const navItems = [
-    { id: 'run-header-heading', label: 'Run', icon: Target },
-    ...(attentionItems.length > 0
-      ? [{ id: 'needs-attention-heading', label: 'Needs attention', icon: TriangleAlert }]
-      : []),
-    { id: 'summary-heading', label: 'Summary', icon: FileText },
-    { id: 'policy-gates-heading', label: 'Policy gates', icon: ShieldCheck },
-    { id: 'audit-log-heading', label: 'Audit log', icon: History },
-    { id: 'confidence-heading', label: 'Confidence', icon: Gauge },
-    { id: 'decision-heading', label: 'Decision', icon: CheckSquare },
-  ]
+  function showStep(eventId: string) {
+    setFocusEventId(eventId)
+    setView('steps')
+  }
 
   return (
-    <div className="flex flex-col gap-[var(--space-5)] md:flex-row md:items-start">
-      <AnchorNav items={navItems} label="Jump to a section" />
-      <div className="flex min-w-0 flex-1 flex-col gap-[var(--space-7)]">
-        <RunHeader run={run} />
-        {/* Each region renders its own --text-section-heading <h2> with a fixed id, and the
-         * <section> points at it via aria-labelledby rather than repeating the name in a
-         * separate aria-label — one place for the name, not two. The same ids are what
-         * AnchorNav's links jump to. */}
-        {run.decision && <DecisionStatusBanner decision={run.decision} />}
-        {attentionItems.length > 0 && (
-          <section aria-labelledby="needs-attention-heading">
-            <AttentionDigest items={attentionItems} />
-          </section>
-        )}
-        <section aria-labelledby="summary-heading">
-          <RunSummary summary={run.summary} timeline={run.timeline} />
-        </section>
-        <section aria-labelledby="policy-gates-heading">
-          <PolicyGateList gates={run.gates} timeline={run.timeline} />
-        </section>
-        <section aria-labelledby="audit-log-heading">
-          <Timeline events={run.timeline} startedAt={run.startedAt} />
-        </section>
-        <section aria-labelledby="confidence-heading">
-          <ConfidencePanel confidence={run.confidence} />
-        </section>
-        <section aria-labelledby="decision-heading">
-          <DecisionBar
-            run={run}
-            onRunUpdated={setDecidedRun}
-            submitDecisionOptions={submitDecisionOptions}
-          />
-        </section>
+    <Tabs value={view} onValueChange={(value) => setView(value as RunView)}>
+      <RunTopBar run={run} reviewsHref={reviewsHref} />
+      <RunOverview run={run} onRunUpdated={setChangedRun} />
+
+      <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-[var(--space-6)] px-[var(--space-4)] pt-[var(--space-6)] pb-[var(--space-7)] md:grid-cols-[minmax(0,1fr)_21.25rem] md:gap-[var(--space-7)] md:px-[var(--space-6)]">
+        <div className="min-w-0">
+          <TabsContent value="story">
+            <StoryTimeline run={run} onShowSteps={showStep} />
+          </TabsContent>
+          <TabsContent value="evidence">
+            <EvidenceTab run={run} onOpenStep={showStep} />
+          </TabsContent>
+          <TabsContent value="steps">
+            <StepsTab run={run} focusEventId={focusEventId} />
+          </TabsContent>
+        </div>
+
+        <aside
+          aria-label={decided ? 'The decision record' : 'Your decision'}
+          className="order-first flex flex-col gap-[var(--space-4)] md:sticky md:top-[var(--space-5)] md:order-none"
+        >
+          {decided ? (
+            <>
+              <UnverifiedList run={run} />
+              <RunShape run={run} />
+            </>
+          ) : (
+            <>
+              <DecisionPanel
+                // A fresh panel after an undo: the earlier ticks and reason belonged to a
+                // decision that no longer stands.
+                key={run.status}
+                run={run}
+                onRunUpdated={setChangedRun}
+                submitDecisionOptions={submitDecisionOptions}
+              />
+              <UnverifiedList run={run} />
+            </>
+          )}
+        </aside>
       </div>
-    </div>
+    </Tabs>
   )
 }

@@ -96,12 +96,14 @@ export interface Decision {
   by: string
   /** ISO timestamp. */
   at: string
-  /** Required for `changes_requested` and `rejected`; not required for `approved`
-   * (Content rules, "Buttons"). */
+  /** Required for `changes_requested` and `rejected`, and for `approved` whenever a check
+   * failed or did not run (`lib/openItems.ts`'s `approvalNeedsReason`; docs/DECISIONS.md, 0040). */
   reason?: string
-  /** Content rules, "Sign-off tick": every failed or waived gate the reviewer confirmed
-   * having seen. The rule as written does not extend this to `unknown` gates. */
-  acknowledgedGateIds: string[]
+  /** Every open item the reviewer ticked before approving — failed, not-run and waived gate
+   * groups, a low confidence score, an open note (`lib/openItems.ts`'s `buildOpenItems`, whose
+   * ids these are). Replaced `acknowledgedGateIds`, which covered only failed and waived gates:
+   * see docs/DECISIONS.md, 0040. */
+  acknowledgedItemIds: string[]
   /** What exactly was approved — guards against deciding on a run that has moved on. */
   revision: string
 }
@@ -115,8 +117,30 @@ export interface DecisionInput {
   outcome: Decision['outcome']
   by: string
   reason?: string
-  acknowledgedGateIds: string[]
+  acknowledgedItemIds: string[]
   revision: string
+}
+
+/**
+ * One step of "What happened, in order" — the story tab (docs/DECISIONS.md, 0038). The agent's
+ * own account of a phase of the run, in plain sentences, the same way `Run.summary` is: prose
+ * is data, and every step links to the timeline events it describes. A step whose evidence
+ * doesn't resolve is dropped (`lib/story.ts`), never shown unsourced. Its time or time range
+ * is computed from that evidence, never written by hand.
+ */
+export interface StoryStep {
+  id: string
+  /** "Plan", "6 files changed" — shown after the time. */
+  label: string
+  text: string
+  evidenceIds: string[]
+  /** Confidence areas whose score belongs to this moment of the run. An area listed here but
+   * missing from `Run.confidence` renders as "Not checked", never disappears. */
+  confidenceAreas?: ConfidenceArea['area'][]
+  /** Gates evaluated in this step. A failed or not-run gate gets its own card here. */
+  gateIds?: string[]
+  /** Show a "See N steps" link into the step list — for phases worth drilling into. */
+  linkToSteps?: boolean
 }
 
 export interface Run {
@@ -143,4 +167,10 @@ export interface Run {
   timeline: TimelineEvent[]
   confidence: ConfidenceArea[]
   decision?: Decision
+  /** Why a person gave this work to the agent: "The shop is moving refunds... (context).
+   * <by> gave the change to the agent because <reason>." Optional: a run started by a
+   * schedule may have no one to name. */
+  assignment?: { context: string; by: string; reason: string }
+  /** The story tab. See `StoryStep`. */
+  story: StoryStep[]
 }

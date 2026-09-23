@@ -6,6 +6,140 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0043 · Two real bugs found while building the story layout
+
+**Context.** Browser screenshots and a new test caught two bugs. Both were already in the code
+before this redesign.
+
+1. **`cn()` dropped type-scale sizes.** tailwind-merge only knows Tailwind's own size names. It
+   read `text-meta` as a text *colour*, so when a colour class such as `text-text-secondary`
+   came later in the same `cn()` call, the size was silently removed. The step-list rows showed
+   this: some rows rendered at the browser default size. `StatusBadge`'s tinted tones were
+   losing `text-badge-label` in the same way.
+2. **`explanationFor` could explain a gate with the wrong event.** It returned the first
+   evidence event that had any `detail`. run-messy's licensing gate lists a file change before
+   the scanner's own result, so "did not run" was explained with a file's description.
+
+**Choice.** `lib/utils.ts` builds `cn` with `extendTailwindMerge`, and registers the nine
+`--text-*` names as font sizes (tested in `utils.test.ts`). `explanationFor` now prefers the
+gate's own `gate_eval` event and falls back to the first event with a detail.
+
+**Consequence.** A new `--text-*` token must also be added to `TYPE_SCALE` in `lib/utils.ts`.
+If it is not, the same silent drop comes back. The comment in `utils.ts` says this.
+
+---
+
+## 0042 · The page lives inside a host platform: no wordmark, a breadcrumb, one date format
+
+**Context.** The redesign treats the review page as one area inside a bigger service platform
+that already has its own navigation (from the design chat: "this page would be part of another
+service platform"). The user confirmed that the LEDGER / DEMO wordmark goes (0035).
+
+**Choice.**
+- `App.tsx` has no wordmark and no chrome of its own. The page starts with `RunTopBar`: "‹ My
+  reviews › <initiative> [revision]", with the three views on the right.
+- "My reviews" goes to a minimal `ReviewList` (`?view=reviews`, backed by a new `listRuns`).
+  The spec's Out of scope already allowed a list for navigation only.
+- Run ids and revisions are labelled fields with one plain line each ("Quote this to find the
+  review again later."), instead of bare chips in a header row.
+- Dates part of the record use one format: `2026-09-23 · 10:02–11:51 (UTC+3)`.
+  `formatUtcOffset` works out "UTC+3" from the offset, not from a zone abbreviation, which
+  depends on the runtime ("EEST", "GMT+3").
+- People in the fixtures have Finnish names: Maarit Kasakallio, Juhani Virtaleppäsoutu, Aino
+  Lehtomäki and others. The messy run's times moved to 2026-09-23 07:02–08:51 UTC, which shows
+  as 10:02–11:51 in Finland, as in the design.
+
+**Consequence.** `AnchorNav` stays in `components/` with its story and tests, but nothing uses
+it now. It is a design-system part, not a feature.
+
+---
+
+## 0041 · Confidence levels get colour, and warning numbers may be amber text
+
+**Context.** The redesign pairs each percentage with a level (High / Medium / Low, coloured
+green / amber / red) and an action ("Check this yourself before approving"). It also shows
+"2 not run" and "52%" in amber text. This goes against 0032 (confidence stays one neutral tone)
+and 0006 (status colour is never text). Asked the user, who confirmed: follow the design.
+
+**Choice.** `lib/confidence.ts` `confidenceLevel`: 85 % and above is High, 60–84 % is Medium,
+below 60 % is Low. The value is rounded first, so the level always agrees with the number
+shown. The cut-offs are this app's own policy, not the model's. The level chip uses the
+existing tint pairs, plus one new pair, `--color-status-fail-tint-bg/-fg` (5.67:1 light,
+6.57:1 dark). Amber as text uses `--color-status-waived-tint-fg`: 5.4–5.9:1 on every light
+surface, 6.7–7.5:1 in dark.
+
+**Consequence.** This replaces 0032, and is a scoped exception to 0006: warning numbers and
+"not run" counts only. The level is always written as a word, so colour is never the only
+signal.
+
+---
+
+## 0040 · Approving means ticking every open item, and giving a reason when checks are missing
+
+**Context.** The spec asked for one tick for failed or waived gates, and no reason for an
+approval. The redesign, following the People + AI Guidebook's "more risk, more care", asks the
+reviewer to tick each open item separately. That includes checks that did not run, a Low
+score, and warning notes. It also asks for a written reason when any check failed or did not
+run. The user confirmed this rule.
+
+**Choice.** `lib/openItems.ts` builds the items: failed, not-run and waived gate groups, each
+Low area, each warning note. `approvalNeedsReason` says when a reason is required.
+`Decision.acknowledgedGateIds` became `acknowledgedItemIds`, and `submitDecision` rejects an
+approval without a reason when the rule applies. The spec's Region 6, Content rules and
+acceptance criteria were updated.
+
+**Consequence.** The single "I have seen 1 failed check and 1 exception" tick
+(`formatSignOffMessage`, `gateAcknowledgement`) and the "Before you approve" digest
+(`attention.ts`) are gone. `openItems.ts` does both jobs now.
+
+---
+
+## 0039 · "Approve and release" is the only filled button; Reject run gets a red outline
+
+**Context.** Spec S2 and 0033 kept the three decision buttons identical and neutral. The
+redesign gives the decision panel a clear order: Approve is the one filled (dark) button, then
+a divider ("or, if it is not ready"), then Request changes (neutral outline) and Reject run (red
+outline). Each button has one line saying what happens next. Asked the user, who confirmed:
+follow the design.
+
+**Choice.** Approve uses the same inverted neutral tokens as Undo (`bg-text-primary` /
+`text-surface`), not a brand colour, and stays disabled until the 0040 rule is met, with a hint
+saying what is left. Reject uses `--color-status-fail` for its border and text.
+
+**Consequence.** S2's "no brand colour on the decision actions" still holds. "All three look
+the same" does not. The filled button can't become a reflex, because it only turns on after
+every open item has been ticked.
+
+---
+
+## 0038 · The story layout replaces the six stacked regions
+
+**Context.** The Claude Design handoff ("Ledger Review Redesign", design 1a before a decision
+and 1b after) replaces the six stacked cards with: an overview header, three views (Story,
+Evidence, All N steps), and a right column that stays in place.
+
+**Choice.**
+- **Story is data.** The prose can't be derived from timeline events, so it is a new field,
+  `Run.story`: steps with evidence ids, like `summary`. A step whose evidence doesn't resolve is
+  dropped (`lib/story.ts`). Times are computed from the evidence. Scores
+  (`confidenceAreas`) and checks that need attention (`gateIds`) sit in the step where they
+  happened. `Run.assignment` holds "why the agent was asked".
+- **Evidence** groups the events the claims rest on (`lib/evidence.ts`). **All N steps** is the
+  full audit log. Runs of 10 or more repeated steps fold into one row that says how many it
+  holds (`lib/steps.ts`), and errors and warnings never fold.
+- **Pending and decided are one layout.** The run's `decision` picks the header box (open
+  items, or undo) and the right column (decision panel, or the record).
+- **"Run check again"** is local only, like Undo (0017). It records the request and does not
+  change the gate's result.
+
+**Consequence.** The timeline's type filters (0031) are gone: the step list shows everything,
+and the Evidence view is the filtered reading. `Run.summary` stays in the data model and in
+`lib/summary.ts`, but the page no longer shows it. "Where the run is now" is built from gates
+and confidence instead. Numbers the mockup showed that are not in the data (a "+214 −97 lines"
+diff size, per-check run times) were left out, not invented.
+
+---
+
 ## 0037 · Second correction pass: card padding, band bleed, pill contrast, tab hover
 
 **Context.** After PR #8 merged, the user supplied four more reference images and asked for a
@@ -195,6 +329,8 @@ reason to avoid Radix elsewhere.
 
 ## 0033 · `DecisionBar`'s Undo gets the one filled, non-neutral button in the app
 
+> Partly replaced by 0039: "Approve and release" now shares the filled treatment.
+
 **Context.** Every button in this codebase is deliberately neutral — `features/run/README.md`
 and Scenario S2 (docs/spec-review-screen.md) require "no brand colour on any of [the three
 decision] actions," so Approve/Request changes/Reject, and every other button built since,
@@ -221,6 +357,8 @@ genuine "single prominent action, no siblings" case shows up.
 ---
 
 ## 0032 · Confidence's percentage band stays one neutral tone, never coloured by value
+
+> Replaced by 0041.
 
 **Context.** The mockup colour-codes each `ConfidencePanel` row's percentage band by its
 value — green for ~81–88%, yellow for ~52%. This directly contradicts a principle the panel

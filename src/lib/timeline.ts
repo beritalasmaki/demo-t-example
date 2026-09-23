@@ -85,3 +85,25 @@ export function filterTimeline(
 
   return { visible, forcedVisibleIds, hiddenCount: events.length - visible.length }
 }
+
+const NEW_AND_EXISTING = /(\d+)\s+new(?:\s+tests?)?\s+and\s+(\d+)\s+existing\s+tests?\s+passing/i
+const PASSED = /(\d+)\s+(?:tests?\s+)?passed/i
+
+/**
+ * Tests passing across the run, summed from each test run's `detail` ("162 passed", "14 new and
+ * 96 existing tests passing"). There is no count field on `TimelineEvent`, so this reads the
+ * sentence the same way `isRetry` reads a title — a heuristic checked against every fixture
+ * (timeline.test.ts). Undefined when no test run states a count: the page then says
+ * "unknown", never guesses.
+ */
+export function testsPassing(events: TimelineEvent[]): number | undefined {
+  let total: number | undefined
+  for (const event of events) {
+    if (event.type !== 'test_run' || !event.detail) continue
+    const both = NEW_AND_EXISTING.exec(event.detail)
+    const passed = both ? undefined : PASSED.exec(event.detail)
+    if (both) total = (total ?? 0) + Number(both[1]) + Number(both[2])
+    else if (passed) total = (total ?? 0) + Number(passed[1])
+  }
+  return total
+}

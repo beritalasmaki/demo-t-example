@@ -8,7 +8,7 @@ import type { Run } from '../lib/types'
 export const runClean: Run = {
   id: 'run-clean',
   initiative: 'Add a CSV export to the appointment history page',
-  requestedBy: 'Sana Iqbal',
+  requestedBy: 'Elina Koskivaara',
   revision: 'f3a9c2',
   target: { system: 'patient-portal', environment: 'staging' },
   agent: { name: 'Kestrel', version: '4.2.1', model: 'kestrel-code-12b' },
@@ -55,7 +55,7 @@ export const runClean: Run = {
       plainLanguage:
         "Changes that call another team's service directly must be reviewed by the platform team first.",
       result: 'pass',
-      evaluatedBy: 'Dana Whitfield',
+      evaluatedBy: 'Aino Lehtomäki',
       evaluatedAt: '2026-03-06T10:20:00Z',
       evidenceIds: ['c3', 'c9'],
     },
@@ -153,7 +153,7 @@ export const runClean: Run = {
       at: '2026-03-06T10:20:00Z',
       type: 'gate_eval',
       title: 'Architecture review passed.',
-      detail: 'Reviewed by Dana Whitfield: no new service call was introduced.',
+      detail: 'Reviewed by Aino Lehtomäki: no new service call was introduced.',
     },
     {
       id: 'c10',
@@ -208,6 +208,54 @@ export const runClean: Run = {
       unverified: [
         'Very large appointment histories were not tested for export performance in the browser.',
       ],
+    },
+  ],
+  assignment: {
+    context: 'Clinic staff copy appointment lists by hand into spreadsheets for monthly reports.',
+    by: 'Elina Koskivaara',
+    reason: 'it is a small, well-described change that only reuses data the page already has.',
+  },
+  story: [
+    {
+      id: 'plan',
+      label: 'Plan',
+      text: 'The agent planned an export button on the appointment history page that reuses the data already loaded there.',
+      evidenceIds: ['c1'],
+    },
+    {
+      id: 'reading',
+      label: 'Reading the code',
+      text: 'It read the appointment history page to find where the appointment list comes from.',
+      evidenceIds: ['c2'],
+    },
+    {
+      id: 'files',
+      label: '3 files changed',
+      text: 'It added an Export CSV button, a small function that turns the appointment list into a CSV file, and tests for that function.',
+      evidenceIds: ['c3', 'c4', 'c5'],
+      confidenceAreas: ['implementation', 'side_effects'],
+    },
+    {
+      id: 'tests',
+      label: 'Tests',
+      text: '6 new tests and 41 existing tests passed for the appointments feature.',
+      evidenceIds: ['c6'],
+      confidenceAreas: ['tests'],
+    },
+    {
+      id: 'checks',
+      label: 'Policy checks',
+      text: 'All six checks passed: security, data retention, architecture review, licensing, test coverage and accessibility.',
+      evidenceIds: ['c7', 'c8', 'c9', 'c10', 'c11', 'c12'],
+      gateIds: [
+        'security',
+        'data-retention',
+        'architecture',
+        'licensing',
+        'test-coverage',
+        'accessibility',
+      ],
+      confidenceAreas: ['security'],
     },
   ],
 }

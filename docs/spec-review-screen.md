@@ -38,8 +38,8 @@ A waiver always names the human who granted it and their reason — a waiver is 
 not a state.
 
 **4. Timeline** — what the agent did, step by step: plan, tool calls, file changes, test runs,
-gate evaluations, retries and errors. Filterable by event type. Dense rows, expandable for
-detail. This is the audit trail, so nothing is ever hidden, only collapsed.
+gate evaluations, retries and errors. One row per step; a long run of the same repeated step
+folds into one row that opens. The Evidence view is the filtered reading (DECISIONS.md, 0038). This is the audit trail, so nothing is ever hidden, only collapsed.
 
 **5. Confidence and rationale** — per area (implementation, tests, security, side effects):
 a confidence value, the model's short reasoning, and — most important — what it says it
@@ -47,9 +47,17 @@ could not verify. Show the number and the basis for it next to each other; a bar
 is not evidence. Low confidence is normal and should look normal, not alarming.
 
 **6. Decision** — approve, request changes, or reject. Requesting changes and rejecting
-require a written reason. Approving requires the reviewer to confirm they have seen any
-failed or waived gate. After the decision: who decided, when, on what version, and an
-undo window before release.
+require a written reason. Approving requires the reviewer to tick every open item
+separately — a failed, not-run or waived check group, a Low confidence score, a note the agent
+left open — and to write a reason whenever a check failed or did not run (DECISIONS.md, 0040).
+After the decision: who decided, when, on what version, and an undo window before release.
+
+**Layout (DECISIONS.md, 0038).** The regions above are arranged as a story, not six stacked
+cards: an overview header (regions 1 and 2, plus why the agent was asked and where the run is
+now), then three views — *Story* (what happened, in order, with gates and confidence placed
+where they happened), *Evidence* and *All steps* (region 4) — beside a right column that stays
+in place: the decision (region 6) and what is not checked. The page has no logo or main menu;
+it sits inside a host platform (DECISIONS.md, 0042).
 
 ## Scenarios
 
@@ -166,14 +174,16 @@ Under it, one sentence that says what broke the rule, naming the thing:
 Never a dash, never a blank cell, never a grey icon alone. A missing result is information,
 so it is written out like any other result.
 
-**Numbers.** Never show a number alone. Show what it is based on, next to it.
+**Numbers.** Never show a number alone. Show what it is based on, next to it. A confidence
+value also gets a level and what to do about it: "52% · Low · Check this yourself before
+approving" (DECISIONS.md, 0041).
 "Confidence 72% — based on 14 passing tests covering 3 of 5 changed files."
 No decimals: they would suggest a precision we do not have. Counts include the unit:
 "3 files changed", not "3".
 
 **Time.** Clock time first, relative time in brackets: "14:32 today (8 minutes ago)".
-Reviewers need both. Show the time zone once, in the run header. Durations use the largest
-sensible unit: "4 min 12 s".
+Reviewers need both. Show the time zone once, in the run header, as an offset: "2026-09-23 ·
+10:02–11:51 (UTC+3)". Durations use the largest sensible unit: "4 min 12 s", "1 h 49 min".
 
 **Buttons.** The label says what happens, not what the button does technically.
 
@@ -186,9 +196,10 @@ sensible unit: "4 min 12 s".
 
 Cancel is always there and never destructive. No "OK", no "Confirm", no "Are you sure?".
 
-**Sign-off tick.** If a check failed or has an exception, approval needs one tick:
-"I have seen 1 failed check and 1 exception." The sentence includes the count, so it is hard
-to skip.
+**Confirm each open item.** Approval needs one tick per open item, each naming what it is:
+"Open-source licensing and accessibility checks did not run." "Side effects score is low
+(52%): whether two refunds for the same order might clash under load." Ticking them one by one
+makes each one hard to skip (DECISIONS.md, 0040).
 
 **Empty and error states.** Each one says what happened, why, and the next thing to do.
 - Empty audit log: "No events yet. This run started 20 seconds ago."
@@ -263,8 +274,8 @@ Short and checkable; complements the definition of done in `AGENTS.md`.
 
 **Timeline**
 
-- Filters state what is hidden and how many items that is
-- Errors and retries are visible with all filters on
+- A folded run of repeated steps says how many steps it holds, and opens in place
+- Errors and retries never fold
 - Long runs stay usable: 200+ events scroll without losing the header
 - Each event's time is absolute with relative in brackets
 
@@ -276,7 +287,8 @@ Short and checkable; complements the definition of done in `AGENTS.md`.
 
 **Decision**
 
-- Approval is blocked until failed checks and exceptions are ticked
+- Approval is blocked until every open item is ticked, and — when a check failed or did not
+  run — until a reason is written; the button says what is still missing
 - Request changes and reject require a non-empty written reason
 - The confirmation names the revision and the target environment
 - After deciding: who, when, what revision, and a counting-down undo window
@@ -324,8 +336,8 @@ interface Decision {
   outcome: "approved" | "changes_requested" | "rejected";
   by: string;
   at: string;
-  reason?: string;
-  acknowledgedGateIds: string[];
+  reason?: string;              // required for approval too when a check failed or did not run
+  acknowledgedItemIds: string[]; // the open items ticked (DECISIONS.md, 0040)
   revision: string;           // what exactly was approved
 }
 
@@ -343,6 +355,18 @@ interface Run {
   timeline: TimelineEvent[];
   confidence: ConfidenceArea[];
   decision?: Decision;
+  assignment?: { context: string; by: string; reason: string }; // why the agent was asked
+  story: StoryStep[];         // the Story view, each step linked to its evidence (0038)
+}
+
+interface StoryStep {
+  id: string;
+  label: string;              // "6 files changed"
+  text: string;               // plain sentences
+  evidenceIds: string[];      // times are computed from these
+  confidenceAreas?: ConfidenceArea["area"][];
+  gateIds?: string[];
+  linkToSteps?: boolean;
 }
 ```
 

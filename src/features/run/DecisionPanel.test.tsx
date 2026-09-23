@@ -1,0 +1,104 @@
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+import { runBlocked, runClean, runMessyPending } from '../../fixtures'
+import type { Run } from '../../lib/types'
+import { DecisionPanel } from './DecisionPanel'
+
+describe('DecisionPanel', () => {
+  it('lists every open item as its own tick, with a running count', async () => {
+    const user = userEvent.setup()
+    render(<DecisionPanel run={runMessyPending} onRunUpdated={vi.fn()} />)
+
+    const boxes = screen.getAllByRole('checkbox')
+    expect(boxes).toHaveLength(3)
+    expect(screen.getByText('0 of 3')).toBeVisible()
+
+    await user.click(screen.getByLabelText(/checks did not run/))
+    expect(screen.getByText('1 of 3')).toBeVisible()
+    expect(boxes[0]).toBeChecked()
+  })
+
+  it('blocks approval until every item is ticked and a reason is written, and says why', async () => {
+    const user = userEvent.setup()
+    render(<DecisionPanel run={runMessyPending} onRunUpdated={vi.fn()} />)
+    const approve = screen.getByRole('button', { name: 'Approve and release' })
+
+    expect(approve).toBeDisabled()
+    expect(screen.getByText('To approve, tick 3 more items and add a reason.')).toBeVisible()
+    expect(screen.getByLabelText(/Reason for approving/)).toBeRequired()
+    expect(screen.getByText('(required: 2 checks are missing)')).toBeVisible()
+
+    for (const box of screen.getAllByRole('checkbox')) await user.click(box)
+    expect(approve).toBeDisabled()
+    expect(screen.getByText('To approve, add a reason.')).toBeVisible()
+
+    await user.type(screen.getByLabelText(/Reason for approving/), 'Neither check applies.')
+    expect(approve).toBeEnabled()
+    expect(
+      screen.getByText(
+        'Ready. Releases e91a4c to payments-service in production. You can undo for 10 minutes.',
+      ),
+    ).toBeVisible()
+  })
+
+  it('does not ask for a reason when no check is missing', () => {
+    render(<DecisionPanel run={runClean} onRunUpdated={vi.fn()} />)
+    expect(screen.getByText('(optional)')).toBeVisible()
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
+    expect(screen.getByRole('button', { name: 'Approve and release' })).toBeEnabled()
+  })
+
+  it('keeps a failed check and an exception as ticks', () => {
+    render(<DecisionPanel run={runBlocked} onRunUpdated={vi.fn()} />)
+    expect(screen.getByLabelText('Data retention check failed.')).toBeVisible()
+    expect(screen.getByLabelText(/Exception by Kaisa Heinämäki/)).toBeVisible()
+  })
+
+  it('records the ticks and the reason with an approval', async () => {
+    const user = userEvent.setup()
+    const onRunUpdated = vi.fn()
+    render(
+      <DecisionPanel
+        run={runMessyPending}
+        onRunUpdated={onRunUpdated}
+        submitDecisionOptions={{ delayMs: 0 }}
+        defaultTickedIds={['open-gates-unknown', 'open-confidence-side_effects', 'open-note-m19']}
+        defaultReason="Neither check applies to this change."
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Approve and release' }))
+    const dialog = screen.getByRole('dialog')
+    expect(
+      within(dialog).getByText('Your reason: “Neither check applies to this change.”'),
+    ).toBeVisible()
+    await user.click(within(dialog).getByRole('button', { name: 'Approve and release' }))
+
+    await vi.waitFor(() => expect(onRunUpdated).toHaveBeenCalled())
+    const decision = (onRunUpdated.mock.calls[0][0] as Run).decision!
+    expect(decision.reason).toBe('Neither check applies to this change.')
+    expect(decision.acknowledgedItemIds).toEqual([
+      'open-gates-unknown',
+      'open-confidence-side_effects',
+      'open-note-m19',
+    ])
+  })
+
+  it('opens the reason dialog for Request changes and Reject run', async () => {
+    const user = userEvent.setup()
+    render(<DecisionPanel run={runBlocked} onRunUpdated={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Request changes' }))
+    expect(within(screen.getByRole('dialog')).getByLabelText('What should change?')).toBeVisible()
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }))
+
+    await user.click(screen.getByRole('button', { name: 'Reject run' }))
+    expect(within(screen.getByRole('dialog')).getByLabelText('Why is this rejected?')).toBeVisible()
+  })
+
+  it('names who is deciding', () => {
+    render(<DecisionPanel run={runClean} onRunUpdated={vi.fn()} />)
+    expect(screen.getByText('Juhani Virtaleppäsoutu')).toBeVisible()
+  })
+})

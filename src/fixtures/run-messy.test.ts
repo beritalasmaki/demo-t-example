@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { runMessy } from './run-messy'
+import { runMessy, runMessyPending } from './run-messy'
 
 describe('runMessy', () => {
   it('every evidence id used by a gate or a summary sentence points to a real timeline event', () => {
@@ -7,6 +7,7 @@ describe('runMessy', () => {
     const referenced = [
       ...runMessy.gates.flatMap((gate) => gate.evidenceIds),
       ...runMessy.summary.flatMap((sentence) => sentence.evidenceIds),
+      ...runMessy.story.flatMap((step) => step.evidenceIds),
     ]
 
     for (const id of referenced) {
@@ -36,5 +37,16 @@ describe('runMessy', () => {
     for (let i = 1; i < timestamps.length; i++) {
       expect(timestamps[i]).toBeGreaterThanOrEqual(timestamps[i - 1])
     }
+  })
+
+  it('records a reason and the ticked open items for its approval', () => {
+    expect(runMessy.decision!.reason).toBeTruthy()
+    expect(runMessy.decision!.acknowledgedItemIds).toHaveLength(3)
+  })
+
+  it('has a pending twin: same run, no decision yet', () => {
+    expect(runMessyPending.status).toBe('awaiting_review')
+    expect(runMessyPending.decision).toBeUndefined()
+    expect(runMessyPending.timeline).toBe(runMessy.timeline)
   })
 })

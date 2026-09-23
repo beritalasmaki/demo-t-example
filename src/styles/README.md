@@ -35,6 +35,12 @@ Exact sizes, weights and fonts, decided once — not a fresh judgment call per c
 | `--text-body`             | 14px  | 400    | `font-body`           | Descriptions, sentences                               |
 | `--text-meta`             | 13px  | 400    | `font-body`, always `--color-text-secondary` | Timestamps, "Evaluated by", counts |
 | `--text-badge-label`      | 13px  | 600    | `font-heading`        | `StatusBadge`'s label text specifically               |
+| `--text-lead`             | 16px  | 400    | `font-body`           | The story's running prose                             |
+| `--text-caption`          | 12px  | 400    | `font-body`           | Field labels, helper text under a control, chips      |
+| `--text-score`            | 22px  | 600    | `font-heading`        | A confidence percentage, the undo countdown           |
+
+A new `--text-*` token must also be added to `TYPE_SCALE` in `src/lib/utils.ts`, or `cn()`
+will drop it next to a colour class (docs/DECISIONS.md, 0043).
 
 Each `--text-*` value is a real Tailwind utility (`text-item-title`, ...) — that namespace is
 Tailwind's own for font-size. A single CSS property can't also carry a weight or a font, so
@@ -90,7 +96,9 @@ Consumed through Tailwind's arbitrary-value syntax instead — `gap-[var(--space
   the contrast numbers below. **One scoped exception:** `StatusBadge`'s `success`/`warning`
   tones are a filled tint (background, border, icon and text all the status colour) — see
   `StatusBadge.tsx`'s own doc comment and `docs/DECISIONS.md` for why, and why it stops at
-  exactly those two tones.
+  exactly those two tones. **Two more scoped exceptions** (docs/DECISIONS.md, 0041): the
+  confidence level chip (High / Medium / Low, using the pass, waived and new fail tint pairs),
+  and `--color-status-waived-tint-fg` as text for a "not run" count or a Low percentage.
 
 ## Contrast
 

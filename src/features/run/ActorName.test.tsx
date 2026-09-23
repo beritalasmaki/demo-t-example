@@ -4,8 +4,8 @@ import { ActorName } from './ActorName'
 
 describe('ActorName', () => {
   it('renders a person inside a pill', () => {
-    render(<ActorName name="Marcus Webb" />)
-    const pill = screen.getByText('Marcus Webb').closest('span')!
+    render(<ActorName name="Juhani Virtaleppäsoutu" />)
+    const pill = screen.getByText('Juhani Virtaleppäsoutu').closest('span')!
     expect(pill.className).toMatch(/rounded-full/)
     expect(pill.className).toMatch(/border/)
   })

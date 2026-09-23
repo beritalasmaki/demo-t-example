@@ -12,7 +12,7 @@ import type { Run } from '../lib/types'
 export const runBlocked: Run = {
   id: 'run-blocked',
   initiative: 'Add rate limiting to the public booking API',
-  requestedBy: 'Priya Natarajan',
+  requestedBy: 'Tuomas Rantanen',
   revision: '7d4e1b',
   target: { system: 'booking-service', environment: 'staging' },
   agent: { name: 'Kestrel', version: '4.2.1', model: 'kestrel-code-12b' },
@@ -33,7 +33,7 @@ export const runBlocked: Run = {
       evidenceIds: ['t9'],
     },
     {
-      text: 'One check has an exception: licensing, approved by Owen Baptiste.',
+      text: 'One check has an exception: licensing, approved by Kaisa Heinämäki.',
       evidenceIds: ['t11'],
     },
     {
@@ -67,7 +67,7 @@ export const runBlocked: Run = {
       plainLanguage:
         "Changes that call another team's service directly must be reviewed by the platform team first.",
       result: 'pass',
-      evaluatedBy: 'Dana Whitfield',
+      evaluatedBy: 'Aino Lehtomäki',
       evaluatedAt: '2026-03-04T14:11:00Z',
       evidenceIds: ['t5', 't10'],
     },
@@ -81,7 +81,7 @@ export const runBlocked: Run = {
       evaluatedAt: '2026-03-04T14:12:00Z',
       evidenceIds: ['t4', 't11'],
       waiver: {
-        by: 'Owen Baptiste',
+        by: 'Kaisa Heinämäki',
         reason:
           'Already reviewed and cleared under legal ticket LGL-4471 for the same package; no need to re-review.',
         at: '2026-03-04T15:40:00Z',
@@ -180,14 +180,14 @@ export const runBlocked: Run = {
       type: 'gate_eval',
       title: 'Architecture review passed.',
       detail:
-        'Reviewed by Dana Whitfield: the limiter runs inside booking-service, calling nothing new.',
+        'Reviewed by Aino Lehtomäki: the limiter runs inside booking-service, calling nothing new.',
     },
     {
       id: 't11',
       at: '2026-03-04T14:12:00Z',
       type: 'gate_eval',
       title: 'Licensing check waived.',
-      detail: 'Owen Baptiste granted an exception; see the gate for the reason.',
+      detail: 'Kaisa Heinämäki granted an exception; see the gate for the reason.',
     },
     {
       id: 't12',
@@ -236,6 +236,57 @@ export const runBlocked: Run = {
         'Whether any internal service already calls this endpoint fast enough to be rate-limited by mistake.',
         'Effect on the nightly batch job that re-syncs booking data.',
       ],
+    },
+  ],
+  assignment: {
+    context:
+      'A partner sent thousands of booking requests a minute last week and slowed the booking page down for everyone.',
+    by: 'Tuomas Rantanen',
+    reason: 'rate limiting is a common, well-understood pattern with a clear rule to follow.',
+  },
+  story: [
+    {
+      id: 'plan',
+      label: 'Plan',
+      text: 'The agent planned a limit of 60 booking requests a minute for each API key.',
+      evidenceIds: ['t1'],
+    },
+    {
+      id: 'reading',
+      label: 'Reading the code',
+      text: 'It read the booking router and the service settings to find where requests come in.',
+      evidenceIds: ['t2', 't3'],
+      linkToSteps: true,
+    },
+    {
+      id: 'files',
+      label: '2 files changed',
+      text: 'It added the rate limiter and put it in front of the booking endpoint. Every blocked request is written to a log with the API key and the email address of the person who sent it.',
+      evidenceIds: ['t4', 't5'],
+      confidenceAreas: ['implementation'],
+    },
+    {
+      id: 'tests',
+      label: 'Tests',
+      text: 'The first test run could not start because the test database was not reachable. The agent tried again, and 14 new and 96 existing tests passed.',
+      evidenceIds: ['t6', 't7'],
+      confidenceAreas: ['tests'],
+      linkToSteps: true,
+    },
+    {
+      id: 'checks',
+      label: 'Policy checks',
+      text: 'Three checks passed. Data retention failed, licensing has an exception, and accessibility does not apply because no screen changed.',
+      evidenceIds: ['t8', 't9', 't10', 't11', 't12', 't13'],
+      gateIds: [
+        'security',
+        'data-retention',
+        'architecture',
+        'licensing',
+        'test-coverage',
+        'accessibility',
+      ],
+      confidenceAreas: ['security', 'side_effects'],
     },
   ],
 }

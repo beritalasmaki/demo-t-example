@@ -16,8 +16,7 @@ export const ALL_CONFIDENCE_AREAS: ConfidenceArea['area'][] = [
 ]
 
 export type ResolvedConfidenceArea =
-  | (ConfidenceArea & { missing: false })
-  | { area: ConfidenceArea['area']; missing: true }
+  (ConfidenceArea & { missing: false }) | { area: ConfidenceArea['area']; missing: true }
 
 /**
  * Every area in `ALL_CONFIDENCE_AREAS`, in that fixed order, each either the real
@@ -31,4 +30,19 @@ export function resolveConfidenceAreas(confidence: ConfidenceArea[]): ResolvedCo
     const found = byArea.get(area)
     return found ? { ...found, missing: false } : { area, missing: true }
   })
+}
+
+export type ConfidenceLevel = 'high' | 'medium' | 'low'
+
+/**
+ * A plain level for a confidence value, so "52%" never has to be read on its own — people
+ * don't know whether 52% is high or low (docs/DECISIONS.md, 0041). The cut-offs are this app's
+ * own policy, not the model's: 85% and above is High, 60% to 84% is Medium, below 60% is Low.
+ * Rounded to a whole percentage first, so the level always agrees with the number shown.
+ */
+export function confidenceLevel(value: number): ConfidenceLevel {
+  const percent = Math.round(value * 100)
+  if (percent >= 85) return 'high'
+  if (percent >= 60) return 'medium'
+  return 'low'
 }

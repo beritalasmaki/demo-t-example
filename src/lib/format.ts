@@ -1,3 +1,4 @@
+import type { ConfidenceLevel } from './confidence'
 import type { ConfidenceArea, Decision, GateResult, PolicyGate, RunStatus } from './types'
 
 /**
@@ -28,7 +29,7 @@ const GATE_RESULT_LABEL: Record<GateResult, string> = {
 }
 
 /**
- * The full label for a gate's result, as a reviewer reads it — "Exception by Owen Baptiste"
+ * The full label for a gate's result, as a reviewer reads it — "Exception by Kaisa Heinämäki"
  * for a waiver, the fixed label from Content rules for everything else.
  */
 export function formatGateResultLabel(gate: PolicyGate): string {
@@ -149,27 +150,86 @@ export function formatDuration(ms: number): string {
 }
 
 /**
- * Content rules, "Sign-off tick": "I have seen 1 failed check and 1 exception." A count of
- * zero for one half is left out rather than spelled out ("0 failed checks") — the sentence
- * still names what's being acknowledged and why it's hard to skip, it just doesn't claim to
- * have seen zero of something.
- */
-export function formatSignOffMessage(failedCount: number, waivedCount: number): string {
-  const clauses: string[] = []
-  if (failedCount > 0) {
-    clauses.push(`${failedCount} failed ${failedCount === 1 ? 'check' : 'checks'}`)
-  }
-  if (waivedCount > 0) {
-    clauses.push(`${waivedCount} ${waivedCount === 1 ? 'exception' : 'exceptions'}`)
-  }
-  return `I have seen ${clauses.join(' and ')}.`
-}
-
-/**
  * Content rules, "Numbers": "No decimals: they would suggest a precision we do not have."
  * `ConfidenceArea.value` is 0..1; this is the whole-percentage form every confidence value is
  * shown as, always paired with its basis (`ConfidencePanel`), never shown alone.
  */
 export function formatConfidencePercent(value: number): string {
   return `${Math.round(value * 100)}%`
+}
+
+const pad = (n: number) => String(n).padStart(2, '0')
+
+/**
+ * "10:02" — the reviewer's local clock time, 24-hour, with no date or zone. Used inside the
+ * story and step list, where the date and zone are shown once, in the header (Content rules,
+ * "Time"). Built from `getHours`/`getMinutes` rather than `toLocaleTimeString`, so no locale is
+ * involved at all.
+ */
+export function formatClock(iso: string): string {
+  const date = new Date(iso)
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+/** "10:24–10:50", or a single "10:02" when both ends fall in the same minute. */
+export function formatClockRange(startIso: string, endIso: string): string {
+  const start = formatClock(startIso)
+  const end = formatClock(endIso)
+  return start === end ? start : `${start}–${end}`
+}
+
+/** "2026-09-23" in the reviewer's local zone — one unambiguous date format everywhere the
+ * date is part of the record (docs/DECISIONS.md, 0042). */
+export function formatCalendarDate(iso: string): string {
+  const date = new Date(iso)
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+/** "UTC+3", "UTC+5:30", "UTC-4", or "UTC" — the offset written the same way on every system,
+ * unlike a zone abbreviation ("EEST", "GMT+3"), which depends on the runtime's time-zone data. */
+export function formatUtcOffset(now: Date = new Date()): string {
+  const offset = -now.getTimezoneOffset()
+  if (offset === 0) return 'UTC'
+  const sign = offset > 0 ? '+' : '-'
+  const hours = Math.floor(Math.abs(offset) / 60)
+  const minutes = Math.abs(offset) % 60
+  return `UTC${sign}${hours}${minutes ? `:${pad(minutes)}` : ''}`
+}
+
+/** How long a run took: "1 h 49 min", "6 min". The largest sensible unit (Content rules,
+ * "Time") — a run is measured in minutes and hours, the undo countdown (`formatDuration`) in
+ * minutes and seconds. */
+export function formatElapsed(ms: number): string {
+  const totalMinutes = Math.max(0, Math.round(ms / 60_000))
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  if (hours === 0) return `${minutes} min`
+  return minutes === 0 ? `${hours} h` : `${hours} h ${minutes} min`
+}
+
+/** "1 check", "2 checks" — Content rules, "Numbers": counts include the unit. */
+export function formatCount(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`
+}
+
+const CONFIDENCE_LEVEL_LABEL: Record<ConfidenceLevel, string> = {
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+}
+
+export function formatConfidenceLevelLabel(level: ConfidenceLevel): string {
+  return CONFIDENCE_LEVEL_LABEL[level]
+}
+
+/** What a reviewer should do about a score at this level, before deciding — so a percentage
+ * always comes with what it means for them (docs/DECISIONS.md, 0041). */
+const CONFIDENCE_ACTION: Record<ConfidenceLevel, string> = {
+  high: 'No action needed',
+  medium: 'Worth a look before approving',
+  low: 'Check this yourself before approving',
+}
+
+export function formatConfidenceAction(level: ConfidenceLevel): string {
+  return CONFIDENCE_ACTION[level]
 }

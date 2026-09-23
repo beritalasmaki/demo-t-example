@@ -10,9 +10,9 @@ describe('isSystemActor', () => {
   })
 
   it('recognizes every person name actually used across the fixtures', () => {
-    expect(isSystemActor('Dana Whitfield')).toBe(false)
-    expect(isSystemActor('Owen Baptiste')).toBe(false)
-    expect(isSystemActor('Marcus Webb')).toBe(false)
+    expect(isSystemActor('Aino Lehtomäki')).toBe(false)
+    expect(isSystemActor('Kaisa Heinämäki')).toBe(false)
+    expect(isSystemActor('Juhani Virtaleppäsoutu')).toBe(false)
   })
 
   it('is not fooled by a person name containing the letter v', () => {

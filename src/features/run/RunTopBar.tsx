@@ -1,10 +1,10 @@
 import { ChevronLeft } from 'lucide-react'
-import type { Ref } from 'react'
+import type { ReactNode, Ref } from 'react'
 import type { Run } from '../../lib/types'
 
 /**
  * The page's own bar, directly under the host platform's navigation: a breadcrumb back to the
- * reviewer's list. The three views of the run sit above the view they switch, in
+ * reviewer's list, and at its right end what is open before a decision (0053). The three views of the run sit above the view they switch, in
  * `RunViewTabs` (docs/DECISIONS.md, 0052). No logo, no main menu — this page sits
  * inside another platform that owns those (docs/DECISIONS.md, 0042). A long initiative name
  * truncates with the full name on hover; the revision chip next to it never truncates, so two
@@ -17,13 +17,16 @@ import type { Run } from '../../lib/types'
 export interface RunTopBarProps {
   run: Run
   reviewsHref: string
+  /** Shown at the right end of the bar — the page puts what is open there before a decision
+   * (docs/DECISIONS.md, 0053). */
+  end?: ReactNode
   ref?: Ref<HTMLDivElement>
 }
 
-export function RunTopBar({ run, reviewsHref, ref }: RunTopBarProps) {
+export function RunTopBar({ run, reviewsHref, end, ref }: RunTopBarProps) {
   return (
     <div ref={ref} className="sticky top-0 z-20 border-b border-border-subtle bg-surface">
-      <div className="mx-auto flex max-w-[90rem] items-center px-[var(--space-4)] py-[var(--space-3)] md:px-[var(--space-6)]">
+      <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-x-[var(--space-5)] gap-y-[var(--space-2)] px-[var(--space-4)] py-[var(--space-3)] md:px-[var(--space-6)]">
         <nav aria-label="Breadcrumb" className="min-w-0">
           <ol className="flex min-w-0 items-center gap-[var(--space-2)] text-meta font-normal font-body text-text-secondary">
             <li className="shrink-0">
@@ -48,6 +51,7 @@ export function RunTopBar({ run, reviewsHref, ref }: RunTopBarProps) {
             </li>
           </ol>
         </nav>
+        {end}
       </div>
     </div>
   )

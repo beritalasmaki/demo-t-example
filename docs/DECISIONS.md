@@ -6,6 +6,32 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0053 · What is open moves into the top bar, as one line
+
+**Context.** Before a decision, a yellow card at the top of the right column said how many
+things were open, in a sentence, with a link to the tick list. The user asked to move it into
+the top navigation, as one line: a yellow dot, "3 things to solve", then the link, with no
+yellow background and no description. "Your decision" then moves up to the top of the right
+column.
+
+**Choice.**
+- `OpenItemsBox` becomes `OpenItemsNotice`, placed at the right end of `RunTopBar` through a
+  new `end` slot, and only before a decision. The bar wraps it to a second row on narrow
+  screens.
+- The wording changes from "are open" to "to solve", as the user asked.
+- When nothing is open it shows nothing, since the decision panel already asks for no ticks.
+  The old "Nothing is open" card goes too.
+- `describeOpenItems`, which only wrote the description, is removed from `lib/openItems.ts`.
+- The dot gets its own token, `--color-status-waived-dot`, set to the brighter amber
+  (#e0a94d) in both themes. The status amber for light mode is dark enough for text, so it
+  read as brown. The dot is decoration, and the label beside it says the same thing.
+
+**Consequence.** Checked in Chromium at 1440, 1024 and 390 px, in light and dark. The link
+lands the tick list just under the sticky bar at every width, because the panel's scroll
+margin already follows the bar's measured height.
+
+---
+
 ## 0052 · The view tabs sit above the view they switch
 
 **Context.** The Story / Evidence / All steps tabs were in the sticky top bar, next to the

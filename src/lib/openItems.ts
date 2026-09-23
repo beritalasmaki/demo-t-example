@@ -1,10 +1,5 @@
 import { confidenceLevel, resolveConfidenceAreas } from './confidence'
-import {
-  formatConfidenceAreaLabel,
-  formatConfidencePercent,
-  formatCount,
-  formatGateResultLabel,
-} from './format'
+import { formatConfidenceAreaLabel, formatConfidencePercent, formatGateResultLabel } from './format'
 import type { ConfidenceArea, PolicyGate, Run } from './types'
 
 /**
@@ -106,33 +101,6 @@ export function missingChecks(run: Run): PolicyGate[] {
  * did not run. `lib/api.ts`'s `submitDecision` enforces the same rule. */
 export function approvalNeedsReason(run: Run): boolean {
   return missingChecks(run).length > 0
-}
-
-/** The header's short summary of what is open: "2 checks did not run and the side effects
- * score is low (52%)." Undefined when nothing is open. */
-export function describeOpenItems(run: Run): string | undefined {
-  const failed = run.gates.filter((gate) => gate.result === 'fail').length
-  const unknown = run.gates.filter((gate) => gate.result === 'unknown').length
-  const waived = run.gates.filter((gate) => gate.result === 'waived').length
-  const notes = noteItems(run).length
-  const parts: string[] = []
-
-  if (failed > 0) parts.push(`${formatCount(failed, 'check')} failed`)
-  if (unknown > 0) parts.push(`${formatCount(unknown, 'check')} did not run`)
-  if (waived > 0) parts.push(`${formatCount(waived, 'exception')} granted`)
-  for (const area of lowConfidenceAreas(run)) {
-    parts.push(
-      `the ${lowerFirst(formatConfidenceAreaLabel(area.area))} score is low (${formatConfidencePercent(area.value)})`,
-    )
-  }
-  if (notes > 0) parts.push(`${formatCount(notes, 'note')} left open by the agent`)
-
-  if (parts.length === 0) return undefined
-  const sentence =
-    parts.length === 1
-      ? parts[0]
-      : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
-  return `${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}.`
 }
 
 export type UnverifiedSeverity = 'open' | 'minor'

@@ -143,6 +143,10 @@
   --color-status-waived: var(--status-amber-light);
   --color-status-not-applicable: var(--status-slate-light);
   --color-status-unknown: var(--status-blue-light);
+  /* A decorative dot beside text that says the same thing (OpenItemsNotice.tsx). Not text,
+   * so the brighter amber, in both themes; it holds 3:1 against the dark surface, and the
+   * label next to it carries the meaning on the light one (docs/DECISIONS.md, 0053). */
+  --color-status-waived-dot: var(--status-amber-dark);
 
   /* The filled-badge exception only (StatusBadge.tsx's success/warning tones) — see the
    * primitives above for the contrast reasoning. Every other status usage stays icon/border

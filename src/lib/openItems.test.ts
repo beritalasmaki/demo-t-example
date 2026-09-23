@@ -4,7 +4,6 @@ import {
   approvalNeedsReason,
   buildOpenItems,
   buildUnverifiedItems,
-  describeOpenItems,
   missingChecks,
 } from './openItems'
 
@@ -52,18 +51,6 @@ describe('approvalNeedsReason', () => {
       'licensing',
       'accessibility',
     ])
-  })
-})
-
-describe('describeOpenItems', () => {
-  it('summarises what is open in one sentence', () => {
-    expect(describeOpenItems(runMessyPending)).toBe(
-      '2 checks did not run, the side effects score is low (52%) and 1 note left open by the agent.',
-    )
-  })
-
-  it('is undefined when nothing is open', () => {
-    expect(describeOpenItems(runClean)).toBeUndefined()
   })
 })
 

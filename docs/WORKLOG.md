@@ -39,6 +39,41 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Open items in the top bar
+
+**Goal**
+Move the "3 things are open" card into the top navigation, as one horizontal line: a yellow
+dot, "3 things to solve" and the link, with no background and no description. That moves
+"Your decision" up.
+
+**What changed**
+- `OpenItemsBox.*` renamed to `OpenItemsNotice.*` (component, test and story) and rewritten
+  as one inline line.
+- `RunTopBar.tsx`: a new `end` slot, and the bar wraps.
+- `RunReviewPage.tsx`: the notice goes in the bar before a decision, and out of the right
+  column.
+- `lib/openItems.ts`: `describeOpenItems` and its tests removed.
+- `tokens.css`: `--color-status-waived-dot`.
+- `features/run/README.md`, DECISIONS 0053.
+
+**Steps, in order**
+1. `git checkout -b feat/open-items-in-bar` from main.
+2. Built the notice, moved it, removed the unused summary helper.
+3. Tests, screenshots at three widths and both themes, the jump link measured, then
+   `npm run check`.
+
+**Why it was done this way**
+See DECISIONS 0053.
+
+**How to do this by hand**
+Open the pending run: the bar reads "● 3 things to solve  Jump to the open items →" on the
+right, and "Your decision" heads the right column. Click the link: the tick list comes into
+view under the bar. Open `?run=run-clean`: no notice.
+
+**Verification**
+`npm run check` passed. In Chromium the tick list landed 16 px below the bar at 1440, 1024
+and 390 px wide.
+
 ### 2026-09-23 · View tabs above the view
 
 **Goal**

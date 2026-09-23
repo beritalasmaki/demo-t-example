@@ -6,7 +6,7 @@ import type { GetRunOptions, SubmitDecisionOptions } from '../../lib/api'
 import type { Run } from '../../lib/types'
 import { DecisionPanel } from './DecisionPanel'
 import { EvidenceTab } from './EvidenceTab'
-import { OpenItemsBox } from './OpenItemsBox'
+import { OpenItemsNotice } from './OpenItemsNotice'
 import { RunDetails } from './RunDetails'
 import { RunOverview } from './RunOverview'
 import { RunShape } from './RunShape'
@@ -20,9 +20,9 @@ import { useRun } from './useRun'
 
 /**
  * The review page — the "story layout" (docs/DECISIONS.md, 0038, and 0046 for the columns).
- * Under the page's own bar (the breadcrumb), three columns: *Run details*
+ * Under the page's own bar (the breadcrumb, and what is open before a decision — 0053), three columns: *Run details*
  * on the left; the overview card, then the view tabs and one view at a time — Story, Evidence or
- * All steps — in the middle (0052); on the right, what is open, the decision panel and what is not checked before a
+ * All steps — in the middle (0052); on the right, the decision panel and what is not checked before a
  * decision, or the undo window, what is still unverified and the run's shape after one. The
  * side columns stay the same for all three views.
  *
@@ -161,7 +161,12 @@ export function RunReviewPage({
       activationMode="manual"
     >
       <div style={barStyle}>
-        <RunTopBar ref={barRef} run={run} reviewsHref={reviewsHref} />
+        <RunTopBar
+          ref={barRef}
+          run={run}
+          reviewsHref={reviewsHref}
+          end={decided ? undefined : <OpenItemsNotice run={run} />}
+        />
 
         {/*
          * Three columns from xl up (docs/DECISIONS.md, 0046): run details | overview + view |
@@ -187,7 +192,6 @@ export function RunReviewPage({
               </>
             ) : (
               <>
-                <OpenItemsBox run={run} />
                 <DecisionPanel
                   // A fresh panel after an undo: the earlier ticks and reason belonged to a
                   // decision that no longer stands.

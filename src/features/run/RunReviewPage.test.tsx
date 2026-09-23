@@ -21,7 +21,7 @@ describe('RunReviewPage', () => {
     expect(screen.getByRole('region', { name: 'What happened, in order' })).toBeVisible()
     expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()
     expect(screen.getByRole('region', { name: 'What is not checked' })).toBeVisible()
-    expect(screen.getByText('3 things are open')).toBeVisible()
+    expect(screen.getByText('3 things to solve')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Approve and release' })).toBeDisabled()
   })
 
@@ -43,7 +43,7 @@ describe('RunReviewPage', () => {
     await screen.findByRole('heading', { level: 1 })
     expect(screen.getByRole('region', { name: 'Run details' })).toBeVisible()
     expect(screen.getByText('Why the agent was asked')).toBeVisible()
-    expect(screen.getByText('3 things are open')).toBeVisible()
+    expect(screen.getByText('3 things to solve')).toBeVisible()
     expect(screen.queryByRole('button', { name: /details/ })).not.toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' }).closest('.sticky')).not.toBeNull()
   })

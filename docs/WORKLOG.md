@@ -39,6 +39,37 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · View tabs above the view
+
+**Goal**
+Move the Story / Evidence / All steps tabs from the top bar to just above "What happened, in
+order", since only that area changes when a tab is clicked.
+
+**What changed**
+- New `RunViewTabs.tsx` (+ story). `RunTopBar.tsx` keeps only the breadcrumb, and its story
+  loses the Tabs wrapper.
+- `RunReviewPage.tsx`: the tabs sit at the top of the view column, sticky under the bar. The
+  page measures their height into `--run-tabs-height`.
+- `SectionHeading.tsx`: the scroll margin now clears the bar and the tabs.
+- `features/run/README.md`, DECISIONS 0052.
+
+**Steps, in order**
+1. `git checkout -b feat/tabs-in-main`, stacked on `feat/approve-pop`.
+2. Extracted the tab list and moved it into the view column.
+3. Tests, `npm run check`, then screenshots and scroll measurements in Chromium.
+
+**Why it was done this way**
+See DECISIONS 0052. The tabs stay sticky, so the views are still one click away in a long
+run.
+
+**How to do this by hand**
+Open the page and scroll down the story: the tabs stick under the breadcrumb bar. Click
+Evidence: the page scrolls so the Evidence heading sits right under the tabs.
+
+**Verification**
+`npm run check` passed. In Chromium at 1440 px, after the smooth scroll the heading's top was
+at 125 px, equal to the bottom of the tabs, and the heading had focus.
+
 ### 2026-09-23 · Approve button pop
 
 **Goal**

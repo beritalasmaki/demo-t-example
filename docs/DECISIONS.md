@@ -6,6 +6,26 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0052 · The view tabs sit above the view they switch
+
+**Context.** The Story / Evidence / All steps tabs were in the sticky top bar, next to the
+breadcrumb. The user asked to move them above "What happened, in order", because that area is
+the only part of the page they change.
+
+**Choice.** A new `RunViewTabs`, at the top of the middle column, between the overview card and
+the view. The top bar keeps only the breadcrumb. The tabs are sticky too, just under the top bar
+(`--run-bar-height`), so a long view can still be switched from anywhere in it (0044). Their
+height is measured into `--run-tabs-height`, so a view heading that a tab click scrolls to
+lands just below them. The sticky "Run details" column and the decision column stay clear of
+the bar only. The tabs stay sticky only inside the view's column: below xl, the decision panel
+comes before the view, and the tabs don't follow the reader there.
+
+**Consequence.** Checked in Chromium at 1440 and 390 px wide. Scrolled 1400 px down in the
+story, a click on Evidence scrolled back so the Evidence heading sat directly under the tabs,
+and took focus. 0044's focus behaviour is unchanged.
+
+---
+
 ## 0051 · "Approve and release" pops, then asks for confirmation
 
 **Context.** The user shared a short video of a button press: the button squashes, springs

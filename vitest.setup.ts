@@ -20,3 +20,11 @@ for (const method of ['hasPointerCapture', 'setPointerCapture', 'releasePointerC
 if (!('scrollIntoView' in Element.prototype)) {
   Object.defineProperty(Element.prototype, 'scrollIntoView', { value: () => {}, writable: true })
 }
+
+// jsdom has no canvas. `thinking-orbs` (components/LoadingState) paints on one; returning no
+// 2D context lets it skip painting instead of jsdom logging "Not implemented" on every render.
+// The real drawing is checked in a browser, not here.
+Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+  value: () => null,
+  writable: true,
+})

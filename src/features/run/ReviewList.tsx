@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LoadingState } from '../../components/LoadingState'
 import { listRuns } from '../../lib/api'
 import type { GetRunOptions, RunListItem } from '../../lib/api'
 import { formatRunStatusLabel } from '../../lib/format'
@@ -49,9 +50,7 @@ export function ReviewList({ runHref, options }: ReviewListProps) {
         My reviews
       </h1>
       {state.status === 'loading' && (
-        <p role="status" className="text-body text-text-secondary">
-          Loading reviews…
-        </p>
+        <LoadingState label="Loading reviews…" className="min-h-[40vh]" />
       )}
       {state.status === 'error' && (
         <p className="text-body text-text-secondary">

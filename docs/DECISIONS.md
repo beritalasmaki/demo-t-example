@@ -6,6 +6,31 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0057 · A maker's mark, "By Berit ❤︎", at the top bar's right end
+
+**Context.** The user asked for a logo on the right side of the top navigation reading
+"By Berit ❤︎", with the heart in orange. 0042 kept product logos out of the bar, because the
+host platform owns those. This is a byline, not a product name, so it does not undo 0042.
+
+**Choice.**
+- A text mark, "By Berit", in the heading font, semibold, at meta size, in the primary text
+  colour.
+- The heart is U+2764 with the text-style variation selector (U+FE0E), so it is drawn as text
+  in `--color-signature` (#e8590c, the intro's orange) and not as an emoji. It is
+  `aria-hidden`, so screen readers say "By Berit".
+- The bar's order:
+  - from md: breadcrumb | what is open, mark;
+  - on narrow screens: the mark shares the breadcrumb's row (the initiative name truncates),
+    and what is open takes the row below.
+- The page passes the open-items notice only when there is something to solve, so a run with
+  nothing open has no empty second row. It uses the same condition as the favicon dot (0054).
+
+**Consequence.** Checked in Chromium at 1440, 800 and 390 px, light and dark. The heart
+computed to rgb(232, 89, 12). The bar is one row on wide screens and on a clean phone run, and
+two rows on a phone when things are open.
+
+---
+
 ## 0056 · "Jump to the open items" spotlights the list it lands on
 
 **Context.** The user asked for the tick list to be highlighted after "Jump to the open

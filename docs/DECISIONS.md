@@ -26,6 +26,12 @@ itself for reduced motion or on any click, tap or key.
 - **The name and title are typed as real text** in `--font-heading` (Raleway), not drawn from
   the supplied name and title SVGs: typing character by character needs characters. The
   title's capitals and wide spacing follow the supplied title SVG ("UX & PRODUCT DESIGNER").
+- **The name and title are one left-aligned block, centred under the mark, and the title
+  spans exactly the name's width** (the user's reference image). The title's letter spacing
+  is computed, not fixed: the name's width minus the title's natural width, spread over the
+  gaps between its characters. It is measured again once `document.fonts` is ready, so the
+  edges meet whatever font renders. Checked in a browser: both lines run 530–750 px at
+  1280 px wide, and 85–305 px at 390 px.
 - **A new colour, `--signature-orange` (`--color-signature`)**, for the drawing stroke. The
   brand accent (`--color-accent-hover`) is teal, not orange. The only warm tone in the tokens
   is amber, which belongs to the status palette and must not be used for non-status UI.

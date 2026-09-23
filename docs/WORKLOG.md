@@ -39,6 +39,39 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Intro: name and title aligned as one block
+
+**Goal**
+Align the intro's name and title as in the user's reference image: a shared left edge, with the
+title as wide as the name.
+
+**What changed**
+`src/app/WelcomeIntro.tsx`: the two lines are one left-aligned block, and the title is regular
+weight at body size, with its letter spacing fitted to the name's width. DECISIONS 0048 has a
+note on the fit.
+
+**Steps, in order**
+1. Replaced the per-line centring with `items-start`. The parent still centres the block.
+2. A layout effect measures both lines and sets the title's tracking to the difference over
+   its character gaps, with a negative right margin for the trailing spacing. It measures again
+   after `document.fonts.ready`.
+3. `npm run check`, then measured the glyph edges in Playwright.
+
+**Why it was done this way**
+Fixed letter spacing only lines up for one exact font, and Raleway may load late or not at all.
+Measuring makes the edges meet in every case.
+
+**How to do this by hand**
+Clear `ledger:intro-seen`, reload, and wait for "Made by". Both lines should start and end at
+the same x.
+
+**Verification**
+`npm run check` passed: every test, typecheck and lint. In the browser, the name and title
+glyphs run 530–750 px at 1280 px wide and 85–305 px at 390 px.
+
+**Open questions / next**
+None.
+
 ### 2026-09-23 · Motion: success check, tab tooltips, sliding tabs, and a one-time intro
 
 **Goal**

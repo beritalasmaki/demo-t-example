@@ -66,10 +66,13 @@ A typical 16-week plan to build new digital product / service for a regulated co
 
 ## Principles used
 
+The designs follow ideas from two guides, and one broader design philosophy. They follow the principles, not the visual style.
+
+**Apple's human-first design.** Put the person's understanding ahead of the technology. Explain technical words the first time they appear. Write button names exactly as they appear. Use can, might and may carefully. Use one clear format for dates and times.
+
+**Google People + AI Guidebook.** Help people trust an AI system the right amount. Explain confidence scores and the data behind them. Ask for more care when the risk is high. Give a way forward when something fails.
 The designs use ideas from two guides. They follow the principles, not the visual style.
 
-- **Google People + AI Guidebook:** help people trust an AI system the right amount. Explain confidence scores and the data behind them. Ask for more care when the risk is high. Give a way forward when something fails.
-- **Apple Style Guide:** write button names exactly as they appear. Use *can*, *might* and *may* carefully. Use one clear format for dates and times. Explain technical words the first time they appear.
 
 ## Built on
 

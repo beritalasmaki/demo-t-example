@@ -39,6 +39,38 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Run details scroll, and an amber dot on the favicon
+
+**Goal**
+Let the sticky "Run details" column scroll to its end without waiting for the rest of the
+page. Show an amber dot on the favicon while a run has things to solve.
+
+**What changed**
+- `RunDetails.tsx`: accepts `className`, `tabIndex` and `ref`.
+- `RunReviewPage.tsx`: from xl up the card is capped to the window and scrolls on its own,
+  and is a tab stop only while it overflows. It calls `useAttentionFavicon`.
+- New `useAttentionFavicon.ts` (+ test) and `public/favicon-attention.svg`.
+- DECISIONS 0054.
+
+**Steps, in order**
+1. `git checkout -b fix/run-details-scroll` from main.
+2. Capped the card and measured its overflow. Checked it in a short and a tall window.
+3. Drew the dotted icon, wrote the hook, checked it on three pages, and rendered it at 16, 32
+   and 96 px.
+4. `npm run check`, then merged into main.
+
+**Why it was done this way**
+See DECISIONS 0054. The card, not a wrapper, is the scroller, so its focus is announced as
+"Run details".
+
+**How to do this by hand**
+Make the window short and wide (1440 × 700). Scroll with the mouse over "Run details": it
+reaches "Lowest score" while the page stays put. The tab's icon has an amber dot on the pending
+run. It goes away on `?run=run-clean`, or once the run is decided.
+
+**Verification**
+`npm run check` passed. Chromium measurements are in DECISIONS 0054.
+
 ### 2026-09-23 · Open items in the top bar
 
 **Goal**

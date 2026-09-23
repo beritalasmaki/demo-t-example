@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent } from '../../components/Tabs'
 import type { GetRunOptions, SubmitDecisionOptions } from '../../lib/api'
+import { buildOpenItems } from '../../lib/openItems'
 import type { Run } from '../../lib/types'
 import { DecisionPanel } from './DecisionPanel'
 import { EvidenceTab } from './EvidenceTab'
@@ -16,6 +17,7 @@ import { StepsTab } from './StepsTab'
 import { StoryTimeline } from './StoryTimeline'
 import { UndoBox } from './UndoBox'
 import { UnverifiedList } from './UnverifiedList'
+import { useAttentionFavicon } from './useAttentionFavicon'
 import { useRun } from './useRun'
 
 /**
@@ -69,6 +71,8 @@ export function RunReviewPage({
   const tabsRef = useRef<HTMLDivElement>(null)
   const [barHeight, setBarHeight] = useState<number | undefined>(undefined)
   const [tabsHeight, setTabsHeight] = useState<number | undefined>(undefined)
+  const detailsRef = useRef<HTMLElement>(null)
+  const [detailsScroll, setDetailsScroll] = useState(false)
 
   // The sticky bar's and view tabs' heights, so the tabs stick under the bar, and scrolled-to
   // headings and the sticky "Run details" column sit below them rather than under them.
@@ -83,6 +87,21 @@ export function RunReviewPage({
     })
     observer.observe(bar)
     observer.observe(tabs)
+    return () => observer.disconnect()
+  }, [loaded])
+
+  // From xl up, "Run details" is sticky and scrolls on its own when it is taller than the
+  // window (docs/DECISIONS.md, 0054). Only then is it a tab stop, so a keyboard can scroll it
+  // too. Watched on the card, for the window's height, and on its contents, for what changes
+  // after a decision.
+  useEffect(() => {
+    const details = detailsRef.current
+    if (!details || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() =>
+      setDetailsScroll(details.scrollHeight > details.clientHeight + 1),
+    )
+    observer.observe(details)
+    for (const child of details.children) observer.observe(child)
     return () => observer.disconnect()
   }, [loaded])
 
@@ -103,6 +122,12 @@ export function RunReviewPage({
     })
     return () => cancelAnimationFrame(frame)
   }, [view])
+
+  // An amber dot on the tab's icon while the run has things to solve (0054).
+  const shownRun = changedRun ?? (state.status === 'success' ? state.run : null)
+  useAttentionFavicon(
+    shownRun != null && shownRun.decision == null && buildOpenItems(shownRun).length > 0,
+  )
 
   if (state.status === 'loading') {
     return <LoadingState label="Loading run…" />
@@ -206,7 +231,12 @@ export function RunReviewPage({
           </aside>
 
           <div className="min-w-0 md:col-start-1 md:row-start-2 xl:sticky xl:top-[calc(var(--run-bar-height,4rem)+var(--space-4))] xl:row-span-2 xl:row-start-1">
-            <RunDetails run={run} />
+            <RunDetails
+              ref={detailsRef}
+              run={run}
+              tabIndex={detailsScroll ? 0 : undefined}
+              className="xl:max-h-[calc(100dvh-var(--run-bar-height,4rem)-2*var(--space-4))] xl:overflow-y-auto xl:overscroll-contain"
+            />
           </div>
 
           <div className="min-w-0 md:col-start-1 md:row-start-3 xl:col-start-2 xl:row-start-2">

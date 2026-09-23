@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react'
+import type { Ref } from 'react'
 import { confidenceLevel, resolveConfidenceAreas } from '../../lib/confidence'
 import {
   formatCalendarDate,
@@ -20,9 +21,15 @@ import { ActorName } from './ActorName'
  * reference) and *The run* (who asked, which agent, when, checks, lowest score). Each id has a
  * plain line under it, so a reviewer never has to guess what it is for. The environment is
  * always written out in text, never colour alone (Scenario S6).
+ *
+ * `className`, `tabIndex` and `ref` let the page make the card scroll on its own in the
+ * sticky left column (docs/DECISIONS.md, 0054).
  */
 export interface RunDetailsProps {
   run: Run
+  className?: string
+  tabIndex?: number
+  ref?: Ref<HTMLElement>
 }
 
 const ENVIRONMENT = {
@@ -58,7 +65,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-export function RunDetails({ run }: RunDetailsProps) {
+export function RunDetails({ run, className, tabIndex, ref }: RunDetailsProps) {
   const released = run.decision?.outcome === 'approved'
   const decided = run.decision != null
   const env = ENVIRONMENT[run.target.environment]
@@ -73,8 +80,13 @@ export function RunDetails({ run }: RunDetailsProps) {
 
   return (
     <section
+      ref={ref}
+      tabIndex={tabIndex}
       aria-labelledby="run-details-heading"
-      className="flex flex-col gap-[var(--space-4)] rounded-lg border border-border-subtle bg-surface p-[var(--space-4)]"
+      className={cn(
+        'flex flex-col gap-[var(--space-4)] rounded-lg border border-border-subtle bg-surface p-[var(--space-4)]',
+        className,
+      )}
     >
       <h2
         id="run-details-heading"

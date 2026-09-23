@@ -4,8 +4,8 @@ import { WelcomeIntro } from './WelcomeIntro'
 
 /*
  * The intro plays once and then calls `onDone`; this story replays it on demand. Playing it
- * here also sets the real `ledger:intro-seen` flag in this browser, so the app itself will skip
- * it afterwards — clear the key in DevTools to see it in the app again.
+ * here also sets the real `ledger:intro-seen` flag for this tab's visit, so the app itself will
+ * skip it until the tab is closed.
  */
 function Replayable() {
   const [run, setRun] = useState(0)

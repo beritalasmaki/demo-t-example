@@ -6,6 +6,26 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0049 · The welcome intro plays once per visit, not once ever
+
+**Context.** 0048 showed the intro once per browser, for good (localStorage). The user asked
+for it every time someone comes back to the website.
+
+**Options.** (a) Every page load. (b) Once per visit: a browser session, meaning a new tab or
+window, or a return after closing it.
+
+**Choice.** (b), by keeping the same `ledger:intro-seen` flag in sessionStorage instead of
+localStorage. (a) would replay the whole four-second intro on every breadcrumb or "My reviews"
+click, because those links reload the page. The old localStorage flag is removed the next time
+the intro finishes or is skipped, so it doesn't linger. Reduced motion still skips the intro,
+and any input still dismisses it.
+
+**Consequence.** Checked in a browser. The intro showed on a first visit, on a new tab, and in
+a new browser session. It did not show on a page load inside a visit, or on a reload in the
+same tab. For the literal "every page load", `shouldShowIntro` would drop the flag check.
+
+---
+
 ## 0048 · A one-time welcome intro, laid over the page and never in its way
 
 **Context.** The user asked for a one-time intro before the first page load in a browser. The
@@ -18,7 +38,7 @@ itself for reduced motion or on any click, tap or key.
   underneath. If the intro ends first, the page's own "Loading run…" state is already there,
   with no second waiting treatment. Checked in a browser with `?delay=6000`: after the fade,
   "Loading run…", then the run.
-- First visit only: `ledger:intro-seen` in localStorage, set on completion or skip. If storage
+- First visit only (changed to once per visit in 0049): `ledger:intro-seen` in localStorage, set on completion or skip. If storage
   is blocked, the intro is treated as seen instead of showing on every visit.
 - `SignatureMark.tsx` uses the supplied path data untouched, plus two attributes: `pathLength`
   for the draw, and `data-resolved` for the ink change. Checked in the browser: its bounding

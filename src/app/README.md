@@ -10,7 +10,8 @@ Few files, all short. If you find yourself writing view logic here, it belongs i
 ## Files
 
 - `App.tsx` — reads `?run=`, `?view=reviews` and `?delay=<ms>`, and lays the welcome intro over
-  the page on a first visit.
-- `WelcomeIntro.tsx`, `intro.ts`, `intro.css`, `SignatureMark.tsx` — the one-time welcome intro
-  (docs/DECISIONS.md, 0048). `intro.ts` holds the first-visit flag (`ledger:intro-seen`) and the
+  the page once per visit.
+- `WelcomeIntro.tsx`, `intro.ts`, `intro.css`, `SignatureMark.tsx` — the welcome intro, once per
+  visit (docs/DECISIONS.md, 0048, 0049). `intro.ts` holds the visit flag (`ledger:intro-seen`, in
+  sessionStorage) and the
   timings. `SignatureMark.tsx` holds the supplied signature path, unchanged.

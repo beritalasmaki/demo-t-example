@@ -15,3 +15,7 @@ Rules:
 
 `Tabs` has two variants: `segmented` and `pill`. The pill variant has a sliding background and
 optional per-tab tooltips (`tooltip`), both from transitions.dev (docs/DECISIONS.md, 0047).
+
+`LoadingState` is the loading indicator: the `thinking-orbs` "working" orb with a label under
+it, centred (docs/DECISIONS.md, 0050). It is the one component here built on a third-party
+visual. jsdom can't draw it, so the test setup stubs the canvas.

@@ -39,6 +39,42 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Loading state: thinking orb, centred
+
+**Goal**
+Replace the plain "Loading…" text with the `thinking-orbs` orb and the text under it, centred.
+
+**What changed**
+- `package.json` / lock: `thinking-orbs` 0.3.2, pinned exactly.
+- New `components/LoadingState.tsx` (+ test and story), used by `RunReviewPage` and
+  `ReviewList`.
+- `vitest.setup.ts`: canvas stub. DECISIONS 0050, `components/README.md`.
+
+**Steps, in order**
+1. `git checkout -B feat/loading-orb origin/main`.
+2. `npm view thinking-orbs` and `npm pack thinking-orbs@0.3.2` into a scratch folder. Read
+   `package.json` (no install scripts), the typings and the README (accessibility, reduced
+   motion, theme), and searched the code for network calls (none).
+3. `npm install thinking-orbs@0.3.2 --save-exact`.
+4. Built `LoadingState`, used it in both loading states, and added the jsdom canvas stub.
+5. `npm run check`; Playwright with `?delay=5000` in light, dark and at 390 px.
+
+**Why it was done this way**
+A shared component keeps both loading states identical. The orb is hidden from screen readers
+because the text under it is the status.
+
+**How to do this by hand**
+Open `?delay=5000` in a fresh tab (skip the intro with any key). The orb and "Loading run…"
+sit in the middle of the screen for five seconds.
+
+**Verification**
+`npm run check` passed. In Playwright, the group's centre matched the window's centre at
+1280 × 800 (640, 400) and at 390 px (195, 400), in both themes. The orb was 64 × 64 with the
+label below it.
+
+**Open questions / next**
+None.
+
 ### 2026-09-23 · Intro: once per visit
 
 **Goal**

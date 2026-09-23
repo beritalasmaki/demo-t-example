@@ -6,6 +6,33 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0050 · The loading state is the `thinking-orbs` orb, centred, with its label under it
+
+**Context.** The user asked to replace the plain "Loading…" text with
+`<ThinkingOrb state="working" size={64} />` from the `thinking-orbs` package, with the text
+under it, centred instead of left-aligned.
+
+**Choice.** A new dependency, named by the user, `thinking-orbs@0.3.2`. It is pinned exactly,
+because 0.x versions may break on a minor release. Checked before installing (`npm pack`): MIT
+licence, React as its only peer, no install scripts, and no network code. It paints on a
+canvas.
+- `components/LoadingState.tsx` is used by the run page ("Loading run…") and "My reviews"
+  ("Loading reviews…"). The label is the `role="status"` text, and the orb is `aria-hidden`,
+  so screen readers hear the status once instead of the label plus the orb's own label.
+- Centred both ways. By default it fills the screen height (`min-h-dvh`), because it is the
+  page's only content. "My reviews" gives it a shorter area under its heading.
+- The orb picks its own ink: it reads `data-theme` and `prefers-color-scheme`, as the app's
+  tokens do. For reduced motion it shows a still frame.
+- `vitest.setup.ts` stubs `HTMLCanvasElement.getContext`, because jsdom has no canvas. The
+  drawing itself is checked in a browser.
+
+**Consequence.** One more runtime dependency. Checked in a browser: the orb (64 × 64) and the
+label are centred at 640, 400 on a 1280 × 800 window, and at the middle of a 390 px phone, with
+dark dots in the light theme and light dots in the dark theme. The welcome intro's handoff to
+the loading state (0048) is unchanged.
+
+---
+
 ## 0049 · The welcome intro plays once per visit, not once ever
 
 **Context.** 0048 showed the intro once per browser, for good (localStorage). The user asked

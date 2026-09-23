@@ -6,6 +6,56 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0045 · While a decision can be undone, the details always show
+
+**Context.** 0044 let the details collapse after a view change. That hid the undo countdown
+and the Undo button in the header. The user asked for the details to always show while the
+Undo button is visible.
+
+**Choice.** `useUndoActive` (in `features/run/`) reports whether the undo window is open, and
+flips by itself when it closes, using one timer for that moment. While it is open:
+- `RunOverview` shows the details whatever `expanded` says, and does not offer the toggle.
+- `RunReviewPage` doesn't collapse the details on a view change.
+- A decision made on the page opens the details.
+
+**Consequence.** When the window closes, the details stay open: nothing collapses under the
+reviewer, and "Hide details" appears again. This replaces 0044's note that the collapsed row
+has no undo countdown. The collapsed row can no longer appear while undo is possible.
+
+---
+
+## 0044 · Switching views moves focus, the top bar is sticky, and the details collapse
+
+**Context.** After PR #10 the user found that clicking "Evidence" looked like nothing
+happened: the view changed below the long overview, off screen. They asked for: focus to move
+to the chosen view on every tab change, the top bar to stay in place, and the overview details
+to show on first load but hide once the reviewer switches views. A "Show details" / "Hide
+details" button sits in the middle of the header's bottom border (reference image in the
+conversation).
+
+**Choice.**
+- `RunTopBar` is `sticky top-0`. The page measures its height (`ResizeObserver`, since it wraps
+  to two rows on narrow screens) into `--run-bar-height`. Headings scrolled to, the "Jump to the
+  open items" target and the sticky right column use that height to stay clear of the bar.
+- Choosing a tab moves focus to the view's heading (`SectionHeading focusTarget`,
+  `tabIndex={-1}`). The heading is scrolled into view only when it isn't already in the top half
+  of the screen. Focus moves one animation frame later: Radix selects a tab on mousedown, and
+  the browser's default then focuses the clicked tab, which would undo an earlier focus move.
+- The tabs switch to **manual activation**. With automatic activation, every arrow key press
+  would select a tab and pull focus out of the tab list. Now arrow keys only move along the
+  tabs, and Enter, Space or a click selects (the WAI-ARIA tabs pattern for this case).
+- `RunOverview` takes `expanded`. On load it is expanded. Any view change, including a "Show
+  all 180 steps" link, collapses it to one row: status, initiative (truncated), system,
+  environment, revision, and "N open items" linking to the tick list. The toggle is centred on
+  the bottom border in both states, so it doesn't move when pressed.
+
+**Consequence.** The environment and status stay visible in the collapsed row, so Scenario
+S6's "environment visible without scrolling" still holds. The undo countdown only shows when
+the details are open. Once decided, the collapsed row shows the Approved status but not the
+remaining time.
+
+---
+
 ## 0043 · Two real bugs found while building the story layout
 
 **Context.** Browser screenshots and a new test caught two bugs. Both were already in the code

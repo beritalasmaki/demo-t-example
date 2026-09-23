@@ -103,7 +103,7 @@ export function StepsTab({ run, focusEventId }: StepsTabProps) {
     <section aria-labelledby="steps-heading" className="flex min-w-0 flex-col gap-[var(--space-4)]">
       <div className="flex flex-wrap items-end justify-between gap-[var(--space-4)]">
         <div className="flex flex-col gap-[var(--space-2)]">
-          <SectionHeading id="steps-heading" icon={List}>
+          <SectionHeading id="steps-heading" focusTarget icon={List}>
             All {formatCount(total, 'step')}
           </SectionHeading>
           <p className="text-body font-normal font-body text-text-secondary">

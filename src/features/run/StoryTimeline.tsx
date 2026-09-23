@@ -195,7 +195,7 @@ export function StoryTimeline({ run, onShowSteps }: StoryTimelineProps) {
 
   return (
     <section aria-labelledby="story-heading" className="flex min-w-0 flex-col gap-[var(--space-5)]">
-      <SectionHeading id="story-heading" icon={Clock}>
+      <SectionHeading id="story-heading" focusTarget icon={Clock}>
         What happened, in order
       </SectionHeading>
 

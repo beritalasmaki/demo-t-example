@@ -39,6 +39,83 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Details stay open while a decision can be undone
+
+**Goal**
+Keep the undo countdown and the Undo button on screen: the details always show while the undo
+window is open.
+
+**What changed**
+- New `features/run/useUndoActive.ts` (+ test).
+- `RunOverview.tsx`: forced open, with no toggle, while undo is possible.
+- `RunReviewPage.tsx`: doesn't collapse on a view change while undo is possible, and opens the
+  details when a decision is made.
+- Tests for the page and overview, two overview stories, DECISIONS 0045, `features/run/README.md`.
+
+**Steps, in order**
+1. Checked that the previous change wasn't merged yet (`git merge-base --is-ancestor`), so
+   continued on `feat/story-layout`.
+2. Made the changes above, then `npx prettier --write` on the changed files and `npm run check`.
+
+**Why it was done this way**
+See DECISIONS 0045. The page keeps the details open, not just the overview, so they don't
+collapse the moment the window closes.
+
+**How to do this by hand**
+Open `?run=run-messy` and click "Evidence". The header stays expanded, with the countdown and
+"Undo this decision" and no "Hide details". Approve `?run=run-clean` after switching views:
+the details open.
+
+**Verification**
+`npm run check`: 44 test files and 243 tests passing, typecheck and lint clean (the one
+existing warning), both theme checks ok.
+
+**Open questions / next**
+None.
+
+### 2026-09-23 · Switching views: focus, sticky top bar, collapsible details
+
+**Goal**
+Make a tab change visible and announced: move focus to the chosen view, keep the top bar in
+place, and collapse the overview details once the reviewer starts switching views.
+
+**What changed**
+- `components/Tabs.tsx`: an `activationMode` prop (`manual` for this page).
+- `features/run/RunTopBar.tsx`: sticky, and takes a `ref` so its height can be measured.
+- `features/run/RunOverview.tsx`: `expanded` / `onExpandedChange`, a compact row, and the
+  "Show details" / "Hide details" button on the bottom border.
+- `features/run/SectionHeading.tsx`: `focusTarget` (focusable by script, scroll margin under
+  the bar). Used by the Story, Evidence and All steps headings.
+- `features/run/RunReviewPage.tsx`: details state, `--run-bar-height`, and focus moving after
+  a view change. `DecisionPanel`'s tick list and the sticky right column offset by the bar height.
+- Tests (page and overview) and two overview stories. DECISIONS 0044, spec, and
+  `features/run/README.md`.
+
+**Steps, in order**
+1. `git fetch origin main && git checkout -B feat/story-layout origin/main` (PR #10 was merged).
+2. Made the changes above, then `npx prettier --write` on the changed files.
+3. `npm run check`; a Playwright pass on `npx vite --port 5199` at 1440 px and 390 px.
+
+**Why it was done this way**
+See DECISIONS 0044. In short: the focus move waits one frame because Radix selects on
+mousedown, and the browser then focuses the clicked tab. Manual activation keeps arrow-key
+navigation inside the tab list.
+
+**How to do this by hand**
+In the running app, scroll down and click "Evidence". The page should scroll so the
+"Evidence" heading sits just under the bar, with the header collapsed. Press Tab once: focus
+should go to the first thing inside Evidence, not back to the top of the page.
+
+**Verification**
+- `npm run check`: 43 test files and 238 tests passing, typecheck and lint clean (the one
+  existing warning), both theme checks ok.
+- Playwright: after a mouse click, focus is on `evidence-heading`, at 86 px under a bar ending at
+  62 px. At 390 px, the heading is at 121 px under a bar ending at 97 px, with no horizontal
+  scroll. The toggle's centre is within 1 px of the border line in both states.
+
+**Open questions / next**
+- Settled in the follow-up below: the details now always show while undo is possible (0045).
+
 ### 2026-09-23 · Story layout: the Claude Design redesign, built
 
 **Goal**

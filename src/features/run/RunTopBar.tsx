@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react'
+import type { Ref } from 'react'
 import { TabsList, TabsTrigger } from '../../components/Tabs'
 import { formatCount } from '../../lib/format'
 import type { Run } from '../../lib/types'
@@ -12,15 +13,20 @@ import type { Run } from '../../lib/types'
  *
  * Must render inside the page's `Tabs` root: the tab list lives here, the tab panels in the
  * main column.
+ *
+ * Sticky at the top of the page, so the views can be switched from anywhere in a long run
+ * (docs/DECISIONS.md, 0044). `ref` lets the page measure its height, so headings scrolled to
+ * and the sticky right column stay clear of it.
  */
 export interface RunTopBarProps {
   run: Run
   reviewsHref: string
+  ref?: Ref<HTMLDivElement>
 }
 
-export function RunTopBar({ run, reviewsHref }: RunTopBarProps) {
+export function RunTopBar({ run, reviewsHref, ref }: RunTopBarProps) {
   return (
-    <div className="border-b border-border-subtle bg-surface">
+    <div ref={ref} className="sticky top-0 z-20 border-b border-border-subtle bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-[var(--space-5)] gap-y-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] md:px-[var(--space-6)]">
         <nav aria-label="Breadcrumb" className="w-full min-w-0 md:w-auto">
           <ol className="flex min-w-0 items-center gap-[var(--space-2)] text-meta font-normal font-body text-text-secondary">

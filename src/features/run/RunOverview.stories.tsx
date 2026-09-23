@@ -6,7 +6,12 @@ const meta = {
   title: 'Features/Run/RunOverview',
   component: RunOverview,
   parameters: { layout: 'fullscreen' },
-  args: { run: runMessyPending, onRunUpdated: () => {} },
+  args: {
+    run: runMessyPending,
+    onRunUpdated: () => {},
+    expanded: true,
+    onExpandedChange: () => {},
+  },
 } satisfies Meta<typeof RunOverview>
 
 export default meta
@@ -33,5 +38,22 @@ export const LongInitiative: Story = {
       initiative:
         'Move refund processing for cancelled and partially shipped orders to the new payment gateway, in every market',
     },
+  },
+}
+
+/** After the reviewer has switched views: one compact row, with "Show details" on the border. */
+export const Collapsed: Story = { args: { expanded: false } }
+
+/** Decided and still undoable: the details stay open even when collapsed was asked for. */
+export const ApprovedUndoOpen: Story = { args: { run: runMessy, expanded: false } }
+
+/** Decided, undo window closed: the details can collapse again. */
+export const ApprovedUndoClosed: Story = {
+  args: {
+    run: {
+      ...runMessy,
+      decision: { ...runMessy.decision!, at: new Date(Date.now() - 20 * 60_000).toISOString() },
+    },
+    expanded: false,
   },
 }

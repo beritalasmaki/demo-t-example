@@ -56,13 +56,18 @@ the run, and a right column that stays in place.
 
 - `RunReviewPage.tsx` — composes the page and handles loading, not-found and failed-load
   states once. Holds the run in local state, so a decision, a conflict or an undo updates the
-  screen straight away, without a refetch. Owns which view is open, and which step to focus
-  when a link jumps into the step list.
-- `RunTopBar.tsx` — breadcrumb back to "My reviews", and the Story / Evidence / All N steps tab
-  list. No logo or main menu: the page sits inside a host platform (0042).
+  screen straight away, without a refetch. Owns which view is open, whether the overview's
+  details are shown, and where focus goes when the view changes: the view's heading after a
+  tab, or one step's row after a link into the step list (docs/DECISIONS.md, 0044).
+- `RunTopBar.tsx` — sticky: breadcrumb back to "My reviews", and the Story / Evidence / All N
+  steps tab list. No logo or main menu: the page sits inside a host platform (0042).
 - `RunOverview.tsx` — status, initiative, why the agent was asked, where the run is now, the
   labelled facts (requested by, agent, ran, checks, lowest score, target, revision, run
   reference), and one box on the right: what is open (before a decision) or `UndoBox` (after).
+  Collapses to one compact row after the first view change, with "Show details" / "Hide
+  details" on its bottom border — except while a decision can still be undone, when the
+  details always show (0045).
+- `useUndoActive.ts` — whether the undo window is open, updated when it closes.
 - `UndoBox.tsx` — the live undo countdown and the one filled Undo button (0017, 0033).
 - `StoryTimeline.tsx` — "What happened, in order": `Run.story` on a timeline spine, ending on
   "Waiting for a decision" or the decision and its reason. Uses `ScoreCard` and `CheckCard`

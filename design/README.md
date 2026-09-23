@@ -14,7 +14,7 @@ Most of the data already exists: what the agent did, which checks it passed, the
 
 | File | What it is |
 | --- | --- |
-| `iteration3-design-v3` | Third and more advanced version of the page. Changes done after iteration phase 2. |
+| `iteration2-design-v3` | Third and more advanced version of the page. Changes done after iteration phase 2. |
 | `ledger-design-v2.0.png` | Second and more advanced version of the page designed in Claude Design. |
 | `early-design-v1.png` | First fast mock-up for the page just to perceive what needs to be added to the page. Made by human in Figma to understand the concept better. |
 | `Project timeline` | A 16-week plan for building a service like this in a real company. |

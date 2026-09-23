@@ -271,7 +271,7 @@ export function RunReviewPage({
               ref={detailsRef}
               run={run}
               tabIndex={detailsScroll ? 0 : undefined}
-              className="xl:max-h-[calc(100dvh-var(--run-bar-height,4rem)-2*var(--space-4))] xl:overflow-y-auto xl:overscroll-contain"
+              className="xl:max-h-[calc(100dvh-var(--run-bar-height,4rem)-2*var(--space-4))] xl:scrollbar-none xl:overflow-y-auto xl:overscroll-contain"
             />
           </div>
 

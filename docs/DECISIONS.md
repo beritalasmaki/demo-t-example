@@ -71,7 +71,9 @@ to.
 **Choice.**
 - Scrolling: from xl up, the card is capped at the window's height below the bar
   (`100dvh − --run-bar-height − 2 × --space-4`) and scrolls on its own
-  (`overflow-y: auto`, `overscroll-behavior: contain`). The page measures whether the card
+  (`overflow-y: auto`, `overscroll-behavior: contain`). No scrollbar is drawn
+  (`scrollbar-none`, in `index.css`), because the user found it untidy. The wheel, trackpad,
+  touch and keyboard still scroll the card, and its cut-off bottom edge shows there is more. The page measures whether the card
   overflows. Only then is the card a tab stop (`tabIndex=0`), so a keyboard can scroll it, and
   screen readers name it "Run details" from its heading. Below xl it is not sticky, and nothing
   changes.

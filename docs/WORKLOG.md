@@ -56,6 +56,8 @@ open items" is clicked.
 - New `lib/spotlight.ts` (+ test), `.t-spotlight` in `transitions.css`, and the
   `--color-spotlight-scrim` token.
 - Tests for the links, the page navigation and the spotlight. DECISIONS 0055 and 0056.
+- Also: the "Run details" card scrolls with no visible scrollbar (`scrollbar-none` in
+  `index.css`, DECISIONS 0054 updated).
 
 **Steps, in order**
 1. `git checkout -b feat/open-item-links` from main.

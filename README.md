@@ -6,8 +6,8 @@
 
 ☝️ ALSO Storybook view page coming soon!
 
-# What is "Ledger" aka. demo-t-example?
-A single, production-quality screen called **Ledger**. 
+# What is demo-t-example?
+A single, production-quality screen.
 
 An AI agent has produced a change to a customer's software. Before that change ships, a human reviewer needs to
 understand what the agent did, see which policy gates passed or failed, judge how confident

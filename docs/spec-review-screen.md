@@ -57,7 +57,9 @@ cards: an overview header (regions 1 and 2, plus why the agent was asked and whe
 now), then three views — *Story* (what happened, in order, with gates and confidence placed
 where they happened), *Evidence* and *All steps* (region 4) — beside a right column that stays
 in place: the decision (region 6) and what is not checked. The page has no logo or main menu;
-it sits inside a host platform (DECISIONS.md, 0042).
+it sits inside a host platform (DECISIONS.md, 0042). The page's top bar is sticky. Choosing a view moves focus to it,
+and collapses the overview to one row that still shows status, environment, revision and what
+is open (DECISIONS.md, 0044).
 
 ## Scenarios
 

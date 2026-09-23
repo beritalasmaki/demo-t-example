@@ -39,6 +39,50 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Switching views: focus, sticky top bar, collapsible details
+
+**Goal**
+Make a tab change visible and announced: move focus to the chosen view, keep the top bar in
+place, and collapse the overview details once the reviewer starts switching views.
+
+**What changed**
+- `components/Tabs.tsx`: an `activationMode` prop (`manual` for this page).
+- `features/run/RunTopBar.tsx`: sticky, and takes a `ref` so its height can be measured.
+- `features/run/RunOverview.tsx`: `expanded` / `onExpandedChange`, a compact row, and the
+  "Show details" / "Hide details" button on the bottom border.
+- `features/run/SectionHeading.tsx`: `focusTarget` (focusable by script, scroll margin under
+  the bar). Used by the Story, Evidence and All steps headings.
+- `features/run/RunReviewPage.tsx`: details state, `--run-bar-height`, and focus moving after
+  a view change. `DecisionPanel`'s tick list and the sticky right column offset by the bar height.
+- Tests (page and overview) and two overview stories. DECISIONS 0044, spec, and
+  `features/run/README.md`.
+
+**Steps, in order**
+1. `git fetch origin main && git checkout -B feat/story-layout origin/main` (PR #10 was merged).
+2. Made the changes above, then `npx prettier --write` on the changed files.
+3. `npm run check`; a Playwright pass on `npx vite --port 5199` at 1440 px and 390 px.
+
+**Why it was done this way**
+See DECISIONS 0044. In short: the focus move waits one frame because Radix selects on
+mousedown, and the browser then focuses the clicked tab. Manual activation keeps arrow-key
+navigation inside the tab list.
+
+**How to do this by hand**
+In the running app, scroll down and click "Evidence". The page should scroll so the
+"Evidence" heading sits just under the bar, with the header collapsed. Press Tab once: focus
+should go to the first thing inside Evidence, not back to the top of the page.
+
+**Verification**
+- `npm run check`: 43 test files and 238 tests passing, typecheck and lint clean (the one
+  existing warning), both theme checks ok.
+- Playwright: after a mouse click, focus is on `evidence-heading`, at 86 px under a bar ending at
+  62 px. At 390 px, the heading is at 121 px under a bar ending at 97 px, with no horizontal
+  scroll. The toggle's centre is within 1 px of the border line in both states.
+
+**Open questions / next**
+- The collapsed row has no undo countdown for a decided run. Add a compact one if reviewers
+  need it without opening the details.
+
 ### 2026-09-23 · Story layout: the Claude Design redesign, built
 
 **Goal**

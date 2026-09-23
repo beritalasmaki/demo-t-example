@@ -39,6 +39,47 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Three columns: Run details on the left
+
+**Goal**
+Follow the user's next design: "Run details" as its own left-hand column, the overview as a
+card above the story, what is open (or undo) at the top of the right column, and no "Show /
+Hide details" button.
+
+**What changed**
+- New `RunDetails.tsx` and `OpenItemsBox.tsx`, each with tests and stories.
+- `RunOverview.tsx` cut down to the card (status, title, why, where now); its tests and stories
+  were rewritten.
+- `RunReviewPage.tsx`: three-column grid (two from `md`, one on phones). The details state and
+  the forced-open logic are removed. The sticky bar and the focus move stay.
+- `useUndoActive.ts` (+ test) removed. `UndoBox` fills the column width. `RunTopBar` uses the
+  same width as the grid.
+- DECISIONS 0046 (and notes on 0044 and 0045), spec layout paragraph, `features/run/README.md`.
+
+**Steps, in order**
+1. `git fetch origin main && git checkout -B feat/run-details-column origin/main`.
+2. Split `RunOverview` into three components, rebuilt the page grid, and removed the
+   collapse code.
+3. `npx prettier --write src/features/run`, `npm run check`, and Playwright at 1440, 1024 and
+   390 px.
+
+**Why it was done this way**
+See DECISIONS 0046. The right column stopped being sticky because, before a decision, it is
+taller than the screen.
+
+**How to do this by hand**
+Open the design image next to `?run=run-messy-pending` and `?run=run-messy` at 1440 px, and
+compare each column.
+
+**Verification**
+- `npm run check`: 45 test files and 238 tests passing, typecheck and lint clean (the
+  one existing warning), both theme checks ok.
+- Playwright: no page errors and no horizontal scroll at 1440, 1024 or 390 px.
+
+**Open questions / next**
+- The top bar in design 1b also shows "run-messy · e91a4c · GMT+3". Left out, because the same
+  facts are in Run details. Add it if you want it repeated there.
+
 ### 2026-09-23 · Details stay open while a decision can be undone
 
 **Goal**

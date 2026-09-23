@@ -6,7 +6,35 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0046 · Three columns: Run details on the left, no collapsing header
+
+**Context.** The user's next design iteration moves the labelled facts out of the header into
+their own left-hand column, "Run details". The header becomes a card above the story. The
+right column starts with what is open (or, after a decision, the undo window). The "Show
+details" / "Hide details" button is removed.
+
+**Choice.**
+- `RunDetails.tsx` (new): *The change* (where it would go, what would be released, run
+  reference) and *The run* (requested by, agent, ran, checks, lowest score). From `xl` it is
+  sticky under the top bar.
+- `RunOverview.tsx` is now only the card: status, initiative, why the agent was asked, where
+  the run is now. `OpenItemsBox.tsx` (new) heads the right column before a decision; `UndoBox`
+  heads it after.
+- The grid is three columns from `xl` (17.5rem | 1fr | 21.25rem). From `md` it is two
+  columns, with the details under the overview. On phones it is one column, in the order
+  overview, decision, details, view, so the decision is never at the bottom.
+- The right column is no longer sticky: before a decision it is taller than the screen, and a
+  sticky element taller than the viewport hides its own lower part.
+
+**Consequence.** This replaces the collapsing part of 0044, and all of 0045:
+`useUndoActive` and the details state are gone, because nothing collapses any more. The
+sticky top bar, focus moving to the chosen view, and manual tab activation from 0044 stay.
+
+---
+
 ## 0045 · While a decision can be undone, the details always show
+
+> Replaced by 0046: the details no longer collapse.
 
 **Context.** 0044 let the details collapse after a view change. That hid the undo countdown
 and the Undo button in the header. The user asked for the details to always show while the
@@ -25,6 +53,8 @@ has no undo countdown. The collapsed row can no longer appear while undo is poss
 ---
 
 ## 0044 · Switching views moves focus, the top bar is sticky, and the details collapse
+
+> The collapsing details are replaced by 0046. The sticky bar and the focus move still hold.
 
 **Context.** After PR #10 the user found that clicking "Evidence" looked like nothing
 happened: the view changed below the long overview, off screen. They asked for: focus to move

@@ -27,7 +27,7 @@ export interface RunTopBarProps {
 export function RunTopBar({ run, reviewsHref, ref }: RunTopBarProps) {
   return (
     <div ref={ref} className="sticky top-0 z-20 border-b border-border-subtle bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-[var(--space-5)] gap-y-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] md:px-[var(--space-6)]">
+      <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-x-[var(--space-5)] gap-y-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] md:px-[var(--space-6)]">
         <nav aria-label="Breadcrumb" className="w-full min-w-0 md:w-auto">
           <ol className="flex min-w-0 items-center gap-[var(--space-2)] text-meta font-normal font-body text-text-secondary">
             <li className="shrink-0">

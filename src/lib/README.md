@@ -28,33 +28,38 @@ and `lib` can be tested on its own with no UI at all.
   component.
 - **`api.ts`** — the only place that fetches data. See below.
 - **`gates.ts`** — small domain helpers that are not UI: sorting gates so failed and waived
-  come first, and `gateAcknowledgement`, the counts and ids behind the Decision region's
-  sign-off tick.
+  come first, resolving a gate's evidence, and the one sentence that explains a failed or
+  not-run gate (its own evaluation's detail first — docs/DECISIONS.md, 0043).
 - **`decision.ts`** — the undo window: a fixed policy computed from `Decision.at`
   (docs/DECISIONS.md, 0003), not stored data.
 - **`timeline.ts`** — the same kind of helper for the audit log: the shape of a run (step,
   error and retry counts), filtering that never actually hides an error or a retry, only
-  shrinks the count of what's genuinely excluded, and `resolveEvidenceIds`, which both
-  `gates.ts` and `summary.ts` use to turn a list of evidence ids into the real timeline events
+  shrinks the count of what's genuinely excluded, `testsPassing` (read from test-run details), and `resolveEvidenceIds`, which `gates.ts`,
+  `summary.ts` and `story.ts` use to turn a list of evidence ids into the real timeline events
   they point to.
 - **`summary.ts`** — resolves the run summary's sentences against the timeline and drops any
   sentence whose evidence doesn't resolve to a real event, per docs/spec-review-screen.md's
   "a sentence with no evidence does not render."
-- **`utils.ts`** — `cn()`, the class-name merger every shadcn/ui component expects at the
+- **`utils.ts`** — `cn()` (taught the `--text-*` type-scale names, so a size is never dropped
+  next to a colour — docs/DECISIONS.md, 0043), the class-name merger every shadcn/ui component expects at the
   `utils` alias in `components.json`. It lives here because that is where shadcn looks, and
   because `components/` is allowed to import from `lib`.
 - **`actors.ts`** — `isSystemActor`, a heuristic (no dedicated data-model field exists) for
   telling a person's name from a system's name-and-version, used to choose a person/system
   icon next to `evaluatedBy`/`waiver.by`/`decision.by`.
-- **`confidence.ts`** — `resolveConfidenceAreas`, the same kind of helper `gates.ts` is for
+- **`confidence.ts`** — `confidenceLevel` (High / Medium / Low, 0041) and `resolveConfidenceAreas`, the same kind of helper `gates.ts` is for
   gates: turns `Run.confidence` (which simply omits an area the model didn't report) into a
   fixed, always-complete list, so a missing area renders as "Not checked" instead of silently
   disappearing.
-- **`attention.ts`** — `buildAttentionItems`, which synthesizes the "Before you approve"
-  digest from real `gates`/`confidence`/`timeline` data (gate groups via `gates.ts`'s
-  `gateAttentionGroups`, the weakest confidence area, and any `note` event flagged
-  `severity: 'warning'`) — not one of docs/spec-review-screen.md's six regions, so it isn't
-  covered by `types.ts`'s data model; see docs/DECISIONS.md for the curation rules.
+- **`openItems.ts`** — what is still open on a run and what approving it takes: the
+  tick-each-item list, whether a reason is required, the header's one-sentence summary, and
+  the "What is not checked" list (docs/DECISIONS.md, 0040). Replaced `attention.ts`.
+- **`story.ts`** — resolves `Run.story` against the timeline (a step with no resolvable
+  evidence is dropped; times come from the evidence), and writes the "Where the run is now"
+  sentences.
+- **`evidence.ts`** — groups the events the page's claims rest on, for the Evidence view.
+- **`steps.ts`** — the step list: folding long runs of the same repeated step, step numbers,
+  and who did each step with what result.
 
 ## What `api.ts` actually does
 

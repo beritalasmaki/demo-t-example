@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PolicyGate, TimelineEvent } from './types'
-import {
-  explanationFor,
-  gateAcknowledgement,
-  gateAttentionGroups,
-  resolveEvidence,
-  sortGates,
-} from './gates'
+import { explanationFor, resolveEvidence, sortGates } from './gates'
 
 function gate(overrides: Partial<PolicyGate> & Pick<PolicyGate, 'id' | 'result'>): PolicyGate {
   return {
@@ -112,48 +106,10 @@ describe('explanationFor', () => {
   })
 })
 
-describe('gateAcknowledgement', () => {
-  it('counts nothing and requires nothing when every gate passed', () => {
-    const gates = [gate({ id: 'a', result: 'pass' }), gate({ id: 'b', result: 'not_applicable' })]
-    expect(gateAcknowledgement(gates)).toEqual({
-      failedCount: 0,
-      waivedCount: 0,
-      requiredGateIds: [],
-    })
-  })
-
-  it('counts failed and waived separately, and does not count unknown or not_applicable', () => {
-    const gates = [
-      gate({ id: 'fail-1', result: 'fail' }),
-      gate({ id: 'waived-1', result: 'waived' }),
-      gate({ id: 'unknown-1', result: 'unknown' }),
-      gate({ id: 'na-1', result: 'not_applicable' }),
-    ]
-    expect(gateAcknowledgement(gates)).toEqual({
-      failedCount: 1,
-      waivedCount: 1,
-      requiredGateIds: ['fail-1', 'waived-1'],
-    })
-  })
-})
-
-describe('gateAttentionGroups', () => {
-  it('groups by fail, then unknown, then waived, dropping empty groups', () => {
-    const gates = [
-      gate({ id: 'waived-1', result: 'waived' }),
-      gate({ id: 'fail-1', result: 'fail' }),
-      gate({ id: 'unknown-1', result: 'unknown' }),
-      gate({ id: 'fail-2', result: 'fail' }),
-    ]
-    expect(gateAttentionGroups(gates)).toEqual([
-      { result: 'fail', gates: [gates[1], gates[3]] },
-      { result: 'unknown', gates: [gates[2]] },
-      { result: 'waived', gates: [gates[0]] },
-    ])
-  })
-
-  it('returns nothing when every gate passed or does not apply', () => {
-    const gates = [gate({ id: 'a', result: 'pass' }), gate({ id: 'b', result: 'not_applicable' })]
-    expect(gateAttentionGroups(gates)).toEqual([])
+describe('explanationFor, with a file change listed before the evaluation', () => {
+  it('prefers the gate evaluation’s own detail', async () => {
+    const { runMessy } = await import('../fixtures')
+    const licensing = runMessy.gates.find((g) => g.id === 'licensing')!
+    expect(explanationFor(licensing, runMessy.timeline)).toMatch(/timed out after 10 minutes/)
   })
 })

@@ -1,4 +1,5 @@
 import { runs as seedRuns } from '../fixtures'
+import { approvalNeedsReason } from './openItems'
 import type { Decision, DecisionInput, Run } from './types'
 
 /**
@@ -79,6 +80,29 @@ export async function getRun(id: string, options: GetRunOptions = {}): Promise<R
   return structuredClone(run)
 }
 
+/** One line of the "My reviews" list — enough to recognise a run and its state, nothing more
+ * (docs/spec-review-screen.md, Out of scope: "a minimal list of sample runs, for navigation
+ * only"). */
+export interface RunListItem {
+  id: string
+  initiative: string
+  status: Run['status']
+  target: Run['target']
+  requestedBy: string
+}
+
+export async function listRuns(options: GetRunOptions = {}): Promise<RunListItem[]> {
+  await delay(options.delayMs ?? DEFAULT_DELAY_MS)
+  if (options.simulateNetworkError) throw new NetworkError()
+  return Object.values(store).map((run) => ({
+    id: run.id,
+    initiative: run.initiative,
+    status: run.status,
+    target: { ...run.target },
+    requestedBy: run.requestedBy,
+  }))
+}
+
 export interface SubmitDecisionOptions {
   delayMs?: number
   /** Throws `NetworkError` instead of completing, to test failure handling. */
@@ -112,6 +136,11 @@ export async function submitDecision(
     const action = decision.outcome === 'rejected' ? 'reject' : 'request changes on'
     throw new ValidationError(`A written reason is required to ${action} a run.`)
   }
+  if (decision.outcome === 'approved' && approvalNeedsReason(run) && !decision.reason?.trim()) {
+    throw new ValidationError(
+      'A written reason is required to approve a run with checks that failed or did not run.',
+    )
+  }
 
   const updated: Run = {
     ...run,
@@ -123,7 +152,7 @@ export async function submitDecision(
       // request happened. See docs/DECISIONS.md, 0004.
       at: new Date().toISOString(),
       reason: decision.reason,
-      acknowledgedGateIds: decision.acknowledgedGateIds,
+      acknowledgedItemIds: decision.acknowledgedItemIds,
       revision: decision.revision,
     },
   }
@@ -137,7 +166,7 @@ function fabricateConflictingDecision(): Decision {
     outcome: 'approved',
     by: 'A different reviewer (simulated)',
     at: new Date().toISOString(),
-    acknowledgedGateIds: [],
+    acknowledgedItemIds: [],
     revision: 'simulated',
   }
 }

@@ -70,27 +70,23 @@ describe('classifySummarySentence', () => {
     expect(classifySummarySentence('Added a CSV export to the appointment history page.')).toBe(
       'change',
     )
-    expect(classifySummarySentence('3 files changed, 6 tests added, all passing.')).toBe(
-      'outcome',
-    )
+    expect(classifySummarySentence('3 files changed, 6 tests added, all passing.')).toBe('outcome')
     expect(classifySummarySentence('All six policy checks passed.')).toBe('outcome')
   })
 
   it('classifies every real sentence in run-blocked correctly', () => {
-    expect(classifySummarySentence('Added a rate limit to the public booking API.')).toBe(
-      'change',
-    )
-    expect(classifySummarySentence('2 files changed, 14 tests added, all passing.')).toBe(
-      'outcome',
-    )
+    expect(classifySummarySentence('Added a rate limit to the public booking API.')).toBe('change')
+    expect(classifySummarySentence('2 files changed, 14 tests added, all passing.')).toBe('outcome')
     expect(classifySummarySentence('One policy gate failed: data retention.')).toBe('fail')
     expect(
       classifySummarySentence(
-        'One check has an exception: licensing, approved by Owen Baptiste.',
+        'One check has an exception: licensing, approved by Kaisa Heinämäki.',
       ),
     ).toBe('waived')
     expect(
-      classifySummarySentence('One check does not apply: accessibility, because no screen changed.'),
+      classifySummarySentence(
+        'One check does not apply: accessibility, because no screen changed.',
+      ),
     ).toBe('not_applicable')
   })
 

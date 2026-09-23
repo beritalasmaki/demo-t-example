@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { NOT_FOUND_RUN_ID } from '../../lib/api'
-import { runClean } from '../../fixtures'
+import { runClean, runMessy, runMessyPending } from '../../fixtures'
 import { RunReviewPage } from './RunReviewPage'
 
 describe('RunReviewPage', () => {
@@ -11,18 +11,58 @@ describe('RunReviewPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Loading run')
   })
 
-  it('composes the header, summary, gates, timeline and decision bar once the run loads', async () => {
-    render(<RunReviewPage runId={runClean.id} getRunOptions={{ delayMs: 0 }} />)
+  it('opens on the story, with the decision panel and what is not checked beside it', async () => {
+    render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
 
-    expect(await screen.findByText(runClean.target.system)).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Summary' })).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Policy gates' })).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Audit log' })).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Decision' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Approve and release' })).toBeVisible()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: runMessyPending.initiative }),
+    ).toBeVisible()
+    expect(screen.getByRole('tab', { name: 'Story', selected: true })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'What happened, in order' })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'What is not checked' })).toBeVisible()
+    expect(screen.getByText('3 things are open')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Approve and release' })).toBeDisabled()
   })
 
-  it('reflects a decision immediately, without a refetch', async () => {
+  it('switches views with the tabs, keeping the decision panel', async () => {
+    const user = userEvent.setup()
+    render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+
+    await user.click(screen.getByRole('tab', { name: 'Evidence' }))
+    expect(screen.getByRole('region', { name: 'Evidence' })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()
+
+    await user.click(screen.getByRole('tab', { name: 'All 200 steps' }))
+    expect(screen.getByRole('region', { name: 'All 200 steps' })).toBeVisible()
+  })
+
+  it('"Show all 180 steps" opens the step list with the shard group expanded', async () => {
+    const user = userEvent.setup()
+    render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+
+    await user.click(screen.getByRole('button', { name: 'Show all 180 steps' }))
+
+    expect(screen.getByRole('tab', { name: 'All 200 steps', selected: true })).toBeVisible()
+    expect(screen.getByRole('button', { name: /180 similar steps/, expanded: true })).toBeVisible()
+    expect(screen.getByText('Checked the gateway config for shard-180.')).toBeVisible()
+  })
+
+  it('shows an approved run as a record: undo window, what is still unverified, run shape', async () => {
+    render(<RunReviewPage runId={runMessy.id} getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+
+    expect(screen.getByText('Undo window open')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Undo this decision' })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'What is still unverified' })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'Run shape' })).toBeVisible()
+    expect(screen.queryByRole('region', { name: 'Your decision' })).not.toBeInTheDocument()
+    expect(screen.getByText(/Their reason:/)).toBeVisible()
+  })
+
+  it('reflects a decision immediately, without a refetch, and undo brings the panel back', async () => {
     const user = userEvent.setup()
     render(
       <RunReviewPage
@@ -31,22 +71,28 @@ describe('RunReviewPage', () => {
         submitDecisionOptions={{ delayMs: 0 }}
       />,
     )
+    await screen.findByRole('heading', { level: 1 })
 
-    await screen.findByText(runClean.target.system)
+    // Nothing is open on the clean run, so approving needs no tick and no reason.
     await user.click(screen.getByRole('button', { name: 'Approve and release' }))
     const dialog = screen.getByRole('dialog')
     await user.click(within(dialog).getByRole('button', { name: 'Approve and release' }))
 
-    const decisionRegion = screen.getByRole('region', { name: 'Decision' })
-    expect(await within(decisionRegion).findByText('Approved by')).toBeVisible()
+    expect(await screen.findByText('Undo window open')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Approve and release' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
+    expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()
   })
 
   it('shows a plain not-found message for an id with no matching run', async () => {
     render(<RunReviewPage runId={NOT_FOUND_RUN_ID} getRunOptions={{ delayMs: 0 }} />)
     expect(
-      await screen.findByText(`Could not find a run with id "${NOT_FOUND_RUN_ID}".`),
+      await screen.findByText(`Could not find a run with id "${NOT_FOUND_RUN_ID}".`, {
+        exact: false,
+      }),
     ).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Back to my reviews' })).toBeVisible()
   })
 
   it('shows the Content rules failed-load message, with a Retry that re-triggers the load', async () => {
@@ -63,9 +109,6 @@ describe('RunReviewPage', () => {
     ).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: 'Retry' }))
-
-    // Retry re-runs the same (still-failing) load — proving the button calls back into
-    // useRun's refetch. useRun.test.ts covers a retry that goes on to succeed.
     expect(screen.getByRole('status')).toHaveTextContent('Loading run')
   })
 })

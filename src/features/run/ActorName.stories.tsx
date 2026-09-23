@@ -11,7 +11,7 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Human: Story = {
-  args: { name: 'Marcus Webb' },
+  args: { name: 'Juhani Virtaleppäsoutu' },
 }
 
 export const System: Story = {

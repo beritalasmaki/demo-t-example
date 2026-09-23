@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { runClean, runMessy } from '../fixtures'
+import { runClean, runMessyPending } from '../fixtures'
 import App from './App'
 
 afterEach(() => {
@@ -13,9 +13,24 @@ describe('App', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Loading run')
   })
 
-  it('defaults to run-messy, with no ?run= query given', async () => {
+  it('defaults to run-messy-pending, with no ?run= query given', async () => {
     render(<App />)
-    expect(await screen.findByText(runMessy.target.system)).toBeVisible()
+    expect(await screen.findByText(runMessyPending.id)).toBeVisible()
+  })
+
+  it('has no logo or main menu of its own: it opens on the page’s own breadcrumb', async () => {
+    render(<App />)
+    expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'My reviews' })).toHaveAttribute(
+      'href',
+      '?view=reviews',
+    )
+  })
+
+  it('shows the "My reviews" list for ?view=reviews', async () => {
+    window.history.pushState({}, '', '/?view=reviews')
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: 'My reviews' })).toBeVisible()
   })
 
   it('loads the run named by ?run=', async () => {

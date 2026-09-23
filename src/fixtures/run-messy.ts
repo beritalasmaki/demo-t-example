@@ -24,7 +24,7 @@ const decisionAt = new Date(Date.now() - 3 * 60 * 1000).toISOString()
  */
 const shardVerificationEvents = Array.from({ length: 180 }, (_, index) => {
   const shard = String(index + 1).padStart(3, '0')
-  const at = new Date(Date.UTC(2026, 1, 11, 8, 58, 30 + index * 3))
+  const at = new Date(Date.UTC(2026, 8, 23, 7, 58, 30 + index * 3))
   return {
     id: `ms${index + 1}`,
     at: at.toISOString(),
@@ -36,13 +36,13 @@ const shardVerificationEvents = Array.from({ length: 180 }, (_, index) => {
 export const runMessy: Run = {
   id: 'run-messy',
   initiative: 'Move refund processing to the new payment gateway',
-  requestedBy: 'Leah Fontaine',
+  requestedBy: 'Maarit Kasakallio',
   // Matches decision.revision below: nothing has moved on since this run was approved.
   revision: 'e91a4c',
   target: { system: 'payments-service', environment: 'production' },
   agent: { name: 'Kestrel', version: '4.3.0', model: 'kestrel-code-14b' },
-  startedAt: '2026-02-11T08:02:00Z',
-  finishedAt: '2026-02-11T09:51:00Z',
+  startedAt: '2026-09-23T07:02:00Z',
+  finishedAt: '2026-09-23T08:51:00Z',
   status: 'approved',
   summary: [
     {
@@ -66,7 +66,7 @@ export const runMessy: Run = {
         'Changes must not create a new way for someone outside the company to read or change data they should not have access to.',
       result: 'pass',
       evaluatedBy: 'policy-engine v2.3',
-      evaluatedAt: '2026-02-11T09:22:00Z',
+      evaluatedAt: '2026-09-23T08:22:00Z',
       evidenceIds: ['m5', 'm6', 'm13'],
     },
     {
@@ -75,7 +75,7 @@ export const runMessy: Run = {
       plainLanguage: 'Personal data must be deleted within 30 days.',
       result: 'pass',
       evaluatedBy: 'policy-engine v2.3',
-      evaluatedAt: '2026-02-11T09:24:00Z',
+      evaluatedAt: '2026-09-23T08:24:00Z',
       evidenceIds: ['m5', 'm6', 'm14'],
     },
     {
@@ -84,8 +84,8 @@ export const runMessy: Run = {
       plainLanguage:
         "Changes that call another team's service directly must be reviewed by the platform team first.",
       result: 'pass',
-      evaluatedBy: 'Dana Whitfield',
-      evaluatedAt: '2026-02-11T09:26:00Z',
+      evaluatedBy: 'Aino Lehtomäki',
+      evaluatedAt: '2026-09-23T08:26:00Z',
       evidenceIds: ['m5', 'm6', 'm7', 'm15'],
     },
     {
@@ -95,7 +95,7 @@ export const runMessy: Run = {
         'New dependencies must use a license that allows commercial use without extra legal review.',
       result: 'unknown',
       evaluatedBy: 'license-scanner v1.4',
-      evaluatedAt: '2026-02-11T09:30:00Z',
+      evaluatedAt: '2026-09-23T08:30:00Z',
       evidenceIds: ['m5', 'm16'],
     },
     {
@@ -104,7 +104,7 @@ export const runMessy: Run = {
       plainLanguage: 'Changed code must be covered by automated tests before it can be released.',
       result: 'pass',
       evaluatedBy: 'coverage-gate v3.1',
-      evaluatedAt: '2026-02-11T09:33:00Z',
+      evaluatedAt: '2026-09-23T08:33:00Z',
       evidenceIds: ['m10', 'm11', 'm17'],
     },
     {
@@ -114,39 +114,39 @@ export const runMessy: Run = {
         'New or changed screens must meet WCAG 2.1 AA contrast and keyboard-navigation requirements.',
       result: 'unknown',
       evaluatedBy: 'a11y-scanner v2.0',
-      evaluatedAt: '2026-02-11T09:41:00Z',
+      evaluatedAt: '2026-09-23T08:41:00Z',
       evidenceIds: ['m9', 'm18'],
     },
   ],
   timeline: [
     {
       id: 'm1',
-      at: '2026-02-11T08:02:00Z',
+      at: '2026-09-23T07:02:00Z',
       type: 'plan',
       title: "Planned moving refund processing to the new payment gateway's refund endpoint.",
     },
     {
       id: 'm2',
-      at: '2026-02-11T08:05:00Z',
+      at: '2026-09-23T07:05:00Z',
       type: 'tool_call',
       title: 'Read src/services/payments/refunds.ts to find the current refund call.',
     },
     {
       id: 'm3',
-      at: '2026-02-11T08:07:00Z',
+      at: '2026-09-23T07:07:00Z',
       type: 'tool_call',
       title: 'Read src/services/payments/gateway-legacy-client.ts for the existing gateway client.',
     },
     {
       id: 'm4',
-      at: '2026-02-11T08:12:00Z',
+      at: '2026-09-23T07:12:00Z',
       type: 'tool_call',
       title: "Called the new payment gateway's sandbox API.",
       detail: "Confirmed the refund endpoint's request shape and its timeout behaviour.",
     },
     {
       id: 'm5',
-      at: '2026-02-11T08:24:00Z',
+      at: '2026-09-23T07:24:00Z',
       type: 'file_change',
       title: 'Added src/services/payments/gateway-client.ts',
       detail: "New client for the payment gateway's refund endpoint.",
@@ -154,7 +154,7 @@ export const runMessy: Run = {
     },
     {
       id: 'm6',
-      at: '2026-02-11T08:31:00Z',
+      at: '2026-09-23T07:31:00Z',
       type: 'file_change',
       title: 'Edited src/services/payments/refunds.ts',
       detail: 'Calls the new gateway client instead of the legacy one for cancelled-order refunds.',
@@ -162,7 +162,7 @@ export const runMessy: Run = {
     },
     {
       id: 'm7',
-      at: '2026-02-11T08:39:00Z',
+      at: '2026-09-23T07:39:00Z',
       type: 'file_change',
       title: 'Edited src/services/payments/reconciliation.ts',
       detail: "Reads refund status from the new gateway's response shape.",
@@ -170,7 +170,7 @@ export const runMessy: Run = {
     },
     {
       id: 'm8',
-      at: '2026-02-11T08:44:00Z',
+      at: '2026-09-23T07:44:00Z',
       type: 'file_change',
       title: 'Edited src/services/payments/order-events.ts',
       detail:
@@ -179,7 +179,7 @@ export const runMessy: Run = {
     },
     {
       id: 'm9',
-      at: '2026-02-11T08:50:00Z',
+      at: '2026-09-23T07:50:00Z',
       type: 'file_change',
       title: 'Edited src/ops-dashboard/order-status-label.ts',
       detail:
@@ -188,7 +188,7 @@ export const runMessy: Run = {
     },
     {
       id: 'm10',
-      at: '2026-02-11T08:58:00Z',
+      at: '2026-09-23T07:58:00Z',
       type: 'file_change',
       title: 'Added src/services/payments/gateway-client.test.ts',
       detail: 'Unit tests for the new client, including a timeout case.',
@@ -197,7 +197,7 @@ export const runMessy: Run = {
     ...shardVerificationEvents,
     {
       id: 'm11',
-      at: '2026-02-11T09:10:00Z',
+      at: '2026-09-23T08:10:00Z',
       type: 'test_run',
       title: 'Ran the payments service test suite.',
       detail:
@@ -205,33 +205,33 @@ export const runMessy: Run = {
     },
     {
       id: 'm12',
-      at: '2026-02-11T09:18:00Z',
+      at: '2026-09-23T08:18:00Z',
       type: 'test_run',
       title: 'Ran the integration suite against the payment gateway sandbox.',
       detail: '2 passed: a full refund, and a refund retried after a simulated timeout.',
     },
     {
       id: 'm13',
-      at: '2026-02-11T09:22:00Z',
+      at: '2026-09-23T08:22:00Z',
       type: 'gate_eval',
       title: 'Security review passed.',
     },
     {
       id: 'm14',
-      at: '2026-02-11T09:24:00Z',
+      at: '2026-09-23T08:24:00Z',
       type: 'gate_eval',
       title: 'Data retention passed.',
     },
     {
       id: 'm15',
-      at: '2026-02-11T09:26:00Z',
+      at: '2026-09-23T08:26:00Z',
       type: 'gate_eval',
       title: 'Architecture review passed.',
-      detail: 'Reviewed by Dana Whitfield: the new client is called only from this service.',
+      detail: 'Reviewed by Aino Lehtomäki: the new client is called only from this service.',
     },
     {
       id: 'm16',
-      at: '2026-02-11T09:30:00Z',
+      at: '2026-09-23T08:30:00Z',
       type: 'gate_eval',
       title: 'Licensing scan did not complete.',
       detail:
@@ -240,13 +240,13 @@ export const runMessy: Run = {
     },
     {
       id: 'm17',
-      at: '2026-02-11T09:33:00Z',
+      at: '2026-09-23T08:33:00Z',
       type: 'gate_eval',
       title: 'Test coverage passed.',
     },
     {
       id: 'm18',
-      at: '2026-02-11T09:41:00Z',
+      at: '2026-09-23T08:41:00Z',
       type: 'gate_eval',
       title: 'Accessibility check did not complete.',
       detail:
@@ -255,7 +255,7 @@ export const runMessy: Run = {
     },
     {
       id: 'm19',
-      at: '2026-02-11T09:45:00Z',
+      at: '2026-09-23T08:45:00Z',
       type: 'note',
       title: 'The nightly reconciliation job was not re-run against this change.',
       detail: 'It next runs at 02:00.',
@@ -263,7 +263,7 @@ export const runMessy: Run = {
     },
     {
       id: 'm20',
-      at: '2026-02-11T09:48:00Z',
+      at: '2026-09-23T08:48:00Z',
       type: 'tool_call',
       title: 'Searched the codebase for other callers of the legacy gateway client.',
       detail: 'Found none outside src/services/payments/.',
@@ -274,40 +274,120 @@ export const runMessy: Run = {
       area: 'implementation',
       value: 0.81,
       basis:
-        'Based on the diff across six changed files and a search for other callers of the legacy client.',
+        'Based on the six changed files and a search for other places that use the old gateway client.',
       rationale:
-        "The refund flow, the reconciliation job, and the ops dashboard label all now read from the new gateway's response shape.",
-      unverified: [
-        'Whether any scheduled batch job still imports the legacy client’s types directly.',
-      ],
+        "The refund flow, the reconciliation job and the dashboard label all now read from the new gateway's response.",
+      unverified: ['Whether a scheduled job still uses the old client’s types.'],
     },
     {
       area: 'tests',
       value: 0.88,
-      basis: 'Based on 162 unit tests and 2 integration tests against the sandbox, all passing.',
+      basis:
+        "Based on 162 unit tests and 2 larger tests against the gateway's test system, all passing.",
       rationale:
-        'Covers the new client, the updated refund and reconciliation paths, and a simulated gateway timeout.',
-      unverified: ['Behaviour when the gateway is unreachable for longer than the retry window.'],
+        'Covers the new client, the updated refund and reconciliation paths, and a gateway timeout.',
+      unverified: ['What happens if the gateway is down for longer than the retry time.'],
     },
     {
       area: 'side_effects',
       value: 0.52,
-      basis: 'Based on log analysis from the staging rollout only.',
+      basis:
+        'Based only on two days of test-system logs. No duplicate refunds appeared there, but the test system has far less traffic than production.',
       rationale:
-        'Staging traffic over 48 hours showed no duplicate refunds, but staging volume is a small fraction of production.',
+        'The change only moves where refunds are sent, but the new gateway answers in a different order than the old one.',
       unverified: [
-        'Whether concurrent refund requests for the same order can race under production load.',
-        'Effect on the 02:00 reconciliation job, which has not run against this change yet.',
+        'Whether two refunds for the same order might clash under load.',
+        'The effect on the 02:00 reconciliation job, which has not run against this change yet.',
       ],
     },
     // No entry for "security": the model reported no confidence value for this area at all.
   ],
   decision: {
     outcome: 'approved',
-    by: 'Marcus Webb',
+    by: 'Juhani Virtaleppäsoutu',
     at: decisionAt,
-    // Not required for an approval (Content rules, "Buttons"), and none was given.
-    acknowledgedGateIds: [],
+    // Required for this approval: two checks did not run (docs/DECISIONS.md, 0040).
+    reason:
+      'Licensing and accessibility do not apply here: no new dependencies were added, and the only screen change is one status label with the same wording as before.',
+    acknowledgedItemIds: ['open-gates-unknown', 'open-confidence-side_effects', 'open-note-m19'],
     revision: 'e91a4c',
   },
+  assignment: {
+    context:
+      'The shop is moving refunds from its old payment provider to a new one. The old provider will stop working at the end of the quarter.',
+    by: 'Maarit Kasakallio',
+    reason:
+      'it is well defined and repeats the same work in many places, such as checking 180 merchant settings one by one.',
+  },
+  story: [
+    {
+      id: 'plan',
+      label: 'Plan',
+      text: 'The agent planned to send refunds for cancelled orders through the new payment gateway instead of the old client.',
+      evidenceIds: ['m1'],
+    },
+    {
+      id: 'reading',
+      label: 'Reading the code',
+      text: "It read the current refund call and the old gateway client, then called the gateway's test API to check the request format and what happens on a timeout.",
+      evidenceIds: ['m2', 'm3', 'm4'],
+      linkToSteps: true,
+    },
+    {
+      id: 'files',
+      label: '6 files changed',
+      text: 'It added a new client for the refund endpoint, then moved the refund path, the reconciliation job, the order-event sender and the dashboard status label onto it. The refund.issued event stays the same.',
+      evidenceIds: ['m5', 'm6', 'm7', 'm8', 'm9', 'm10'],
+      confidenceAreas: ['implementation'],
+    },
+    {
+      id: 'shards',
+      label: 'Shard checks',
+      text: 'This payments system is split per merchant, so the agent checked the gateway settings for all 180 parts, one by one. None of them disagreed.',
+      evidenceIds: shardVerificationEvents.map((event) => event.id),
+      linkToSteps: true,
+    },
+    {
+      id: 'tests',
+      label: 'Tests',
+      text: "162 unit tests passed for the new client and the updated refund and reconciliation paths. Two larger tests ran against the gateway's test system: one full refund, and one refund repeated after a timeout.",
+      evidenceIds: ['m11', 'm12'],
+      confidenceAreas: ['tests'],
+    },
+    {
+      id: 'checks',
+      label: 'Policy checks',
+      text: 'Four of six checks passed: security, data retention, test coverage, and the architecture review. Two checks gave no result at all.',
+      evidenceIds: ['m13', 'm14', 'm15', 'm16', 'm17', 'm18'],
+      gateIds: [
+        'security',
+        'data-retention',
+        'architecture',
+        'test-coverage',
+        'licensing',
+        'accessibility',
+      ],
+      confidenceAreas: ['security'],
+    },
+    {
+      id: 'open',
+      label: 'Open items',
+      text: 'The nightly reconciliation job has not run against this change; it runs next at 02:00. A search found no other users of the old gateway client outside this service.',
+      evidenceIds: ['m19', 'm20'],
+      confidenceAreas: ['side_effects'],
+    },
+  ],
+}
+
+/**
+ * The same run one moment before anyone decided — design 1a ("Before anyone decides"). Kept as
+ * a separate fixture rather than replacing `runMessy`: the spec's fixture list asks for a messy
+ * run with a decision already recorded (design 1b), and the pending state is the one the page
+ * opens on by default.
+ */
+export const runMessyPending: Run = {
+  ...runMessy,
+  id: 'run-messy-pending',
+  status: 'awaiting_review',
+  decision: undefined,
 }

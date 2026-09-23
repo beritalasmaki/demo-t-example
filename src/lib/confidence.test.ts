@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveConfidenceAreas } from './confidence'
+import { confidenceLevel, resolveConfidenceAreas } from './confidence'
 import { runBlocked, runMessy } from '../fixtures'
 
 describe('resolveConfidenceAreas', () => {
@@ -28,5 +28,18 @@ describe('resolveConfidenceAreas', () => {
     const resolved = resolveConfidenceAreas([])
     expect(resolved.every((r) => r.missing === true)).toBe(true)
     expect(resolved).toHaveLength(4)
+  })
+})
+
+describe('confidenceLevel', () => {
+  it('matches the whole percentage shown, at each boundary', () => {
+    expect(confidenceLevel(0.88)).toBe('high')
+    expect(confidenceLevel(0.85)).toBe('high')
+    expect(confidenceLevel(0.846)).toBe('high') // shown as 85%
+    expect(confidenceLevel(0.84)).toBe('medium')
+    expect(confidenceLevel(0.81)).toBe('medium')
+    expect(confidenceLevel(0.6)).toBe('medium')
+    expect(confidenceLevel(0.59)).toBe('low')
+    expect(confidenceLevel(0.52)).toBe('low')
   })
 })

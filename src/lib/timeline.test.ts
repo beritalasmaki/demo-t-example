@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { TimelineEvent } from './types'
-import { filterTimeline, isError, isRetry, timelineShape } from './timeline'
+import { filterTimeline, isError, isRetry, testsPassing, timelineShape } from './timeline'
 
 function event(
   overrides: Partial<TimelineEvent> & Pick<TimelineEvent, 'id' | 'type'>,
@@ -87,5 +87,20 @@ describe('filterTimeline', () => {
   it('keeps original order, not filter-tier order', () => {
     const result = filterTimeline(events, new Set())
     expect(result.visible.map((e) => e.id)).toEqual(['a', 'b', 'c', 'd', 'e'])
+  })
+})
+
+describe('testsPassing', () => {
+  it('sums the counts every fixture states', async () => {
+    const { runBlocked, runClean, runMessy } = await import('../fixtures')
+    expect(testsPassing(runMessy.timeline)).toBe(164)
+    expect(testsPassing(runBlocked.timeline)).toBe(110)
+    expect(testsPassing(runClean.timeline)).toBe(47)
+  })
+
+  it('is undefined when no test run states a count', () => {
+    expect(
+      testsPassing([{ id: 'x', at: '', type: 'test_run', title: 'Ran tests.' }]),
+    ).toBeUndefined()
   })
 })

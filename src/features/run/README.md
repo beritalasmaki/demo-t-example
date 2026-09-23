@@ -51,40 +51,39 @@ written the code: a compliance officer, a security lead, a product owner. Design
 
 ## Files
 
-- `RunReviewPage.tsx` — composes the regions: loading, not-found and failed-load states, then
-  `RunHeader`, `RunSummary`, `PolicyGateList`, `Timeline`, `ConfidencePanel` and `DecisionBar`
-  once the run has loaded, alongside `components/AnchorNav.tsx` (quick links to each region's
-  heading id), `DecisionStatusBanner.tsx` (only when already decided) and `AttentionDigest.tsx`
-  (only when `lib/attention.ts`'s `buildAttentionItems` found something worth flagging — see
-  docs/DECISIONS.md). Holds the run in local state so a decision (or a conflict — or an undo)
-  updates the screen immediately, without a refetch
-- `AttentionDigest.tsx` — the "Before you approve" digest: not one of the spec's six
-  regions, a synthesized shortcut to what `lib/attention.ts` found. Every item links to the
-  region it came from; renders nothing when there's nothing to flag
-- `DecisionStatusBanner.tsx` — "Approved by X · 4 minutes ago", right under the run header, so
-  an already-decided run says so immediately rather than only at the bottom Decision region.
-  A pointer to `DecisionBar.tsx`'s `DecidedView`, never a second place the decision is recorded
-- `ActorName.tsx` — the shared "who did this" display: a person's name gets a pill (border,
-  filled background, `ActorIcon`); a system's name-and-version stays plain icon + text — the
-  contrast is what marks "a person did this" (docs/DECISIONS.md). Used by `PolicyGateRow.tsx`
-  (`evaluatedBy`, `waiver.by`), `DecisionBar.tsx` and `DecisionStatusBanner.tsx` (`decision.by`)
-- `useRun.ts` — loading, not-found and error handling via `lib/api`'s `getRun`. No
-  stale-while-revalidating: nothing in `lib/api` yet signals that a run moved on during a
-  read the way `submitDecision`'s `DecisionConflictError` does for a decision in flight
-- `RunHeader.tsx` — what this run is: system, environment and status always visible;
-  initiative and requester below that; agent, model, run id and time zone behind a disclosure
-- `RunSummary.tsx` — three to five sourced sentences; a sentence whose evidence doesn't
-  resolve to a real timeline event is dropped, not shown empty (see `lib/summary.ts`)
-- `PolicyGateList.tsx`, `PolicyGateRow.tsx` — gates, failed and waived first
-- `Timeline.tsx`, `TimelineEventRow.tsx`, `TimelineFilters.tsx` — the audit trail. Named
-  `TimelineEventRow`, not `TimelineEvent` as originally planned here: that name already
-  belongs to `lib/types.ts`'s `TimelineEvent`, needed in the same file.
-- `ConfidencePanel.tsx` — one row per area, from the fixed set in `lib/confidence.ts`'s
-  `ALL_CONFIDENCE_AREAS`: what the model could not verify and the value+basis always visible,
-  the longer rationale behind a disclosure, "Not checked" for an area the model omitted
-  entirely
-- `DecisionBar.tsx` — the three actions (no brand colour on any of them — Scenario S2), the
-  sign-off tick for a failed or waived gate, and, once decided, who/when/revision and a live
-  undo countdown. `DecisionDialog.tsx` — the confirm-or-reason modal behind each action:
-  validation, a failed submit, and Scenario S5's lighter form (a conflicting decision caught
-  at the moment of submitting, not while passively reading — see docs/DECISIONS.md)
+The page is the "story layout" (docs/DECISIONS.md, 0038): an overview header, three views of
+the run, and a right column that stays in place.
+
+- `RunReviewPage.tsx` — composes the page and handles loading, not-found and failed-load
+  states once. Holds the run in local state, so a decision, a conflict or an undo updates the
+  screen straight away, without a refetch. Owns which view is open, and which step to focus
+  when a link jumps into the step list.
+- `RunTopBar.tsx` — breadcrumb back to "My reviews", and the Story / Evidence / All N steps tab
+  list. No logo or main menu: the page sits inside a host platform (0042).
+- `RunOverview.tsx` — status, initiative, why the agent was asked, where the run is now, the
+  labelled facts (requested by, agent, ran, checks, lowest score, target, revision, run
+  reference), and one box on the right: what is open (before a decision) or `UndoBox` (after).
+- `UndoBox.tsx` — the live undo countdown and the one filled Undo button (0017, 0033).
+- `StoryTimeline.tsx` — "What happened, in order": `Run.story` on a timeline spine, ending on
+  "Waiting for a decision" or the decision and its reason. Uses `ScoreCard` and `CheckCard`
+  where scores and checks happened.
+- `ScoreCard.tsx` — one confidence score: percentage, level, action, basis, what could not be
+  checked, and "Why this score" (0041). A missing area shows "Not checked".
+- `CheckCard.tsx` — a check that failed, did not run, or has an exception. Before a decision,
+  "Run check again" (local only) gives a way forward.
+- `EvidenceTab.tsx` — every event the page's claims rest on, grouped by what it supports.
+- `StepsTab.tsx` — the full audit log, one row per step, with long repeated runs folded.
+- `DecisionPanel.tsx` — "Your decision": tick each open item, a reason (required when a check
+  is missing), then Approve and release, or Request changes / Reject run (0039, 0040). Each
+  action opens `DecisionDialog`.
+- `DecisionDialog.tsx` — the confirmation (it names the revision and target) or the reason
+  form behind each action, plus a failed submit and Scenario S5's conflict.
+- `UnverifiedList.tsx` — "What is not checked" before a decision, "What is still unverified"
+  after, with "Copy this list for the record".
+- `RunShape.tsx` — the run in five counted numbers, shown after a decision.
+- `ReviewList.tsx` — "My reviews", a minimal list for navigation only.
+- `ActorName.tsx` — the shared "who did this" display: a person gets a pill, a system stays
+  plain icon + text (0023).
+- `SectionHeading.tsx` — the region heading with its scanning icon.
+- `currentReviewer.ts` — the stand-in identity of whoever is using the page (no sign-in yet).
+- `useRun.ts` — loading, not-found and error handling around `lib/api`'s `getRun`.

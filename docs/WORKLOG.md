@@ -39,6 +39,33 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · "By Berit ❤︎" in the top bar
+
+**Goal**
+A mark at the right of the top navigation reading "By Berit ❤︎", with an orange heart.
+
+**What changed**
+- `RunTopBar.tsx`: a `Byline` at the far right, and a new order for narrow screens.
+- `RunReviewPage.tsx`: one `toSolve` flag drives the favicon dot and the bar's notice. The
+  notice is passed only when there is something to solve.
+- A page test for the mark. DECISIONS 0057.
+
+**Steps, in order**
+1. `git checkout -b feat/byline-mark` from main.
+2. Added the mark. Screenshots at four widths showed it alone on a third row on a phone, so it
+   moved up to the breadcrumb row there.
+3. Test, `npm run check`, then merged into main.
+
+**Why it was done this way**
+See DECISIONS 0057. The heart is text, not an emoji, so it takes the orange.
+
+**How to do this by hand**
+Open the run page. "By Berit ❤︎" is at the top right. On a phone it is at the end of the
+breadcrumb row.
+
+**Verification**
+`npm run check` passed. The screenshots and computed colour are in DECISIONS 0057.
+
 ### 2026-09-23 · Open item links, and a spotlight on "Jump to the open items"
 
 **Goal**

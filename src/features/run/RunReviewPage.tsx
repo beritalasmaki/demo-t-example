@@ -147,9 +147,11 @@ export function RunReviewPage({
 
   // An amber dot on the tab's icon while the run has things to solve (0054).
   const shownRun = changedRun ?? (state.status === 'success' ? state.run : null)
-  useAttentionFavicon(
-    shownRun != null && shownRun.decision == null && buildOpenItems(shownRun).length > 0,
-  )
+  // Things to solve: an undecided run with open items. The favicon's dot and the top bar's
+  // notice both follow it.
+  const toSolve =
+    shownRun != null && shownRun.decision == null && buildOpenItems(shownRun).length > 0
+  useAttentionFavicon(toSolve)
 
   if (state.status === 'loading') {
     return <LoadingState label="Loading run…" />
@@ -225,7 +227,7 @@ export function RunReviewPage({
           ref={barRef}
           run={run}
           reviewsHref={reviewsHref}
-          end={decided ? undefined : <OpenItemsNotice run={run} />}
+          end={toSolve ? <OpenItemsNotice run={run} /> : undefined}
         />
 
         {/*

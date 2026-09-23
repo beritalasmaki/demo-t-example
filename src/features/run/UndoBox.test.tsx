@@ -36,3 +36,30 @@ describe('UndoBox', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })
+
+describe('UndoBox success check', () => {
+  it('shows the outcome beside a still check for a run that loaded already decided', () => {
+    render(<UndoBox run={runMessy} onRunUpdated={vi.fn()} now={new Date(decidedAt)} />)
+    const heading = screen.getByRole('heading', { name: 'Approved' })
+    expect(heading.querySelector('.t-success-check')).toHaveAttribute('data-state', 'static')
+    expect(heading).not.toHaveFocus()
+  })
+
+  it('plays the check and takes focus when the decision was just made here', () => {
+    render(<UndoBox run={runMessy} onRunUpdated={vi.fn()} now={new Date(decidedAt)} celebrate />)
+    const heading = screen.getByRole('heading', { name: 'Approved' })
+    expect(heading.querySelector('.t-success-check')).toHaveAttribute('data-state', 'in')
+    expect(heading).toHaveFocus()
+  })
+
+  it('shows no check for a decision that is not an approval', () => {
+    const rejected = {
+      ...runMessy,
+      decision: { ...runMessy.decision!, outcome: 'rejected' as const },
+    }
+    render(<UndoBox run={rejected} onRunUpdated={vi.fn()} now={new Date(decidedAt)} />)
+    expect(
+      screen.getByRole('heading', { name: 'Rejected' }).querySelector('.t-success-check'),
+    ).toBeNull()
+  })
+})

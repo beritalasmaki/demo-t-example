@@ -53,13 +53,25 @@ export function RunTopBar({ run, reviewsHref, ref }: RunTopBarProps) {
           </ol>
         </nav>
         <TabsList variant="pill" label="Views of this run">
-          <TabsTrigger variant="pill" value="story">
+          <TabsTrigger
+            variant="pill"
+            value="story"
+            tooltip="What the agent did, in order, in plain sentences"
+          >
             Story
           </TabsTrigger>
-          <TabsTrigger variant="pill" value="evidence">
+          <TabsTrigger
+            variant="pill"
+            value="evidence"
+            tooltip="Every file, test and check the page's claims are based on"
+          >
             Evidence
           </TabsTrigger>
-          <TabsTrigger variant="pill" value="steps">
+          <TabsTrigger
+            variant="pill"
+            value="steps"
+            tooltip="The full record, one row for each step the agent took"
+          >
             All {formatCount(run.timeline.length, 'step')}
           </TabsTrigger>
         </TabsList>

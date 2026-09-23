@@ -58,6 +58,9 @@ export function RunReviewPage({
   const [changedRun, setChangedRun] = useState<Run | null>(null)
   const [view, setView] = useState<RunView>(defaultView)
   const [focusEventId, setFocusEventId] = useState<string | undefined>(undefined)
+  // True once a decision has been made on this page — the undo box then plays the success
+  // check and takes focus. Not true for a run that loaded already decided.
+  const [decidedHere, setDecidedHere] = useState(false)
   // Set when the reviewer picks a tab, read once after the new view has rendered.
   const focusViewHeading = useRef(false)
   const barRef = useRef<HTMLDivElement>(null)
@@ -128,6 +131,11 @@ export function RunReviewPage({
   const run = changedRun ?? state.run
   const decided = run.decision != null
 
+  function applyRun(updated: Run) {
+    setChangedRun(updated)
+    setDecidedHere(updated.decision != null)
+  }
+
   function chooseView(next: RunView) {
     focusViewHeading.current = true
     setView(next)
@@ -169,7 +177,7 @@ export function RunReviewPage({
           >
             {decided ? (
               <>
-                <UndoBox run={run} onRunUpdated={setChangedRun} />
+                <UndoBox run={run} onRunUpdated={applyRun} celebrate={decidedHere} />
                 <UnverifiedList run={run} />
                 <RunShape run={run} />
               </>
@@ -181,7 +189,7 @@ export function RunReviewPage({
                   // decision that no longer stands.
                   key={run.status}
                   run={run}
-                  onRunUpdated={setChangedRun}
+                  onRunUpdated={applyRun}
                   submitDecisionOptions={submitDecisionOptions}
                 />
                 <UnverifiedList run={run} />

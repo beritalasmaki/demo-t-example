@@ -133,3 +133,14 @@ focus. `prefers-reduced-motion` is respected.
 
 This folder is also the artefact a design agent could read. Keep it tidy and documented in
 Storybook — that is the point of writing design decisions as code.
+
+## transitions.css
+
+Three transitions from transitions.dev (docs/DECISIONS.md, 0047): "Success check", "Tooltip
+open/close" and "Tabs sliding". Each keeps its `.t-*` classes, its own motion variables, and
+its `prefers-reduced-motion` guard. Colours come from the semantic tokens above. Change a
+transition's feel through its variables (`--check-*`, `--tt-*`, `--tabs-*`), never by editing
+the keyframes.
+
+The welcome intro's colours (`--color-signature`, `--color-intro-*`) are in tokens.css. They are
+the same in both themes on purpose, and are used by the intro only (0048).

@@ -6,6 +6,80 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0048 · A one-time welcome intro, laid over the page and never in its way
+
+**Context.** The user asked for a one-time intro before the first page load in a browser. The
+signature mark draws itself in orange and resolves to black. The name and title type on, then
+"Made by", a hold, and a fade. It must stay separate from the data-loading state, and skip
+itself for reduced motion or on any click, tap or key.
+
+**Choice.**
+- `App.tsx` mounts the page and the intro together. The page starts loading its run at once,
+  underneath. If the intro ends first, the page's own "Loading run…" state is already there,
+  with no second waiting treatment. Checked in a browser with `?delay=6000`: after the fade,
+  "Loading run…", then the run.
+- First visit only: `ledger:intro-seen` in localStorage, set on completion or skip. If storage
+  is blocked, the intro is treated as seen instead of showing on every visit.
+- `SignatureMark.tsx` uses the supplied path data untouched, plus two attributes: `pathLength`
+  for the draw, and `data-resolved` for the ink change. Checked in the browser: its bounding
+  box is 177.3 × 100 in the 178 × 101 viewBox.
+- **The name and title are typed as real text** in `--font-heading` (Raleway), not drawn from
+  the supplied name and title SVGs: typing character by character needs characters. The
+  title's capitals and wide spacing follow the supplied title SVG ("UX & PRODUCT DESIGNER").
+- **The name and title are one left-aligned block, centred under the mark, and the title
+  spans exactly the name's width** (the user's reference image). The title's letter spacing
+  is computed, not fixed: the name's width minus the title's natural width, spread over the
+  gaps between its characters. It is measured again once `document.fonts` is ready, so the
+  edges meet whatever font renders. Checked in a browser: both lines run 530–750 px at
+  1280 px wide, and 85–305 px at 390 px.
+- **The mark sits on the bottom of its 200×200 box** (`preserveAspectRatio="xMidYMax meet"`),
+  so it reads as one group with the name, as the user asked. The artwork is 178 × 101, so
+  centred it left about 43 px of empty box under it. The gap to the name is now 13 px, and
+  "Made by" is placed level with the drawn mark's middle.
+- **A new colour, `--signature-orange` (`--color-signature`)**, for the drawing stroke. The
+  brand accent (`--color-accent-hover`) is teal, not orange. The only warm tone in the tokens
+  is amber, which belongs to the status palette and must not be used for non-status UI.
+  The overlay tokens (`--color-intro-scrim`, `-ink`, `-muted`) are the same in both themes on
+  purpose: the logo is black ink on white.
+- The overlay is `aria-hidden` and holds nothing focusable, so it never traps focus. A key press
+  skips it through a window listener; a click or tap skips it through the overlay itself.
+
+**Consequence.** The intro's timings live in two places that must agree: `INTRO_TIMING` in
+`app/intro.ts` (the timeline) and the `--intro-*` variables in `app/intro.css` (the CSS
+durations). `?delay=<ms>` is now a supported URL knob for showing the loading state on purpose.
+
+---
+
+## 0047 · Three transitions.dev transitions, ported by hand
+
+**Context.** The user asked for three transitions from transitions.dev: "Success check" when
+approving, "Tooltip open/close" on the view tabs, and "Tabs sliding" for the tab pill.
+
+**Options.** (a) Run `npx skills add` / `npx transitions-dev add` in the repo. (b) Read the
+recipes and port the CSS and JavaScript into the project by hand.
+
+**Choice.** (b). `npm pack transitions-dev@0.3.0` showed that the package is Markdown recipes
+(CSS plus a little JavaScript, MIT) and a copying CLI, with no runtime library. AGENTS.md asks
+before adding tooling, and there was nothing to install. `src/styles/transitions.css` keeps
+each recipe's `.t-*` classes, its motion variables (duration, easing, distance, blur, scale)
+and its `prefers-reduced-motion` guard. Changes from the recipes:
+- colours point at semantic tokens, so dark mode works;
+- the tooltip opens below its tab and is nudged inside the window (`--tt-shift`, measured in
+  `Tabs.tsx`), because the tab bar sits at the top right;
+- Escape dismisses the tooltip (WCAG 1.4.13), and the tooltip is linked by
+  `aria-describedby`;
+- the check uses `pathLength="1"` instead of a measured dash length.
+- `Tabs` (pill variant): one sliding pill behind the tabs, following `data-state`, so every
+  way of selecting a tab moves it. The first placement and any resize snap without sliding.
+- `UndoBox`: the header now names the outcome ("Approved") beside the check. For a decision
+  made on this page, the check plays and focus moves to the header. Before this, the Approve
+  button disappeared and focus fell back to the top of the page.
+
+**Consequence.** Measured in a browser: the pill slides from 4 px to 181 px over about 250 ms
+on the recipe's curve, and at 1280 and 390 px no tooltip leaves the window.
+
+---
+
 ## 0046 · Three columns: Run details on the left, no collapsing header
 
 **Context.** The user's next design iteration moves the labelled facts out of the header into

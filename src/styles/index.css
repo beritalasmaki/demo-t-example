@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import './tokens.css';
+@import './transitions.css';
 
 /*
  * A `dark:` variant for the rare case that a component needs more than a token

@@ -1,0 +1,78 @@
+/*
+ * The one-time welcome intro (WelcomeIntro.tsx, docs/DECISIONS.md 0048). Timings are
+ * variables so the sequence reads in one place; the component's own timeline uses the same
+ * numbers (INTRO_TIMING in WelcomeIntro.tsx).
+ */
+:root {
+  --intro-draw-dur: 900ms;
+  --intro-resolve-dur: 200ms;
+  --intro-made-by-dur: 300ms;
+  --intro-fade-dur: 500ms;
+}
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--color-intro-scrim);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--color-intro-ink);
+  opacity: 1;
+  cursor: pointer;
+  transition: opacity var(--intro-fade-dur) ease;
+}
+.intro-overlay[data-phase='fade'] {
+  opacity: 0;
+}
+
+/* 1. The outline draws itself in orange; 2. then the line becomes the logo — the stroke and
+ * the fill resolve to solid ink together. Same path throughout, no swap to a second SVG. */
+.intro-mark path {
+  fill: transparent;
+  stroke: var(--color-signature);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: intro-draw var(--intro-draw-dur) ease-out forwards;
+  transition:
+    fill var(--intro-resolve-dur) ease,
+    stroke var(--intro-resolve-dur) ease;
+}
+.intro-mark[data-resolved] path {
+  fill: var(--color-intro-ink);
+  stroke: var(--color-intro-ink);
+}
+@keyframes intro-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 3. The typed lines. A blinking block cursor while typing. */
+.intro-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  margin-left: 2px;
+  vertical-align: -0.1em;
+  background: currentColor;
+  animation: intro-blink 1s steps(1) infinite;
+}
+@keyframes intro-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* 4. "Made by" fades in to the left of the mark. */
+.intro-made-by {
+  opacity: 0;
+  transition: opacity var(--intro-made-by-dur) ease;
+}
+.intro-made-by[data-shown] {
+  opacity: 1;
+}

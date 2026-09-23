@@ -89,6 +89,14 @@
    * 0041). Both reuse the existing red as foreground: 5.67:1 light, 6.57:1 dark. */
   --status-red-tint-bg-light: #fcebea;
   --status-red-tint-bg-dark: #3b1714;
+
+  /*
+   * The signature's drawing stroke in the one-time welcome intro (src/app/WelcomeIntro.tsx,
+   * docs/DECISIONS.md 0048). A new colour, said out loud rather than borrowed: the brand accent
+   * is teal, and the only warm tone here is amber, which belongs to the status palette and
+   * must not be reused for non-status UI. Decorative only — never text, never a status.
+   */
+  --signature-orange: #e8590c;
 }
 
 @theme {
@@ -145,6 +153,15 @@
   --color-status-waived-tint-fg: var(--status-amber-light);
   --color-status-fail-tint-bg: var(--status-red-tint-bg-light);
   --color-status-fail-tint-fg: var(--status-red-light);
+
+  /*
+   * The welcome intro's overlay, the same in both themes on purpose: the signature is black
+   * ink on a white, frosted sheet, like the logo itself (docs/DECISIONS.md, 0048).
+   */
+  --color-signature: var(--signature-orange);
+  --color-intro-scrim: rgb(255 255 255 / 0.8);
+  --color-intro-ink: var(--neutral-13);
+  --color-intro-muted: var(--neutral-8);
 
   /* Radius */
   --radius-sm: 0.25rem;

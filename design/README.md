@@ -76,7 +76,9 @@ The designs use ideas from two guides. They follow the principles, not the visua
 
 ## Built on
 
-The designs use the tokens from the Ledger code repository: Raleway and Montserrat fonts, violet `#5b4fc7` as the accent colour, the status colours, and a 4 px spacing scale. The code uses React 19, TypeScript, Tailwind CSS, shadcn/ui and lucide-react icons.
+The designs use the tokens from the Ledger code repository e.g. Raleway and Montserrat fonts, colours, and a 4 px spacing scale.
+
+
 
 
 

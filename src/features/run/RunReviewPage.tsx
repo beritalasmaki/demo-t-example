@@ -4,10 +4,12 @@ import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent } from '../../components/Tabs'
 import type { GetRunOptions, SubmitDecisionOptions } from '../../lib/api'
 import { buildOpenItems } from '../../lib/openItems'
+import type { OpenItemTarget } from '../../lib/openItems'
 import type { Run } from '../../lib/types'
 import { DecisionPanel } from './DecisionPanel'
 import { EvidenceTab } from './EvidenceTab'
 import { OpenItemsNotice } from './OpenItemsNotice'
+import { checkCardId, scoreCardId } from './openItemTargets'
 import { RunDetails } from './RunDetails'
 import { RunOverview } from './RunOverview'
 import { RunShape } from './RunShape'
@@ -62,6 +64,9 @@ export function RunReviewPage({
   const [changedRun, setChangedRun] = useState<Run | null>(null)
   const [view, setView] = useState<RunView>(defaultView)
   const [focusEventId, setFocusEventId] = useState<string | undefined>(undefined)
+  // A card an open item's link asked for (0055). An object, so a second click on the same
+  // link runs the effect again.
+  const [itemCard, setItemCard] = useState<{ id: string } | null>(null)
   // True once a decision has been made on this page — the undo box then plays the success
   // check and takes focus. Not true for a run that loaded already decided.
   const [decidedHere, setDecidedHere] = useState(false)
@@ -123,6 +128,23 @@ export function RunReviewPage({
     return () => cancelAnimationFrame(frame)
   }, [view])
 
+  // An open item's card, once the story is showing: scrolled to the middle of the window, so
+  // it is clear of the sticky bar and tabs, and focused. If the story does not show that card,
+  // the story's heading takes focus instead.
+  useEffect(() => {
+    if (!itemCard || view !== 'story') return
+    const frame = requestAnimationFrame(() => {
+      const card = document.getElementById(itemCard.id)
+      if (card) {
+        card.scrollIntoView({ block: 'center' })
+        card.focus({ preventScroll: true })
+      } else {
+        document.getElementById('story-heading')?.focus()
+      }
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [itemCard, view])
+
   // An amber dot on the tab's icon while the run has things to solve (0054).
   const shownRun = changedRun ?? (state.status === 'success' ? state.run : null)
   useAttentionFavicon(
@@ -172,6 +194,19 @@ export function RunReviewPage({
   function showStep(eventId: string) {
     setFocusEventId(eventId)
     setView('steps')
+  }
+
+  // "Show the …" under an open item (0055): a note's own row in the step list, or a check's
+  // or score's card in the story.
+  function showItem(target: OpenItemTarget) {
+    if (target.kind === 'step') {
+      showStep(target.eventId)
+      return
+    }
+    setView('story')
+    setItemCard({
+      id: target.kind === 'check' ? checkCardId(target.gateId) : scoreCardId(target.area),
+    })
   }
 
   const barStyle = {
@@ -224,6 +259,7 @@ export function RunReviewPage({
                   run={run}
                   onRunUpdated={applyRun}
                   submitDecisionOptions={submitDecisionOptions}
+                  onShowItem={showItem}
                 />
                 <UnverifiedList run={run} />
               </>

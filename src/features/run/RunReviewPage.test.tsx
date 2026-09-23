@@ -163,4 +163,21 @@ describe('RunReviewPage', () => {
     await user.click(screen.getByRole('button', { name: 'Retry' }))
     expect(screen.getByRole('status')).toHaveTextContent('Loading run')
   })
+
+  it('takes an open item link to its card in the story, or its row in the steps', async () => {
+    const user = userEvent.setup()
+    render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+
+    await user.click(screen.getByRole('tab', { name: 'Evidence' }))
+    await user.click(screen.getByRole('button', { name: 'Show the score →' }))
+    expect(screen.getByRole('tab', { name: 'Story', selected: true })).toBeVisible()
+    await waitFor(() => expect(document.getElementById('score-side_effects')).toHaveFocus())
+
+    await user.click(screen.getByRole('button', { name: 'Show the checks →' }))
+    await waitFor(() => expect(document.getElementById('check-licensing')).toHaveFocus())
+
+    await user.click(screen.getByRole('button', { name: 'Show the step →' }))
+    expect(screen.getByRole('tab', { name: 'All 200 steps', selected: true })).toBeVisible()
+  })
 })

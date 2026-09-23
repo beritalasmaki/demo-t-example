@@ -14,12 +14,20 @@ import type { ConfidenceArea, PolicyGate, Run } from './types'
 
 export type OpenItemKind = 'gates-fail' | 'gates-unknown' | 'gates-waived' | 'confidence' | 'note'
 
+/** Where on the page an open item is shown in full (docs/DECISIONS.md, 0055): a check's card
+ * or a score's card in the story, or the note's own row in the step list. */
+export type OpenItemTarget =
+  | { kind: 'check'; gateId: string; count: number }
+  | { kind: 'score'; area: string }
+  | { kind: 'step'; eventId: string }
+
 export interface OpenItem {
   /** Stable, and what `Decision.acknowledgedItemIds` records. */
   id: string
   kind: OpenItemKind
   /** The sentence next to the tick: "Licensing and accessibility checks did not run." */
   text: string
+  target: OpenItemTarget
 }
 
 function lowerFirst(text: string): string {
@@ -44,6 +52,7 @@ function gateItems(run: Run): OpenItem[] {
       id: 'open-gates-fail',
       kind: 'gates-fail',
       text: `${joinNames(failed)} ${failed.length === 1 ? 'check' : 'checks'} failed.`,
+      target: { kind: 'check', gateId: failed[0].id, count: failed.length },
     })
   }
   if (unknown.length > 0) {
@@ -51,6 +60,7 @@ function gateItems(run: Run): OpenItem[] {
       id: 'open-gates-unknown',
       kind: 'gates-unknown',
       text: `${joinNames(unknown)} ${unknown.length === 1 ? 'check' : 'checks'} did not run.`,
+      target: { kind: 'check', gateId: unknown[0].id, count: unknown.length },
     })
   }
   if (waived.length > 0) {
@@ -58,6 +68,7 @@ function gateItems(run: Run): OpenItem[] {
       id: 'open-gates-waived',
       kind: 'gates-waived',
       text: `${waived.map((gate) => `${gate.name}: ${formatGateResultLabel(gate)}`).join('. ')}.`,
+      target: { kind: 'check', gateId: waived[0].id, count: waived.length },
     })
   }
   return items
@@ -75,6 +86,7 @@ function confidenceItems(run: Run): OpenItem[] {
       id: `open-confidence-${area.area}`,
       kind: 'confidence' as const,
       text: first ? `${lead}: ${lowerFirst(first)}` : `${lead}.`,
+      target: { kind: 'score' as const, area: area.area },
     }
   })
 }
@@ -85,7 +97,12 @@ function confidenceItems(run: Run): OpenItem[] {
 function noteItems(run: Run): OpenItem[] {
   return run.timeline
     .filter((event) => event.type === 'note' && event.severity === 'warning')
-    .map((event) => ({ id: `open-note-${event.id}`, kind: 'note' as const, text: event.title }))
+    .map((event) => ({
+      id: `open-note-${event.id}`,
+      kind: 'note' as const,
+      text: event.title,
+      target: { kind: 'step' as const, eventId: event.id },
+    }))
 }
 
 export function buildOpenItems(run: Run): OpenItem[] {

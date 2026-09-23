@@ -166,6 +166,8 @@
   --color-intro-scrim: rgb(255 255 255 / 0.8);
   --color-intro-ink: var(--neutral-13);
   --color-intro-muted: var(--neutral-8);
+  /* The spotlight's dimmed surroundings, the same in both themes (docs/DECISIONS.md, 0056). */
+  --color-spotlight-scrim: rgb(0 0 0 / 0.5);
 
   /* Radius */
   --radius-sm: 0.25rem;

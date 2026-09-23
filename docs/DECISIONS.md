@@ -6,6 +6,60 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0056 · "Jump to the open items" spotlights the list it lands on
+
+**Context.** The user asked for the tick list to be highlighted after "Jump to the open
+items". They asked for a spotlight: a large, semi-transparent dark border around the area,
+thick enough to show, appearing and going away quickly, but slowly enough for the eye to
+track.
+
+**Choice.**
+- `.t-spotlight` in `transitions.css` is an animated box-shadow on the list: a 0.5 rem ring in
+  the card colour, then a `100vmax` spread of `--color-spotlight-scrim` (black at 50%) that
+  covers any window.
+- The list is raised to z-index 30 while it plays, above the sticky bar and tabs, so they dim
+  too.
+- Timing, 1.3 s in all: in over the first 15% (about 0.2 s), held until 62% (about 0.8 s),
+  then out over about 0.5 s.
+- `lib/spotlight.ts` restarts it on every click and removes it on `animationend`, or after
+  1.6 s if the animation never runs.
+- The link keeps its `#open-items` href for no-script use. With script, it scrolls itself and
+  spotlights.
+- The spotlight fades opacity only; nothing moves, so it plays for reduced motion too.
+
+**Consequence.** Checked in Chromium from 1500 px down the page. The page dims while the list
+scrolls into place, and the list is under the bar by 450 ms. The attribute was gone by
+1500 ms.
+
+---
+
+## 0055 · Each open item links to where it is shown in full
+
+**Context.** The user asked for links on the open items in "Confirm each open item", taking the
+reviewer to each problem, to make the task faster.
+
+**Choice.**
+- Each `OpenItem` carries a `target`:
+  - a check item goes to its first gate's card in the story ("Show the check →", or "Show the
+    checks →" for several);
+  - a low score goes to its score card ("Show the score →");
+  - a warning note goes to its own row in All steps ("Show the step →"), through the page's
+    existing `showStep`.
+- The link is a button under the item text, outside the tick's `<label>`, so following it
+  never ticks the item.
+- The page switches to Story if needed, then scrolls the card to the middle of the window,
+  clear of the sticky bar and tabs, and focuses it.
+- The cards are `tabIndex=-1` with ids from `openItemTargets.ts`. While focused they show the
+  focus ring, so the reviewer sees where they landed.
+- If the story does not show the card, the story heading takes focus.
+- Without `onShowItem`, as in stories, there are no links.
+
+**Consequence.** Checked in Chromium. From the Evidence tab, "Show the score" opened Story
+with the Side effects card focused and in view, and "Show the checks" did the same for the
+licensing card. "Show the step" opened All steps on the nightly-reconciliation row.
+
+---
+
 ## 0054 · "Run details" scrolls on its own; an amber dot on the tab's icon
 
 **Context.** From xl up, the "Run details" column sticks under the top bar. In a window

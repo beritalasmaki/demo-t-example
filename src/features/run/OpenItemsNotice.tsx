@@ -1,10 +1,12 @@
 import { buildOpenItems } from '../../lib/openItems'
+import { spotlight } from '../../lib/spotlight'
 import type { Run } from '../../lib/types'
 
 /**
  * How many things are open before a decision, at the right end of the page's top bar: a
  * yellow dot, "3 things to solve" and a link to the tick list in the decision panel
- * (docs/DECISIONS.md, 0053). Nothing when nothing is open — the decision panel says so itself.
+ * (docs/DECISIONS.md, 0053). The link scrolls to the list and spotlights it (0056); the `href`
+ * still works without script. Nothing when nothing is open — the decision panel says so itself.
  * After a decision the page does not show it.
  */
 export interface OpenItemsNoticeProps {
@@ -25,6 +27,13 @@ export function OpenItemsNotice({ run, href = '#open-items' }: OpenItemsNoticePr
       </span>
       <a
         href={href}
+        onClick={(event) => {
+          const target = document.getElementById(href.slice(1))
+          if (!target) return
+          event.preventDefault()
+          target.scrollIntoView({ block: 'start' })
+          spotlight(target)
+        }}
         className="font-medium whitespace-nowrap text-primary no-underline underline-offset-2 hover:underline"
       >
         Jump to the open items →

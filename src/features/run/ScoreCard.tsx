@@ -7,6 +7,7 @@ import {
   formatConfidencePercent,
 } from '../../lib/format'
 import { cn } from '../../lib/utils'
+import { LINK_TARGET, scoreCardId } from './openItemTargets'
 
 /**
  * One confidence score, where it was made in the story. docs/DECISIONS.md, 0041: a percentage
@@ -36,7 +37,11 @@ export function ScoreCard({ area, decided = false }: ScoreCardProps) {
 
   if (area.missing) {
     return (
-      <div className={cn(CARD, 'items-center')}>
+      <div
+        id={scoreCardId(area.area)}
+        tabIndex={-1}
+        className={cn(CARD, LINK_TARGET, 'items-center')}
+      >
         <span className="rounded-sm border border-border px-[var(--space-2)] py-[var(--space-1)] text-caption font-semibold font-heading whitespace-nowrap text-text-primary">
           Not checked
         </span>
@@ -51,7 +56,11 @@ export function ScoreCard({ area, decided = false }: ScoreCardProps) {
   const level = confidenceLevel(area.value)
 
   return (
-    <div className={cn(CARD, 'items-baseline')}>
+    <div
+      id={scoreCardId(area.area)}
+      tabIndex={-1}
+      className={cn(CARD, LINK_TARGET, 'items-baseline')}
+    >
       <span
         className={cn(
           'text-score font-semibold font-heading leading-none tabular-nums',

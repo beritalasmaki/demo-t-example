@@ -141,3 +141,15 @@
     outline-offset: 2px;
   }
 }
+
+/*
+ * Scrolls without showing a scrollbar: the sticky "Run details" card (docs/DECISIONS.md, 0054).
+ * The wheel, trackpad, touch and keyboard (the card is a tab stop while it overflows) still
+ * scroll it; the card's cut-off bottom edge shows there is more.
+ */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

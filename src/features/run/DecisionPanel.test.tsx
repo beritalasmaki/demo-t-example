@@ -102,6 +102,25 @@ describe('DecisionPanel', () => {
     expect(screen.getByText('Juhani Virtaleppäsoutu')).toBeVisible()
   })
 
+  it('links each open item to where it is shown in full', async () => {
+    const user = userEvent.setup()
+    const onShowItem = vi.fn()
+    render(<DecisionPanel run={runMessyPending} onRunUpdated={vi.fn()} onShowItem={onShowItem} />)
+    await user.click(screen.getByRole('button', { name: 'Show the checks →' }))
+    expect(onShowItem).toHaveBeenLastCalledWith({ kind: 'check', gateId: 'licensing', count: 2 })
+    await user.click(screen.getByRole('button', { name: 'Show the score →' }))
+    expect(onShowItem).toHaveBeenLastCalledWith({ kind: 'score', area: 'side_effects' })
+    await user.click(screen.getByRole('button', { name: 'Show the step →' }))
+    expect(onShowItem).toHaveBeenLastCalledWith({ kind: 'step', eventId: 'm19' })
+    // A link is not part of the tick: nothing was ticked.
+    expect(screen.getByText('0 of 3')).toBeVisible()
+  })
+
+  it('has no links without onShowItem', () => {
+    render(<DecisionPanel run={runMessyPending} onRunUpdated={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: /^Show the/ })).not.toBeInTheDocument()
+  })
+
   describe('the approve pop', () => {
     function stubMotion(reduce: boolean) {
       vi.stubGlobal('matchMedia', (query: string) => ({

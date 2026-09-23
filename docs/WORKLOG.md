@@ -39,6 +39,44 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Open item links, and a spotlight on "Jump to the open items"
+
+**Goal**
+Link every open item to the problem it names, and spotlight the tick list when "Jump to the
+open items" is clicked.
+
+**What changed**
+- `lib/openItems.ts`: each item has a `target` (tests updated).
+- `DecisionPanel.tsx`: a "Show the … →" link under each item, outside the tick's label. The
+  list is `.t-spotlight`.
+- `CheckCard.tsx`, `ScoreCard.tsx`: ids and `tabIndex=-1`, with a focus ring, via the new
+  `openItemTargets.ts`.
+- `RunReviewPage.tsx`: `showItem` switches the view, then scrolls to and focuses the card.
+- `OpenItemsNotice.tsx`: the link scrolls to the list and spotlights it.
+- New `lib/spotlight.ts` (+ test), `.t-spotlight` in `transitions.css`, and the
+  `--color-spotlight-scrim` token.
+- Tests for the links, the page navigation and the spotlight. DECISIONS 0055 and 0056.
+- Also: the "Run details" card scrolls with no visible scrollbar (`scrollbar-none` in
+  `index.css`, DECISIONS 0054 updated).
+
+**Steps, in order**
+1. `git checkout -b feat/open-item-links` from main.
+2. Item targets, then links, then the page navigation, then tests.
+3. The spotlight: CSS, helper, and wiring into the notice link.
+4. Chromium: spotlight frames at 120, 450, 1000 and 1500 ms, and all three link kinds.
+5. `npm run check`, then merged into main.
+
+**Why it was done this way**
+See DECISIONS 0055 and 0056.
+
+**How to do this by hand**
+On the pending run, click "Show the score →" under the Side effects item: Story opens on that
+card, outlined. Scroll down and click "Jump to the open items" in the top bar: the page dims
+around the list for about a second.
+
+**Verification**
+`npm run check` passed, with 261 tests. The Chromium checks are in DECISIONS 0055 and 0056.
+
 ### 2026-09-23 · Run details scroll, and an amber dot on the favicon
 
 **Goal**

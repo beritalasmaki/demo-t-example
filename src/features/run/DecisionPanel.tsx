@@ -4,6 +4,7 @@ import type { SubmitDecisionOptions } from '../../lib/api'
 import { UNDO_WINDOW_MINUTES } from '../../lib/decision'
 import { formatCount } from '../../lib/format'
 import { approvalNeedsReason, buildOpenItems, missingChecks } from '../../lib/openItems'
+import type { OpenItemTarget } from '../../lib/openItems'
 import type { Decision, Run } from '../../lib/types'
 import { cn } from '../../lib/utils'
 import { ActorName } from './ActorName'
@@ -32,6 +33,17 @@ export interface DecisionPanelProps {
   defaultTickedIds?: string[]
   /** Mainly for stories: start with this reason already written. */
   defaultReason?: string
+  /** Shows where an open item comes from — its check or score card, or its step
+   * (docs/DECISIONS.md, 0055). Without it, the items have no "Show the …" link. */
+  onShowItem?: (target: OpenItemTarget) => void
+}
+
+/** The link under each open item (docs/DECISIONS.md, 0055). */
+const SHOW_LABEL: Record<OpenItemTarget['kind'], (target: OpenItemTarget) => string> = {
+  check: (target) =>
+    target.kind === 'check' && target.count > 1 ? 'Show the checks →' : 'Show the check →',
+  score: () => 'Show the score →',
+  step: () => 'Show the step →',
 }
 
 const OUTLINE_BUTTON =
@@ -56,6 +68,7 @@ export function DecisionPanel({
   submitDecisionOptions,
   defaultTickedIds = [],
   defaultReason = '',
+  onShowItem,
 }: DecisionPanelProps) {
   const items = buildOpenItems(run)
   const [ticked, setTicked] = useState<Set<string>>(() => new Set(defaultTickedIds))
@@ -135,7 +148,7 @@ export function DecisionPanel({
 
       <fieldset
         id="open-items"
-        className="flex scroll-mt-[calc(var(--run-bar-height,4rem)+var(--space-4))] flex-col gap-[var(--space-2)]"
+        className="t-spotlight flex scroll-mt-[calc(var(--run-bar-height,4rem)+var(--space-5))] flex-col gap-[var(--space-2)]"
       >
         <legend className="mb-[var(--space-2)] flex w-full items-center gap-[var(--space-2)] text-meta font-semibold font-heading text-text-primary">
           <StepNumber>1</StepNumber>
@@ -160,35 +173,50 @@ export function DecisionPanel({
             {items.map((item) => {
               const checked = ticked.has(item.id)
               return (
-                <label
+                <div
                   key={item.id}
                   className={cn(
-                    'flex cursor-pointer items-start gap-[var(--space-3)] rounded-md border px-[var(--space-3)] py-[var(--space-3)]',
-                    'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus-ring',
+                    'flex flex-col gap-[var(--space-2)] rounded-md border px-[var(--space-3)] py-[var(--space-3)]',
                     checked
                       ? 'border-border-subtle bg-bg'
                       : 'border-status-waived/40 bg-status-waived-tint-bg',
                   )}
                 >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggle(item.id)}
-                    className="peer sr-only"
-                  />
-                  <span
-                    aria-hidden
+                  <label
                     className={cn(
-                      'mt-[var(--space-1)] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-status-waived',
-                      checked ? 'bg-status-waived text-surface' : 'bg-surface text-transparent',
+                      'flex cursor-pointer items-start gap-[var(--space-3)] rounded-sm',
+                      'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus-ring',
                     )}
                   >
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </span>
-                  <span className="text-meta font-normal font-body leading-relaxed text-text-primary">
-                    {item.text}
-                  </span>
-                </label>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggle(item.id)}
+                      className="peer sr-only"
+                    />
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'mt-[var(--space-1)] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-status-waived',
+                        checked ? 'bg-status-waived text-surface' : 'bg-surface text-transparent',
+                      )}
+                    >
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </span>
+                    <span className="text-meta font-normal font-body leading-relaxed text-text-primary">
+                      {item.text}
+                    </span>
+                  </label>
+                  {onShowItem && (
+                    <button
+                      type="button"
+                      onClick={() => onShowItem(item.target)}
+                      className="ml-[calc(1rem+var(--space-3))] cursor-pointer self-start text-meta font-medium font-body text-primary underline-offset-2 hover:underline"
+                    >
+                      {SHOW_LABEL[item.target.kind](item.target)}
+                    </button>
+                  )}
+                </div>
               )
             })}
           </>

@@ -4,6 +4,7 @@ import { explanationFor } from '../../lib/gates'
 import type { PolicyGate, TimelineEvent } from '../../lib/types'
 import { cn } from '../../lib/utils'
 import { ActorName } from './ActorName'
+import { checkCardId, LINK_TARGET } from './openItemTargets'
 
 /**
  * A policy check that needs the reviewer's attention, shown in the story where it happened: a
@@ -43,8 +44,11 @@ export function CheckCard({ gate, timeline, actionable = false }: CheckCardProps
 
   return (
     <div
+      id={checkCardId(gate.id)}
+      tabIndex={-1}
       className={cn(
         'max-w-[45rem] rounded-md border border-l-[3px] px-[var(--space-4)] py-[var(--space-3)]',
+        LINK_TARGET,
         TONE[result],
       )}
     >

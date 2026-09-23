@@ -14,16 +14,19 @@ describe('buildOpenItems', () => {
         id: 'open-gates-unknown',
         kind: 'gates-unknown',
         text: 'Open-source licensing and accessibility checks did not run.',
+        target: { kind: 'check', gateId: 'licensing', count: 2 },
       },
       {
         id: 'open-confidence-side_effects',
         kind: 'confidence',
         text: 'Side effects score is low (52%): whether two refunds for the same order might clash under load.',
+        target: { kind: 'score', area: 'side_effects' },
       },
       {
         id: 'open-note-m19',
         kind: 'note',
         text: 'The nightly reconciliation job was not re-run against this change.',
+        target: { kind: 'step', eventId: 'm19' },
       },
     ])
   })

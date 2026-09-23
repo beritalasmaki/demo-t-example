@@ -1,7 +1,7 @@
 import { Undo2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { undoWindow } from '../../lib/decision'
-import { formatDuration } from '../../lib/format'
+import { formatDecisionOutcomeLabel, formatDuration } from '../../lib/format'
 import type { Run } from '../../lib/types'
 
 /**
@@ -9,15 +9,42 @@ import type { Run } from '../../lib/types'
  * and one filled button, kept apart from every other action (docs/DECISIONS.md, 0033 and 0039).
  * Undo is real but local only — it puts `run.decision` back to `undefined` on screen, with
  * nothing on a backend to reverse (0017).
+ *
+ * The box opens with the decision itself: "Approved" beside a check. When the decision has
+ * just been made on this page (`celebrate`), the check plays transitions.dev's "Success check"
+ * (fade, rotate, blur and bob, with the tick drawing itself — src/styles/transitions.css,
+ * docs/DECISIONS.md 0047), and focus moves to this heading. The Approve button the reviewer
+ * pressed no longer exists, so focus would otherwise fall back to the top of the page.
  */
 export interface UndoBoxProps {
   run: Run
   onRunUpdated: (updatedRun: Run) => void
   /** Mainly for stories and tests: the clock the countdown reads. */
   now?: Date
+  /** The decision was just made on this page: play the check's appear and take focus. */
+  celebrate?: boolean
 }
 
-export function UndoBox({ run, onRunUpdated, now: fixedNow }: UndoBoxProps) {
+function SuccessCheck({ animate }: { animate: boolean }) {
+  return (
+    <span className="t-success-check" data-state={animate ? 'in' : 'static'} aria-hidden>
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-status-pass-tint-fg">
+        <circle cx="12" cy="12" r="11" className="fill-status-pass-tint-bg" />
+        <path
+          d="M7 12.5l3.2 3.2L17 9"
+          pathLength={1}
+          stroke="currentColor"
+          strokeWidth={2.4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  )
+}
+
+export function UndoBox({ run, onRunUpdated, now: fixedNow, celebrate = false }: UndoBoxProps) {
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const [tickNow, setTickNow] = useState(() => new Date())
   const now = fixedNow ?? tickNow
   const decision = run.decision
@@ -29,10 +56,31 @@ export function UndoBox({ run, onRunUpdated, now: fixedNow }: UndoBoxProps) {
     return () => clearInterval(interval)
   }, [fixedNow, undo.active])
 
+  useEffect(() => {
+    if (!celebrate) return
+    headingRef.current?.focus({ preventScroll: true })
+    headingRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [celebrate])
+
   if (!decision) return null
+  const approved = decision.outcome === 'approved'
 
   return (
     <div className="flex w-full flex-col gap-[var(--space-3)] rounded-lg border border-border bg-surface p-[var(--space-4)]">
+      <h2
+        ref={headingRef}
+        tabIndex={-1}
+        className="flex scroll-mt-[calc(var(--run-bar-height,4rem)+var(--space-4))] items-center gap-[var(--space-2)] text-section-heading leading-none font-semibold font-heading text-text-primary"
+      >
+        {approved && <SuccessCheck animate={celebrate} />}
+        <span
+          className="t-success-check-label"
+          data-state={celebrate ? 'in' : 'static'}
+          style={celebrate ? { animationDelay: 'var(--check-path-delay)' } : undefined}
+        >
+          {formatDecisionOutcomeLabel(decision.outcome)}
+        </span>
+      </h2>
       {undo.active ? (
         <>
           <span className="text-meta font-semibold font-heading text-text-primary">

@@ -128,6 +128,10 @@ describe('RunReviewPage', () => {
 
     expect(await screen.findByText('Undo window open')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Approve and release' })).not.toBeInTheDocument()
+    // The success check plays, and focus lands on the outcome instead of the vanished button.
+    const outcome = screen.getByRole('heading', { name: 'Approved' })
+    expect(outcome.querySelector('.t-success-check')).toHaveAttribute('data-state', 'in')
+    expect(outcome).toHaveFocus()
 
     await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
     expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()

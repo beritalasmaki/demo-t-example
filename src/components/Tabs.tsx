@@ -25,9 +25,17 @@ export function Tabs({ value, onValueChange, children, className }: TabsProps) {
   )
 }
 
+/** `segmented`: the full-width bar described below. `pill`: a compact rounded track whose
+ * selected tab is a raised white pill — for a small set of views in a toolbar, where a
+ * full-width bar would dominate. */
+export type TabsVariant = 'segmented' | 'pill'
+
 export interface TabsListProps {
   children: ReactNode
   className?: string
+  variant?: TabsVariant
+  /** Names the tab list for assistive tech when there is no visible heading for it. */
+  label?: string
 }
 
 /** A full-width segmented bar (each trigger fills an equal share of the row, not a small
@@ -37,11 +45,14 @@ export interface TabsListProps {
  * edge inside a card that already has its own border, and a caller wanting the bar to bleed
  * to that card's outer edge supplies its own negative margin (this component doesn't assume
  * a specific parent padding value). */
-export function TabsList({ children, className }: TabsListProps) {
+export function TabsList({ children, className, variant = 'segmented', label }: TabsListProps) {
   return (
     <TabsPrimitive.List
+      aria-label={label}
       className={cn(
-        'flex divide-x divide-border-subtle border-y border-border-subtle',
+        variant === 'segmented'
+          ? 'flex divide-x divide-border-subtle border-y border-border-subtle'
+          : 'inline-flex gap-[var(--space-1)] rounded-full bg-surface-raised p-[var(--space-1)]',
         className,
       )}
     >
@@ -60,9 +71,32 @@ export interface TabsTriggerProps {
   icon?: ComponentType<{ className?: string }>
   iconClassName?: string
   className?: string
+  /** Must match the `TabsList` it sits in. */
+  variant?: TabsVariant
 }
 
-export function TabsTrigger({ value, children, icon: Icon, iconClassName, className }: TabsTriggerProps) {
+const PILL_TRIGGER =
+  'inline-flex cursor-pointer items-center gap-[var(--space-2)] whitespace-nowrap rounded-full px-[var(--space-4)] py-[var(--space-2)] ' +
+  'text-meta font-semibold font-heading leading-none text-text-secondary transition-colors duration-[var(--motion-duration-fast)] ' +
+  'hover:text-text-primary data-[state=active]:bg-surface data-[state=active]:text-text-primary data-[state=active]:shadow-sm ' +
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
+
+export function TabsTrigger({
+  value,
+  children,
+  icon: Icon,
+  iconClassName,
+  className,
+  variant = 'segmented',
+}: TabsTriggerProps) {
+  if (variant === 'pill') {
+    return (
+      <TabsPrimitive.Trigger value={value} className={cn(PILL_TRIGGER, className)}>
+        {Icon && <Icon aria-hidden className={cn('h-4 w-4 shrink-0', iconClassName)} />}
+        {children}
+      </TabsPrimitive.Trigger>
+    )
+  }
   return (
     <TabsPrimitive.Trigger
       value={value}

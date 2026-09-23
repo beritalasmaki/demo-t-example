@@ -85,6 +85,10 @@
   --status-green-tint-bg-dark: #16301f; /* paired with --status-green-dark: 7.87:1 */
   --status-amber-tint-bg-light: #fdf3d9; /* paired with --status-amber-light: 5.36:1 */
   --status-amber-tint-bg-dark: #3a2c0a; /* paired with --status-amber-dark: 6.44:1 */
+  /* Red tint — the Low confidence chip and Reject run's hover (docs/DECISIONS.md, 0039 and
+   * 0041). Both reuse the existing red as foreground: 5.67:1 light, 6.57:1 dark. */
+  --status-red-tint-bg-light: #fcebea;
+  --status-red-tint-bg-dark: #3b1714;
 }
 
 @theme {
@@ -139,6 +143,8 @@
   --color-status-pass-tint-fg: var(--status-green-tint-fg-light);
   --color-status-waived-tint-bg: var(--status-amber-tint-bg-light);
   --color-status-waived-tint-fg: var(--status-amber-light);
+  --color-status-fail-tint-bg: var(--status-red-tint-bg-light);
+  --color-status-fail-tint-fg: var(--status-red-light);
 
   /* Radius */
   --radius-sm: 0.25rem;
@@ -168,6 +174,9 @@
   --text-body: 14px; /* 400 · font-body (Montserrat) — descriptions, sentences */
   --text-meta: 13px; /* 400 · font-body (Montserrat) — always --color-text-secondary */
   --text-badge-label: 13px; /* 600 · font-heading (Raleway) — StatusBadge's label text */
+  --text-lead: 16px; /* 400 · font-body (Montserrat) — the story's running prose */
+  --text-caption: 12px; /* 400 · font-body — field labels and helper text under a control */
+  --text-score: 22px; /* 600 · font-heading — a confidence percentage, the undo countdown */
 }
 
 /*
@@ -224,6 +233,8 @@
     --color-status-pass-tint-fg: var(--status-green-dark);
     --color-status-waived-tint-bg: var(--status-amber-tint-bg-dark);
     --color-status-waived-tint-fg: var(--status-amber-dark);
+    --color-status-fail-tint-bg: var(--status-red-tint-bg-dark);
+    --color-status-fail-tint-fg: var(--status-red-dark);
   }
 }
 
@@ -256,6 +267,8 @@
   --color-status-pass-tint-fg: var(--status-green-dark);
   --color-status-waived-tint-bg: var(--status-amber-tint-bg-dark);
   --color-status-waived-tint-fg: var(--status-amber-dark);
+  --color-status-fail-tint-bg: var(--status-red-tint-bg-dark);
+  --color-status-fail-tint-fg: var(--status-red-dark);
 }
 
 /*

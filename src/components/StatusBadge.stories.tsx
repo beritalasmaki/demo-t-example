@@ -18,7 +18,7 @@ export const Danger: Story = {
 }
 
 export const Warning: Story = {
-  args: { tone: 'warning', label: 'Exception by Owen Baptiste' },
+  args: { tone: 'warning', label: 'Exception by Kaisa Heinämäki' },
 }
 
 export const Neutral: Story = {
@@ -35,7 +35,7 @@ export const AllTones: Story = {
     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
       <StatusBadge tone="success" label="Passed" />
       <StatusBadge tone="danger" label="Failed" />
-      <StatusBadge tone="warning" label="Exception by Owen Baptiste" />
+      <StatusBadge tone="warning" label="Exception by Kaisa Heinämäki" />
       <StatusBadge tone="neutral" label="Not applicable" />
       <StatusBadge tone="info" label="Not run" />
     </div>

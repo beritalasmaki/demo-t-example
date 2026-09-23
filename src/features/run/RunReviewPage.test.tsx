@@ -38,15 +38,17 @@ describe('RunReviewPage', () => {
     expect(screen.getByRole('region', { name: 'All 200 steps' })).toBeVisible()
   })
 
-  it('shows the details by default, and the top bar stays in place while scrolling', async () => {
+  it('lays out run details, the overview and the decision side by side, with a sticky top bar', async () => {
     render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
     await screen.findByRole('heading', { level: 1 })
+    expect(screen.getByRole('region', { name: 'Run details' })).toBeVisible()
     expect(screen.getByText('Why the agent was asked')).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Hide details', expanded: true })).toBeVisible()
+    expect(screen.getByText('3 things are open')).toBeVisible()
+    expect(screen.queryByRole('button', { name: /details/ })).not.toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' }).closest('.sticky')).not.toBeNull()
   })
 
-  it('choosing a tab moves focus to that view, and hides the details until asked', async () => {
+  it('choosing a tab moves focus to that view, and every column stays in place', async () => {
     const user = userEvent.setup()
     render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
     await screen.findByRole('heading', { level: 1 })
@@ -55,7 +57,9 @@ describe('RunReviewPage', () => {
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 2, name: 'Evidence' })).toHaveFocus(),
     )
-    expect(screen.queryByText('Why the agent was asked')).not.toBeInTheDocument()
+    expect(screen.getByText('Why the agent was asked')).toBeVisible()
+    expect(screen.getByRole('region', { name: 'Run details' })).toBeVisible()
+    expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()
 
     await user.click(screen.getByRole('tab', { name: 'Story' }))
     await waitFor(() =>
@@ -63,23 +67,6 @@ describe('RunReviewPage', () => {
         screen.getByRole('heading', { level: 2, name: 'What happened, in order' }),
       ).toHaveFocus(),
     )
-    expect(screen.queryByText('Why the agent was asked')).not.toBeInTheDocument()
-    // The compact row still carries what must never be hidden.
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(runMessyPending.initiative)
-    expect(screen.getByRole('link', { name: '3 open items' })).toBeVisible()
-
-    await user.click(screen.getByRole('button', { name: 'Show details', expanded: false }))
-    expect(screen.getByText('Why the agent was asked')).toBeVisible()
-  })
-
-  it('keeps the details open on a decided run while it can still be undone', async () => {
-    const user = userEvent.setup()
-    render(<RunReviewPage runId={runMessy.id} getRunOptions={{ delayMs: 0 }} />)
-    await screen.findByRole('heading', { level: 1 })
-
-    await user.click(screen.getByRole('tab', { name: 'Evidence' }))
-    expect(screen.getByRole('button', { name: 'Undo this decision' })).toBeVisible()
-    expect(screen.queryByRole('button', { name: /details/ })).not.toBeInTheDocument()
   })
 
   it('arrow keys move along the tabs without switching; Enter switches and moves focus', async () => {
@@ -133,8 +120,6 @@ describe('RunReviewPage', () => {
       />,
     )
     await screen.findByRole('heading', { level: 1 })
-    await user.click(screen.getByRole('tab', { name: 'Evidence' }))
-    expect(screen.getByRole('button', { name: 'Show details' })).toBeVisible()
 
     // Nothing is open on the clean run, so approving needs no tick and no reason.
     await user.click(screen.getByRole('button', { name: 'Approve and release' }))
@@ -143,8 +128,6 @@ describe('RunReviewPage', () => {
 
     expect(await screen.findByText('Undo window open')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Approve and release' })).not.toBeInTheDocument()
-    // Deciding opens the details, so the undo window is on screen, with no way to hide it.
-    expect(screen.queryByRole('button', { name: /details/ })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
     expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()

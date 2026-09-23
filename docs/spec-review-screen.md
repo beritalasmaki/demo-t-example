@@ -52,14 +52,14 @@ separately — a failed, not-run or waived check group, a Low confidence score, 
 left open — and to write a reason whenever a check failed or did not run (DECISIONS.md, 0040).
 After the decision: who decided, when, on what version, and an undo window before release.
 
-**Layout (DECISIONS.md, 0038).** The regions above are arranged as a story, not six stacked
-cards: an overview header (regions 1 and 2, plus why the agent was asked and where the run is
-now), then three views — *Story* (what happened, in order, with gates and confidence placed
-where they happened), *Evidence* and *All steps* (region 4) — beside a right column that stays
-in place: the decision (region 6) and what is not checked. The page has no logo or main menu;
-it sits inside a host platform (DECISIONS.md, 0042). The page's top bar is sticky. Choosing a view moves focus to it,
-and collapses the overview to one row that still shows status, environment, revision and what
-is open (DECISIONS.md, 0044).
+**Layout (DECISIONS.md, 0038 and 0046).** The regions above are arranged as a story, not six
+stacked cards, in three columns under a sticky top bar. On the left, *Run details*: the
+labelled facts of region 1. In the middle, the overview card (status, initiative, why the agent
+was asked, where the run is now), then one of three views: *Story* (what happened, in order,
+with gates and confidence placed where they happened), *Evidence* or *All steps* (region 4).
+On the right: what is open or the undo window, then the decision (region 6) and what is not
+checked. Choosing a view moves focus to it (0044). The page has no logo or main menu; it sits
+inside a host platform (0042).
 
 ## Scenarios
 

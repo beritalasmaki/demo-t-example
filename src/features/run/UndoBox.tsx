@@ -32,7 +32,7 @@ export function UndoBox({ run, onRunUpdated, now: fixedNow }: UndoBoxProps) {
   if (!decision) return null
 
   return (
-    <div className="flex w-full flex-col gap-[var(--space-3)] rounded-lg border border-border bg-bg p-[var(--space-4)] md:w-[17.5rem]">
+    <div className="flex w-full flex-col gap-[var(--space-3)] rounded-lg border border-border bg-surface p-[var(--space-4)]">
       {undo.active ? (
         <>
           <span className="text-meta font-semibold font-heading text-text-primary">

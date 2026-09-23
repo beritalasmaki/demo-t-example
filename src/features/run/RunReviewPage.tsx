@@ -5,31 +5,31 @@ import type { GetRunOptions, SubmitDecisionOptions } from '../../lib/api'
 import type { Run } from '../../lib/types'
 import { DecisionPanel } from './DecisionPanel'
 import { EvidenceTab } from './EvidenceTab'
+import { OpenItemsBox } from './OpenItemsBox'
+import { RunDetails } from './RunDetails'
 import { RunOverview } from './RunOverview'
 import { RunShape } from './RunShape'
 import { RunTopBar } from './RunTopBar'
 import { StepsTab } from './StepsTab'
 import { StoryTimeline } from './StoryTimeline'
+import { UndoBox } from './UndoBox'
 import { UnverifiedList } from './UnverifiedList'
 import { useRun } from './useRun'
-import { useUndoActive } from './useUndoActive'
 
 /**
- * The review page — the "story layout" (docs/DECISIONS.md, 0038). From top to bottom: the
- * page's own bar (breadcrumb and the three views), the overview (what this is, why, where it is
- * now, and what is open), then two columns. The main column holds one view at a time — Story,
- * Evidence or All steps. The right column stays in place for all three: the decision panel
- * and what is not checked before a decision; what is still unverified and the run's shape
- * after one. Below the `md` breakpoint the right column moves above the views, so the decision
- * is never at the bottom of a long page.
+ * The review page — the "story layout" (docs/DECISIONS.md, 0038, and 0046 for the columns).
+ * Under the page's own bar (breadcrumb and the three views), three columns: *Run details*
+ * on the left; the overview card and one view at a time — Story, Evidence or All steps — in the
+ * middle; on the right, what is open, the decision panel and what is not checked before a
+ * decision, or the undo window, what is still unverified and the run's shape after one. The
+ * side columns stay the same for all three views.
  *
  * Loading, not-found and error states are handled here, once. The run is held in local state
  * so a decision, a conflict or an undo updates the screen immediately, without a refetch.
  *
- * Switching views (docs/DECISIONS.md, 0044): the top bar is sticky; choosing a tab collapses
- * the overview to one row and moves focus to the chosen view's heading, scrolling it into
- * view when it is not already near the top — so the change is visible, and a screen reader
- * hears where it landed. The tabs use manual activation: arrow keys move along the tab list,
+ * Switching views (docs/DECISIONS.md, 0044): the top bar is sticky; choosing a tab moves focus
+ * to the chosen view's heading, scrolling it into view when it is not already near the top —
+ * so the change is visible, and a screen reader hears where it landed. The tabs use manual activation: arrow keys move along the tab list,
  * Enter, Space or a click selects.
  */
 export type RunView = 'story' | 'evidence' | 'steps'
@@ -58,19 +58,13 @@ export function RunReviewPage({
   const [changedRun, setChangedRun] = useState<Run | null>(null)
   const [view, setView] = useState<RunView>(defaultView)
   const [focusEventId, setFocusEventId] = useState<string | undefined>(undefined)
-  const [detailsOpen, setDetailsOpen] = useState(true)
-  const currentDecision =
-    state.status === 'success' ? (changedRun ?? state.run).decision : undefined
-  // While a decision can still be undone, the details — and the Undo button in them — stay open
-  // (docs/DECISIONS.md, 0045).
-  const undoActive = useUndoActive(currentDecision)
   // Set when the reviewer picks a tab, read once after the new view has rendered.
   const focusViewHeading = useRef(false)
   const barRef = useRef<HTMLDivElement>(null)
   const [barHeight, setBarHeight] = useState<number | undefined>(undefined)
 
   // The sticky bar's height — it wraps to two rows on narrow screens — so scrolled-to headings
-  // and the sticky right column sit below it rather than under it.
+  // and the sticky "Run details" column sit below it rather than under it.
   const loaded = state.status === 'success'
   useEffect(() => {
     const bar = barRef.current
@@ -136,21 +130,12 @@ export function RunReviewPage({
 
   function chooseView(next: RunView) {
     focusViewHeading.current = true
-    if (!undoActive) setDetailsOpen(false)
     setView(next)
-  }
-
-  // A new decision opens the details, so its undo window is on screen — and they stay open
-  // when it closes, rather than collapsing under the reviewer.
-  function applyRun(updated: Run) {
-    setChangedRun(updated)
-    if (updated.decision) setDetailsOpen(true)
   }
 
   // A link into one step: `StepsTab` focuses that row itself, not the heading.
   function showStep(eventId: string) {
     setFocusEventId(eventId)
-    if (!undoActive) setDetailsOpen(false)
     setView('steps')
   }
 
@@ -165,15 +150,50 @@ export function RunReviewPage({
     >
       <div style={barStyle}>
         <RunTopBar ref={barRef} run={run} reviewsHref={reviewsHref} />
-        <RunOverview
-          run={run}
-          onRunUpdated={applyRun}
-          expanded={detailsOpen}
-          onExpandedChange={setDetailsOpen}
-        />
 
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-[var(--space-6)] px-[var(--space-4)] pt-[var(--space-6)] pb-[var(--space-7)] md:grid-cols-[minmax(0,1fr)_21.25rem] md:gap-[var(--space-7)] md:px-[var(--space-6)]">
-          <div className="min-w-0">
+        {/*
+         * Three columns from xl up (docs/DECISIONS.md, 0046): run details | overview + view |
+         * decision. Two from md: the details sit under the overview. One column below md, in
+         * the order overview, decision, details, view — so the decision is never at the bottom
+         * of a long page. The last row takes any spare height, so a short view never pushes a
+         * gap in under the overview.
+         */}
+        <div className="mx-auto grid max-w-[90rem] grid-cols-1 items-start gap-[var(--space-5)] px-[var(--space-4)] pt-[var(--space-5)] pb-[var(--space-7)] md:grid-cols-[minmax(0,1fr)_21.25rem] md:grid-rows-[auto_auto_1fr] md:px-[var(--space-6)] xl:grid-cols-[17.5rem_minmax(0,1fr)_21.25rem] xl:grid-rows-[auto_1fr]">
+          <div className="min-w-0 md:col-start-1 md:row-start-1 xl:col-start-2">
+            <RunOverview run={run} />
+          </div>
+
+          <aside
+            aria-label={decided ? 'The decision record' : 'Your decision'}
+            className="flex min-w-0 flex-col gap-[var(--space-4)] md:col-start-2 md:row-span-3 md:row-start-1 xl:col-start-3 xl:row-span-2"
+          >
+            {decided ? (
+              <>
+                <UndoBox run={run} onRunUpdated={setChangedRun} />
+                <UnverifiedList run={run} />
+                <RunShape run={run} />
+              </>
+            ) : (
+              <>
+                <OpenItemsBox run={run} />
+                <DecisionPanel
+                  // A fresh panel after an undo: the earlier ticks and reason belonged to a
+                  // decision that no longer stands.
+                  key={run.status}
+                  run={run}
+                  onRunUpdated={setChangedRun}
+                  submitDecisionOptions={submitDecisionOptions}
+                />
+                <UnverifiedList run={run} />
+              </>
+            )}
+          </aside>
+
+          <div className="min-w-0 md:col-start-1 md:row-start-2 xl:sticky xl:top-[calc(var(--run-bar-height,4rem)+var(--space-4))] xl:row-span-2 xl:row-start-1">
+            <RunDetails run={run} />
+          </div>
+
+          <div className="min-w-0 pt-[var(--space-2)] md:col-start-1 md:row-start-3 xl:col-start-2 xl:row-start-2">
             <TabsContent value="story">
               <StoryTimeline run={run} onShowSteps={showStep} />
             </TabsContent>
@@ -184,30 +204,6 @@ export function RunReviewPage({
               <StepsTab run={run} focusEventId={focusEventId} />
             </TabsContent>
           </div>
-
-          <aside
-            aria-label={decided ? 'The decision record' : 'Your decision'}
-            className="order-first flex flex-col gap-[var(--space-4)] md:sticky md:top-[calc(var(--run-bar-height,4rem)+var(--space-4))] md:order-none"
-          >
-            {decided ? (
-              <>
-                <UnverifiedList run={run} />
-                <RunShape run={run} />
-              </>
-            ) : (
-              <>
-                <DecisionPanel
-                  // A fresh panel after an undo: the earlier ticks and reason belonged to a
-                  // decision that no longer stands.
-                  key={run.status}
-                  run={run}
-                  onRunUpdated={applyRun}
-                  submitDecisionOptions={submitDecisionOptions}
-                />
-                <UnverifiedList run={run} />
-              </>
-            )}
-          </aside>
         </div>
       </div>
     </Tabs>

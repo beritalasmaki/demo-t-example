@@ -6,6 +6,27 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0051 · "Approve and release" pops, then asks for confirmation
+
+**Context.** The user shared a short video of a button press: the button squashes, springs
+past its size, bounces and settles, and its label pops back in. They asked for the same on
+"Approve and release".
+
+**Choice.** The same motion, timed from the video at 30 fps, as `.t-pop` keyframes in
+`transitions.css`. The button goes to about 0.94 × 0.9, up to 1.05, down to 0.985, and
+settles within 420 ms. The label shrinks away and pops back with a 1.12 overshoot. Our dark
+button colour stays; the video's blue does not. The confirmation dialog opens when the pop
+ends, about 0.44 s after the click, so the modal doesn't hide the animation. A timer opens
+it, not `animationend`, so it opens even if the animation never runs. A second click during
+the pop does nothing. Reduced motion, or no `matchMedia` (jsdom), means no pop and no wait.
+
+**Consequence.** Checked in Chromium. The transform sampled over time follows the keyframes,
+and the dialog opened at about 470 ms. With reduced motion, the dialog opened at once. The
+other decisions (Request changes, Reject run) do not pop: approving is the one celebrated
+action (0046's success check is its pair).
+
+---
+
 ## 0049 · The welcome intro plays once per visit, not once ever
 
 **Context.** 0048 showed the intro once per browser, for good (localStorage). The user asked

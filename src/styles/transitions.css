@@ -208,3 +208,76 @@
     transition: none !important;
   }
 }
+
+/* ---- Approve pop ---------------------------------------------------------------------- */
+
+/*
+ * Not from transitions.dev: modelled on the user's reference video (docs/DECISIONS.md, 0051),
+ * timed frame by frame from it at 30 fps. The button squashes, springs past its size and
+ * settles in about 420 ms; its label shrinks away and pops back with a small overshoot. Plays
+ * once on "Approve and release"; the confirmation opens when it ends.
+ */
+:root {
+  --pop-dur: 420ms;
+  --pop-ease: cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+.t-pop[data-popping] {
+  animation: t-pop-button var(--pop-dur) var(--pop-ease);
+}
+.t-pop[data-popping] .t-pop-label {
+  animation: t-pop-label var(--pop-dur) var(--pop-ease);
+}
+.t-pop-label {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+}
+
+@keyframes t-pop-button {
+  0% {
+    transform: scale(1, 1);
+  }
+  18% {
+    transform: scale(0.94, 0.9);
+  }
+  45% {
+    transform: scale(1.05, 1.04);
+  }
+  68% {
+    transform: scale(0.985, 0.99);
+  }
+  85% {
+    transform: scale(1.01, 1);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+@keyframes t-pop-label {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  78% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-pop[data-popping],
+  .t-pop[data-popping] .t-pop-label {
+    animation: none !important;
+  }
+}

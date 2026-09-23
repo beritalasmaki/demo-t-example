@@ -39,6 +39,35 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Approve button pop
+
+**Goal**
+Make "Approve and release" pop like the button in the user's reference video when clicked.
+
+**What changed**
+- `src/styles/transitions.css`: new "Approve pop" section with `t-pop-button` and
+  `t-pop-label` keyframes, `--pop-dur` and `--pop-ease`, and a reduced-motion guard.
+- `DecisionPanel.tsx`: Approve plays the pop, then opens the confirmation. The label is
+  wrapped in `.t-pop-label`.
+- `DecisionPanel.test.tsx`: two tests, one for pop then dialog and one for reduced motion.
+- DECISIONS 0051.
+
+**Steps, in order**
+1. Read the video frame by frame (ffmpeg, 30 fps) to get the scale curve and timings.
+2. Wrote the keyframes and wired them into the panel's Approve click.
+3. Tests, then sampled the transform and dialog timing in Chromium.
+
+**Why it was done this way**
+See DECISIONS 0051. The dialog waits for the pop, or the modal would cover it.
+
+**How to do this by hand**
+Open `?run=run-clean` and click "Approve and release": the button pops, then the confirmation
+opens. With reduced motion turned on in the OS, the confirmation opens straight away.
+
+**Verification**
+`npm run check` passed. In Chromium, the transform followed the keyframes and the dialog
+opened at about 470 ms, or about 20 ms with reduced motion.
+
 ### 2026-09-23 · Intro: once per visit
 
 **Goal**

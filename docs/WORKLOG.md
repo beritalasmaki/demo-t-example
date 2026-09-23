@@ -39,6 +39,40 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Details stay open while a decision can be undone
+
+**Goal**
+Keep the undo countdown and the Undo button on screen: the details always show while the undo
+window is open.
+
+**What changed**
+- New `features/run/useUndoActive.ts` (+ test).
+- `RunOverview.tsx`: forced open, with no toggle, while undo is possible.
+- `RunReviewPage.tsx`: doesn't collapse on a view change while undo is possible, and opens the
+  details when a decision is made.
+- Tests for the page and overview, two overview stories, DECISIONS 0045, `features/run/README.md`.
+
+**Steps, in order**
+1. Checked that the previous change wasn't merged yet (`git merge-base --is-ancestor`), so
+   continued on `feat/story-layout`.
+2. Made the changes above, then `npx prettier --write` on the changed files and `npm run check`.
+
+**Why it was done this way**
+See DECISIONS 0045. The page keeps the details open, not just the overview, so they don't
+collapse the moment the window closes.
+
+**How to do this by hand**
+Open `?run=run-messy` and click "Evidence". The header stays expanded, with the countdown and
+"Undo this decision" and no "Hide details". Approve `?run=run-clean` after switching views:
+the details open.
+
+**Verification**
+`npm run check`: 44 test files and 243 tests passing, typecheck and lint clean (the one
+existing warning), both theme checks ok.
+
+**Open questions / next**
+None.
+
 ### 2026-09-23 · Switching views: focus, sticky top bar, collapsible details
 
 **Goal**
@@ -80,8 +114,7 @@ should go to the first thing inside Evidence, not back to the top of the page.
   scroll. The toggle's centre is within 1 px of the border line in both states.
 
 **Open questions / next**
-- The collapsed row has no undo countdown for a decided run. Add a compact one if reviewers
-  need it without opening the details.
+- Settled in the follow-up below: the details now always show while undo is possible (0045).
 
 ### 2026-09-23 · Story layout: the Claude Design redesign, built
 

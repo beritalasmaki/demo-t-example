@@ -72,6 +72,16 @@ describe('RunReviewPage', () => {
     expect(screen.getByText('Why the agent was asked')).toBeVisible()
   })
 
+  it('keeps the details open on a decided run while it can still be undone', async () => {
+    const user = userEvent.setup()
+    render(<RunReviewPage runId={runMessy.id} getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+
+    await user.click(screen.getByRole('tab', { name: 'Evidence' }))
+    expect(screen.getByRole('button', { name: 'Undo this decision' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: /details/ })).not.toBeInTheDocument()
+  })
+
   it('arrow keys move along the tabs without switching; Enter switches and moves focus', async () => {
     const user = userEvent.setup()
     render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
@@ -123,6 +133,8 @@ describe('RunReviewPage', () => {
       />,
     )
     await screen.findByRole('heading', { level: 1 })
+    await user.click(screen.getByRole('tab', { name: 'Evidence' }))
+    expect(screen.getByRole('button', { name: 'Show details' })).toBeVisible()
 
     // Nothing is open on the clean run, so approving needs no tick and no reason.
     await user.click(screen.getByRole('button', { name: 'Approve and release' }))
@@ -131,6 +143,8 @@ describe('RunReviewPage', () => {
 
     expect(await screen.findByText('Undo window open')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Approve and release' })).not.toBeInTheDocument()
+    // Deciding opens the details, so the undo window is on screen, with no way to hide it.
+    expect(screen.queryByRole('button', { name: /details/ })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
     expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()

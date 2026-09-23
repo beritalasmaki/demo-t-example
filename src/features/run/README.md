@@ -65,7 +65,9 @@ the run, and a right column that stays in place.
   labelled facts (requested by, agent, ran, checks, lowest score, target, revision, run
   reference), and one box on the right: what is open (before a decision) or `UndoBox` (after).
   Collapses to one compact row after the first view change, with "Show details" / "Hide
-  details" on its bottom border.
+  details" on its bottom border — except while a decision can still be undone, when the
+  details always show (0045).
+- `useUndoActive.ts` — whether the undo window is open, updated when it closes.
 - `UndoBox.tsx` — the live undo countdown and the one filled Undo button (0017, 0033).
 - `StoryTimeline.tsx` — "What happened, in order": `Run.story` on a timeline spine, ending on
   "Waiting for a decision" or the decision and its reason. Uses `ScoreCard` and `CheckCard`

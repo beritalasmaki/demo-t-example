@@ -130,4 +130,35 @@ describe('RunOverview', () => {
     await user.click(screen.getByRole('button', { name: 'Hide details', expanded: true }))
     expect(onExpandedChange).toHaveBeenLastCalledWith(false)
   })
+
+  it('always shows the details, with no Hide details, while the undo window is open', () => {
+    render(
+      <RunOverview
+        run={runMessy}
+        onRunUpdated={vi.fn()}
+        expanded={false}
+        onExpandedChange={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('Undo window open')).toBeVisible()
+    expect(screen.getByText('Why the agent was asked')).toBeVisible()
+    expect(screen.queryByRole('button', { name: /details/ })).not.toBeInTheDocument()
+  })
+
+  it('lets the details collapse again once the undo window has closed', () => {
+    const closed = {
+      ...runMessy,
+      decision: { ...runMessy.decision!, at: new Date(Date.now() - 20 * 60_000).toISOString() },
+    }
+    render(
+      <RunOverview
+        run={closed}
+        onRunUpdated={vi.fn()}
+        expanded={false}
+        onExpandedChange={vi.fn()}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Show details' })).toBeVisible()
+    expect(screen.queryByText('Why the agent was asked')).not.toBeInTheDocument()
+  })
 })

@@ -6,6 +6,24 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0045 · While a decision can be undone, the details always show
+
+**Context.** 0044 let the details collapse after a view change. That hid the undo countdown
+and the Undo button in the header. The user asked for the details to always show while the
+Undo button is visible.
+
+**Choice.** `useUndoActive` (in `features/run/`) reports whether the undo window is open, and
+flips by itself when it closes, using one timer for that moment. While it is open:
+- `RunOverview` shows the details whatever `expanded` says, and does not offer the toggle.
+- `RunReviewPage` doesn't collapse the details on a view change.
+- A decision made on the page opens the details.
+
+**Consequence.** When the window closes, the details stay open: nothing collapses under the
+reviewer, and "Hide details" appears again. This replaces 0044's note that the collapsed row
+has no undo countdown. The collapsed row can no longer appear while undo is possible.
+
+---
+
 ## 0044 · Switching views moves focus, the top bar is sticky, and the details collapse
 
 **Context.** After PR #10 the user found that clicking "Evidence" looked like nothing

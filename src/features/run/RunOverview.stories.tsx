@@ -44,4 +44,16 @@ export const LongInitiative: Story = {
 /** After the reviewer has switched views: one compact row, with "Show details" on the border. */
 export const Collapsed: Story = { args: { expanded: false } }
 
-export const CollapsedApproved: Story = { args: { run: runMessy, expanded: false } }
+/** Decided and still undoable: the details stay open even when collapsed was asked for. */
+export const ApprovedUndoOpen: Story = { args: { run: runMessy, expanded: false } }
+
+/** Decided, undo window closed: the details can collapse again. */
+export const ApprovedUndoClosed: Story = {
+  args: {
+    run: {
+      ...runMessy,
+      decision: { ...runMessy.decision!, at: new Date(Date.now() - 20 * 60_000).toISOString() },
+    },
+    expanded: false,
+  },
+}

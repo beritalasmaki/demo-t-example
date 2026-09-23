@@ -12,6 +12,7 @@ import { StepsTab } from './StepsTab'
 import { StoryTimeline } from './StoryTimeline'
 import { UnverifiedList } from './UnverifiedList'
 import { useRun } from './useRun'
+import { useUndoActive } from './useUndoActive'
 
 /**
  * The review page — the "story layout" (docs/DECISIONS.md, 0038). From top to bottom: the
@@ -58,6 +59,11 @@ export function RunReviewPage({
   const [view, setView] = useState<RunView>(defaultView)
   const [focusEventId, setFocusEventId] = useState<string | undefined>(undefined)
   const [detailsOpen, setDetailsOpen] = useState(true)
+  const currentDecision =
+    state.status === 'success' ? (changedRun ?? state.run).decision : undefined
+  // While a decision can still be undone, the details — and the Undo button in them — stay open
+  // (docs/DECISIONS.md, 0045).
+  const undoActive = useUndoActive(currentDecision)
   // Set when the reviewer picks a tab, read once after the new view has rendered.
   const focusViewHeading = useRef(false)
   const barRef = useRef<HTMLDivElement>(null)
@@ -130,14 +136,21 @@ export function RunReviewPage({
 
   function chooseView(next: RunView) {
     focusViewHeading.current = true
-    setDetailsOpen(false)
+    if (!undoActive) setDetailsOpen(false)
     setView(next)
+  }
+
+  // A new decision opens the details, so its undo window is on screen — and they stay open
+  // when it closes, rather than collapsing under the reviewer.
+  function applyRun(updated: Run) {
+    setChangedRun(updated)
+    if (updated.decision) setDetailsOpen(true)
   }
 
   // A link into one step: `StepsTab` focuses that row itself, not the heading.
   function showStep(eventId: string) {
     setFocusEventId(eventId)
-    setDetailsOpen(false)
+    if (!undoActive) setDetailsOpen(false)
     setView('steps')
   }
 
@@ -154,7 +167,7 @@ export function RunReviewPage({
         <RunTopBar ref={barRef} run={run} reviewsHref={reviewsHref} />
         <RunOverview
           run={run}
-          onRunUpdated={setChangedRun}
+          onRunUpdated={applyRun}
           expanded={detailsOpen}
           onExpandedChange={setDetailsOpen}
         />
@@ -188,7 +201,7 @@ export function RunReviewPage({
                   // decision that no longer stands.
                   key={run.status}
                   run={run}
-                  onRunUpdated={setChangedRun}
+                  onRunUpdated={applyRun}
                   submitDecisionOptions={submitDecisionOptions}
                 />
                 <UnverifiedList run={run} />

@@ -18,6 +18,7 @@ import type { Run, RunStatus } from '../../lib/types'
 import { cn } from '../../lib/utils'
 import { ActorName } from './ActorName'
 import { UndoBox } from './UndoBox'
+import { useUndoActive } from './useUndoActive'
 
 /**
  * The top of the page (Region 1, rebuilt — docs/DECISIONS.md, 0038): status and initiative,
@@ -32,6 +33,10 @@ import { UndoBox } from './UndoBox'
  * what must never be hidden — status, initiative, system, environment, revision, and what is
  * open. "Show details" / "Hide details" sits on the header's bottom border in both states, so
  * the button does not move when it is pressed.
+ *
+ * While the undo window is open the details always show and the toggle is not offered: the
+ * countdown and the Undo button must stay on screen (docs/DECISIONS.md, 0045). Once the window
+ * closes, the reviewer's own choice applies again.
  */
 export interface RunOverviewProps {
   run: Run
@@ -196,25 +201,27 @@ export function RunOverview({
     .filter((area) => !area.missing)
     .sort((a, b) => (a.missing || b.missing ? 0 : a.value - b.value))[0]
   const env = ENVIRONMENT[run.target.environment]
+  const undoActive = useUndoActive(run.decision)
+  const showDetails = expanded || undoActive
 
-  const toggle = (
+  const toggle = undoActive ? null : (
     <button
       type="button"
-      aria-expanded={expanded}
+      aria-expanded={showDetails}
       aria-controls="run-overview"
-      onClick={() => onExpandedChange(!expanded)}
+      onClick={() => onExpandedChange(!showDetails)}
       className="absolute bottom-0 left-1/2 z-10 inline-flex -translate-x-1/2 translate-y-1/2 cursor-pointer items-center gap-[var(--space-1)] rounded-full border border-border bg-surface px-[var(--space-3)] py-[var(--space-1)] text-caption font-semibold font-body whitespace-nowrap text-text-primary shadow-sm hover:bg-bg"
     >
-      {expanded ? (
+      {showDetails ? (
         <ChevronUp aria-hidden className="h-4 w-4" />
       ) : (
         <ChevronDown aria-hidden className="h-4 w-4" />
       )}
-      {expanded ? 'Hide details' : 'Show details'}
+      {showDetails ? 'Hide details' : 'Show details'}
     </button>
   )
 
-  if (!expanded) {
+  if (!showDetails) {
     return (
       <header id="run-overview" className="relative border-b border-border-subtle bg-surface">
         <CompactOverview run={run} openItemsHref={openItemsHref} />

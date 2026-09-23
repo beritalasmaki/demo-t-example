@@ -39,6 +39,34 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Intro: signature closer to the name
+
+**Goal**
+Bring the signature mark down, closer to the name and title.
+
+**What changed**
+`SignatureMark.tsx` gains `bottomAligned`, which sets `preserveAspectRatio="xMidYMax meet"`.
+`WelcomeIntro.tsx`: the block gap goes from `--space-5` to `--space-3`, and "Made by" is
+placed at the drawn mark's centre. DECISIONS 0048 has a note.
+
+**Steps, in order**
+1. Anchored the artwork to the bottom of its 200×200 box, and tightened the gap.
+2. `npm run check`, then measured it in Playwright.
+
+**Why it was done this way**
+The box keeps the specified 200×200 size. Only where the wide artwork sits inside it changes,
+and the path is untouched.
+
+**How to do this by hand**
+Clear `ledger:intro-seen`, reload, and look at the space between the signature and the name.
+
+**Verification**
+`npm run check` passed. In the browser, the mark's bottom is 13 px above the name, and
+"Made by" is centred on the mark (both at y = 412).
+
+**Open questions / next**
+None.
+
 ### 2026-09-23 · Intro: name and title aligned as one block
 
 **Goal**

@@ -32,6 +32,10 @@ itself for reduced motion or on any click, tap or key.
   gaps between its characters. It is measured again once `document.fonts` is ready, so the
   edges meet whatever font renders. Checked in a browser: both lines run 530–750 px at
   1280 px wide, and 85–305 px at 390 px.
+- **The mark sits on the bottom of its 200×200 box** (`preserveAspectRatio="xMidYMax meet"`),
+  so it reads as one group with the name, as the user asked. The artwork is 178 × 101, so
+  centred it left about 43 px of empty box under it. The gap to the name is now 13 px, and
+  "Made by" is placed level with the drawn mark's middle.
 - **A new colour, `--signature-orange` (`--color-signature`)**, for the drawing stroke. The
   brand accent (`--color-accent-hover`) is teal, not orange. The only warm tone in the tokens
   is amber, which belongs to the status palette and must not be used for non-status UI.

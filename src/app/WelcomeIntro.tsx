@@ -25,6 +25,8 @@ import './intro.css'
  *   no focusable element, so it never traps keyboard focus; the page underneath stays
  *   reachable the whole time.
  */
+/** The mark's box, as specified: 200×200. The artwork sits on its bottom edge, near the name. */
+const MARK_BOX = 200
 const NAME = 'Berit Alasmäki'
 const TITLE = 'UX & Product Designer'
 
@@ -120,15 +122,17 @@ export function WelcomeIntro({ onDone }: WelcomeIntroProps) {
       aria-hidden
       onPointerDown={() => skip.current()}
     >
-      <div className="flex flex-col items-center gap-[var(--space-5)]">
+      <div className="flex flex-col items-center gap-[var(--space-3)]">
         <div className="relative">
           <span
-            className="intro-made-by absolute top-1/2 right-full mr-[var(--space-4)] -translate-y-1/2 text-caption font-normal font-heading whitespace-nowrap text-intro-muted"
+            className="intro-made-by absolute right-full mr-[var(--space-4)] -translate-y-1/2 text-caption font-normal font-heading whitespace-nowrap text-intro-muted"
+            // Level with the middle of the drawn mark, which sits at the bottom of its box.
+            style={{ top: `${MARK_BOX - (MARK_BOX * 101) / 178 / 2}px` }}
             data-shown={phase === 'madeBy' || phase === 'fade' || undefined}
           >
             Made by
           </span>
-          <SignatureMark className="intro-mark" size={200} resolved={resolved} />
+          <SignatureMark className="intro-mark" size={MARK_BOX} resolved={resolved} bottomAligned />
         </div>
         <div className="flex flex-col items-start gap-[var(--space-2)] font-heading">
           <TypedLine

@@ -3,23 +3,28 @@
  * simplified. Two additions only, both attributes and neither changing the shape: `pathLength`
  * lets the welcome intro draw the outline without measuring it, and the size is set by the
  * caller (the artwork's own 178×101 viewBox is kept, so it scales without distortion). The intro
- * also sets `data-resolved`, an attribute on the outer svg only.
+ * also sets `data-resolved` and `preserveAspectRatio`, attributes on the outer svg only.
  */
 export function SignatureMark({
   className,
   size = 200,
   resolved,
+  bottomAligned = false,
 }: {
   className?: string
   size?: number
   /** The welcome intro's "line becomes the logo" step; its CSS keys the change off this. */
   resolved?: boolean
+  /** Sit the artwork on the bottom of its square box instead of in the middle. The mark is
+   * much wider than tall, so centred it leaves empty space under it. */
+  bottomAligned?: boolean
 }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 178 101"
+      preserveAspectRatio={bottomAligned ? 'xMidYMax meet' : undefined}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}

@@ -39,6 +39,32 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · "By Berit ❤︎" moves to the left
+
+**Goal**
+Move the mark from the right end of the top bar to the left, as the user asked.
+
+**What changed**
+- `RunTopBar.tsx`: `Byline` comes first, with a thin rule before the breadcrumb. What is open
+  keeps the right end from md, and has its own row on narrow screens.
+- DECISIONS 0057 updated.
+
+**Steps, in order**
+1. `git checkout -b feat/byline-left` from main.
+2. Moved the mark, then took screenshots at 1440, 800 and 390 px, on a run with things open and
+   a clean one.
+3. `npm run check`, then merged into main.
+
+**Why it was done this way**
+See DECISIONS 0057.
+
+**How to do this by hand**
+Open the run page: "By Berit ❤︎ | ‹ My reviews › …" reads from the top left.
+
+**Verification**
+`npm run check` passed. The bar was one row high (49 px) at 1440 px and on a clean phone run,
+and two rows (77 px) on a phone with things open.
+
 ### 2026-09-23 · "By Berit ❤︎" in the top bar
 
 **Goal**

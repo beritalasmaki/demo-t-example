@@ -12,3 +12,6 @@ Rules:
 - All values come from tokens (`src/styles/tokens.css`). No raw hex, no magic pixel values.
 - Every state a component can be in has a Storybook story, including empty and error.
 - Status is never carried by colour alone: icon plus text as well.
+
+`Tabs` has two variants: `segmented` and `pill`. The pill variant has a sliding background and
+optional per-tab tooltips (`tooltip`), both from transitions.dev (docs/DECISIONS.md, 0047).

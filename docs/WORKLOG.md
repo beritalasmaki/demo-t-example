@@ -39,6 +39,64 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Motion: success check, tab tooltips, sliding tabs, and a one-time intro
+
+**Goal**
+Add three transitions.dev transitions (success check on approve, tooltips on the view tabs,
+sliding tab pill) and a one-time welcome intro with the signature mark.
+
+**What changed**
+- `src/styles/transitions.css` (new): the three transitions, ported by hand (DECISIONS 0047).
+- `components/Tabs.tsx`: pill variant with a sliding pill and `tooltip` per tab; Escape
+  dismisses; tooltips stay inside the window. `RunTopBar` gives each view a tooltip.
+- `features/run/UndoBox.tsx`: "Approved" with a check. On a fresh decision the check plays and
+  focus moves there. `RunReviewPage` tracks "decided on this page".
+- `src/app/WelcomeIntro.tsx`, `intro.ts`, `intro.css`, `SignatureMark.tsx` (new), and
+  `App.tsx` (the intro over the page, plus a `?delay=<ms>` knob) (DECISIONS 0048).
+- `styles/tokens.css`: `--signature-orange`, plus `--color-signature` and `--color-intro-*`.
+- Tests: `Tabs.test.tsx`, `WelcomeIntro.test.tsx`, and additions to UndoBox, page and App
+  tests. New story: `App/WelcomeIntro`.
+- Docs: DECISIONS 0047–0048, and the styles, app, components and features READMEs.
+
+**Steps, in order**
+1. `npm pack transitions-dev@0.3.0` into a scratch folder, and read `free/success-check.md`,
+   `free/tooltip.md` and `free/tabs-sliding.md`. Nothing was installed into the repo.
+2. Ported the CSS into `transitions.css` and wired it into `Tabs` and `UndoBox`.
+3. Built the intro, then tests with fake timers for the sequence, the flag, the skip and
+   reduced motion.
+4. `npx prettier --write src`, `npm run check`, and `npx storybook build`.
+5. Playwright on `npx vite --port 5199`: measured the intro's phase times, recorded it with
+   `?delay=6000`, took one frame per step, sampled the pill's position every frame, and
+   measured every tooltip's box.
+
+**Why it was done this way**
+See DECISIONS 0047 and 0048. In short: the package was recipes, not a library, so porting
+beat installing. The intro sits over a page that is already loading, so it never delays the
+data. The name and title are real typed text, because typing needs characters.
+
+**How to do this by hand**
+Clear `ledger:intro-seen` in DevTools → Application → Local Storage and reload to see the
+intro again. Add `?delay=6000` to see the handoff to "Loading run…". Hover the view tabs for
+their tooltips. Approve `?run=run-clean` to see the success check.
+
+**Verification**
+- `npm run check`: 47 test files and 251 tests passing, typecheck and lint clean (the one
+  existing warning), and theme checks ok for 44 colours. The Storybook build includes
+  `app-welcomeintro--intro`.
+- In the browser, the intro's phases ran at: draw 0 ms, resolve 864 ms, typing 1069 ms,
+  "Made by" 2625 ms, fade 3315 ms, gone 3845 ms, with the flag set. The second visit showed
+  no intro. With `?delay=6000`, the intro handed off to "Loading run…" and then the run.
+  The signature path's bounding box is 177.3 × 100 in its 178 × 101 viewBox.
+- The pill slid from 4 px to 181 px in about 250 ms. At 1280 px, the rightmost tooltip moved
+  from ending at 1356 px (off screen) to 1276 px. No horizontal scroll at 1280 or 390 px.
+- After approving, focus is on the "Approved" heading.
+
+**Open questions / next**
+- Raleway doesn't load in this sandbox (Google Fonts is blocked), so the screenshots show a
+  fallback font. Check the typed name in a normal browser.
+- Should the typed name and title use the supplied SVG outlines instead of live text? That
+  would mean revealing them some other way than character by character.
+
 ### 2026-09-23 · Three columns: Run details on the left
 
 **Goal**

@@ -67,8 +67,9 @@ the run, and a right column that stays in place.
   reference) and *The run* (requester, agent, time, checks, lowest score) (0046).
 - `OpenItemsBox.tsx` — heads the right-hand column before a decision: what is open, and a link
   to the tick list.
-- `UndoBox.tsx` — heads the right-hand column after a decision: the live undo countdown and
-  the Undo button (0017, 0033).
+- `UndoBox.tsx` — heads the right-hand column after a decision: the outcome ("Approved", with a
+  check that plays transitions.dev's "Success check" and takes focus when the decision was just
+  made here, 0047), the live undo countdown and the Undo button (0017, 0033).
 - `StoryTimeline.tsx` — "What happened, in order": `Run.story` on a timeline spine, ending on
   "Waiting for a decision" or the decision and its reason. Uses `ScoreCard` and `CheckCard`
   where scores and checks happened.

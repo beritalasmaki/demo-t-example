@@ -6,6 +6,35 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0054 · "Run details" scrolls on its own; an amber dot on the tab's icon
+
+**Context.** From xl up, the "Run details" column sticks under the top bar. In a window
+shorter than the card, its lower part could not be reached until the middle and right columns
+had scrolled to the end. The user asked to fix the left panel's scrolling. They also asked for
+an amber dot on the favicon, so the browser tab shows that a run has things to pay attention
+to.
+
+**Choice.**
+- Scrolling: from xl up, the card is capped at the window's height below the bar
+  (`100dvh − --run-bar-height − 2 × --space-4`) and scrolls on its own
+  (`overflow-y: auto`, `overscroll-behavior: contain`). The page measures whether the card
+  overflows. Only then is the card a tab stop (`tabIndex=0`), so a keyboard can scroll it, and
+  screen readers name it "Run details" from its heading. Below xl it is not sticky, and nothing
+  changes.
+- Favicon: `public/favicon-attention.svg` is the same icon with an amber circle (#e0a94d, the
+  dot token's colour, 0053) in its empty top-right corner. `useAttentionFavicon` swaps the
+  icon link to it while the run shown has open items and no decision. It puts the original
+  back after a decision or when the page leaves, so "My reviews" and clean runs keep the plain
+  icon. It is visual only; the page's own notice says the same in text.
+
+**Consequence.** Checked in Chromium, in a 1440 × 700 window. A wheel over the card scrolled
+it to its end, 198 px, while the page stayed put. A wheel over the middle scrolled the page
+and left the card alone. In a 1400 px tall window the card fit, and was neither scrollable nor
+a tab stop. The favicon was the dotted one on the pending run, and the plain one on the clean
+run and on "My reviews". The dot shows clearly at 16 px.
+
+---
+
 ## 0053 · What is open moves into the top bar, as one line
 
 **Context.** Before a decision, a yellow card at the top of the right column said how many

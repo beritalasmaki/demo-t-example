@@ -15,11 +15,26 @@ export interface TabsProps {
   onValueChange: (value: string) => void
   children: ReactNode
   className?: string
+  /** `automatic` (default): arrow keys select as they move. `manual`: arrow keys only move
+   * focus, and Enter, Space or a click selects. Use `manual` when selecting a tab moves focus
+   * into its panel — otherwise arrowing along the tab list would pull focus out of it. */
+  activationMode?: 'automatic' | 'manual'
 }
 
-export function Tabs({ value, onValueChange, children, className }: TabsProps) {
+export function Tabs({
+  value,
+  onValueChange,
+  children,
+  className,
+  activationMode = 'automatic',
+}: TabsProps) {
   return (
-    <TabsPrimitive.Root value={value} onValueChange={onValueChange} className={className}>
+    <TabsPrimitive.Root
+      value={value}
+      onValueChange={onValueChange}
+      activationMode={activationMode}
+      className={className}
+    >
       {children}
     </TabsPrimitive.Root>
   )

@@ -35,7 +35,7 @@ export function EvidenceTab({ run, onOpenStep }: EvidenceTabProps) {
       className="flex min-w-0 flex-col gap-[var(--space-5)]"
     >
       <div className="flex flex-col gap-[var(--space-2)]">
-        <SectionHeading id="evidence-heading" icon={FileText}>
+        <SectionHeading id="evidence-heading" focusTarget icon={FileText}>
           Evidence
         </SectionHeading>
         <p className="max-w-[45rem] text-body font-normal font-body text-text-secondary">

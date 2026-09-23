@@ -1,4 +1,4 @@
-import { Activity, Info } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import { StatusBadge } from '../../components/StatusBadge'
 import { resolveConfidenceAreas, confidenceLevel } from '../../lib/confidence'
 import {
@@ -26,10 +26,19 @@ import { UndoBox } from './UndoBox'
  * rows of labelled facts. Run names such as `e91a4c` and `run-messy` are fields with a
  * plain-language line under them, so a reviewer never has to guess what an id is for.
  * The target environment is always here, above the fold (Scenario S6).
+ *
+ * The details collapse to one compact row once the reviewer moves between views, so the view
+ * they chose sits near the top of the screen (docs/DECISIONS.md, 0044). The compact row keeps
+ * what must never be hidden — status, initiative, system, environment, revision, and what is
+ * open. "Show details" / "Hide details" sits on the header's bottom border in both states, so
+ * the button does not move when it is pressed.
  */
 export interface RunOverviewProps {
   run: Run
   onRunUpdated: (updatedRun: Run) => void
+  /** Full details (true) or the compact row (false). */
+  expanded: boolean
+  onExpandedChange: (expanded: boolean) => void
   /** Where "Jump to the open items" goes — the tick list in the decision panel. */
   openItemsHref?: string
 }
@@ -105,6 +114,52 @@ function OpenItemsBox({ run, href }: { run: Run; href: string }) {
   )
 }
 
+function EnvironmentTag({ environment }: { environment: Run['target']['environment'] }) {
+  return (
+    <span className="inline-flex items-center gap-[var(--space-2)] self-start rounded-full border border-border px-[var(--space-2)] py-[var(--space-1)] text-caption font-semibold font-heading leading-none tracking-wide whitespace-nowrap text-text-primary uppercase">
+      <span aria-hidden className={cn('h-1.5 w-1.5 rounded-full', ENVIRONMENT[environment].dot)} />
+      {environment}
+    </span>
+  )
+}
+
+function CompactOverview({ run, openItemsHref }: { run: Run; openItemsHref: string }) {
+  const open = run.decision ? 0 : buildOpenItems(run).length
+  return (
+    <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-[var(--space-5)] gap-y-[var(--space-3)] px-[var(--space-4)] pt-[var(--space-4)] pb-[var(--space-5)] md:flex-nowrap md:px-[var(--space-6)]">
+      <div className="flex min-w-0 flex-1 items-center gap-[var(--space-3)]">
+        <div className="shrink-0">
+          <StatusPill status={run.status} />
+        </div>
+        <h1
+          id="run-heading"
+          title={run.initiative}
+          className="min-w-0 truncate text-section-heading leading-tight font-bold font-heading text-text-primary"
+        >
+          {run.initiative}
+        </h1>
+      </div>
+      <div className="flex flex-wrap items-center gap-[var(--space-3)] md:shrink-0 md:flex-nowrap">
+        <span className="text-meta font-medium font-body whitespace-nowrap text-text-primary">
+          {run.target.system}
+        </span>
+        <EnvironmentTag environment={run.target.environment} />
+        <span className="rounded-sm border border-border-subtle bg-surface-raised px-[var(--space-2)] py-[var(--space-1)] font-mono text-caption leading-none font-medium whitespace-nowrap text-text-secondary">
+          {run.decision?.revision ?? run.revision}
+        </span>
+        {open > 0 && (
+          <a
+            href={openItemsHref}
+            className="rounded-full border border-status-waived/40 bg-status-waived-tint-bg px-[var(--space-3)] py-[var(--space-1)] text-caption font-semibold font-body whitespace-nowrap text-text-primary no-underline hover:underline"
+          >
+            {formatCount(open, 'open item')}
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function Field({
   label,
   children,
@@ -125,6 +180,8 @@ function Field({
 export function RunOverview({
   run,
   onRunUpdated,
+  expanded,
+  onExpandedChange,
   openItemsHref = '#open-items',
 }: RunOverviewProps) {
   const decided = run.decision != null
@@ -140,8 +197,34 @@ export function RunOverview({
     .sort((a, b) => (a.missing || b.missing ? 0 : a.value - b.value))[0]
   const env = ENVIRONMENT[run.target.environment]
 
+  const toggle = (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      aria-controls="run-overview"
+      onClick={() => onExpandedChange(!expanded)}
+      className="absolute bottom-0 left-1/2 z-10 inline-flex -translate-x-1/2 translate-y-1/2 cursor-pointer items-center gap-[var(--space-1)] rounded-full border border-border bg-surface px-[var(--space-3)] py-[var(--space-1)] text-caption font-semibold font-body whitespace-nowrap text-text-primary shadow-sm hover:bg-bg"
+    >
+      {expanded ? (
+        <ChevronUp aria-hidden className="h-4 w-4" />
+      ) : (
+        <ChevronDown aria-hidden className="h-4 w-4" />
+      )}
+      {expanded ? 'Hide details' : 'Show details'}
+    </button>
+  )
+
+  if (!expanded) {
+    return (
+      <header id="run-overview" className="relative border-b border-border-subtle bg-surface">
+        <CompactOverview run={run} openItemsHref={openItemsHref} />
+        {toggle}
+      </header>
+    )
+  }
+
   return (
-    <header className="border-b border-border-subtle bg-surface">
+    <header id="run-overview" className="relative border-b border-border-subtle bg-surface">
       <div className="mx-auto flex max-w-6xl flex-col gap-[var(--space-4)] px-[var(--space-4)] py-[var(--space-6)] md:px-[var(--space-6)]">
         <div className="flex flex-col items-start justify-between gap-[var(--space-5)] md:flex-row md:gap-[var(--space-7)]">
           <div className="flex max-w-[47.5rem] flex-col gap-[var(--space-3)]">
@@ -277,10 +360,7 @@ export function RunOverview({
         <div className="grid grid-cols-1 gap-[var(--space-5)] border-t border-border-subtle pt-[var(--space-4)] sm:grid-cols-3">
           <Field label={released ? 'Where it went' : 'Where it would go'}>
             <span className={VALUE}>{run.target.system}</span>
-            <span className="inline-flex items-center gap-[var(--space-2)] self-start rounded-full border border-border px-[var(--space-2)] py-[var(--space-1)] text-caption font-semibold font-heading leading-none tracking-wide whitespace-nowrap text-text-primary uppercase">
-              <span aria-hidden className={cn('h-1.5 w-1.5 rounded-full', env.dot)} />
-              {run.target.environment}
-            </span>
+            <EnvironmentTag environment={run.target.environment} />
             <span className={HELP}>{env.help}</span>
           </Field>
           <Field label={released ? 'What was released' : 'What would be released'}>
@@ -297,6 +377,7 @@ export function RunOverview({
           </Field>
         </div>
       </div>
+      {toggle}
     </header>
   )
 }

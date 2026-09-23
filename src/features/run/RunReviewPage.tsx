@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { Tabs, TabsContent } from '../../components/Tabs'
 import type { GetRunOptions, SubmitDecisionOptions } from '../../lib/api'
 import type { Run } from '../../lib/types'
@@ -23,6 +24,12 @@ import { useRun } from './useRun'
  *
  * Loading, not-found and error states are handled here, once. The run is held in local state
  * so a decision, a conflict or an undo updates the screen immediately, without a refetch.
+ *
+ * Switching views (docs/DECISIONS.md, 0044): the top bar is sticky; choosing a tab collapses
+ * the overview to one row and moves focus to the chosen view's heading, scrolling it into
+ * view when it is not already near the top — so the change is visible, and a screen reader
+ * hears where it landed. The tabs use manual activation: arrow keys move along the tab list,
+ * Enter, Space or a click selects.
  */
 export type RunView = 'story' | 'evidence' | 'steps'
 
@@ -50,6 +57,40 @@ export function RunReviewPage({
   const [changedRun, setChangedRun] = useState<Run | null>(null)
   const [view, setView] = useState<RunView>(defaultView)
   const [focusEventId, setFocusEventId] = useState<string | undefined>(undefined)
+  const [detailsOpen, setDetailsOpen] = useState(true)
+  // Set when the reviewer picks a tab, read once after the new view has rendered.
+  const focusViewHeading = useRef(false)
+  const barRef = useRef<HTMLDivElement>(null)
+  const [barHeight, setBarHeight] = useState<number | undefined>(undefined)
+
+  // The sticky bar's height — it wraps to two rows on narrow screens — so scrolled-to headings
+  // and the sticky right column sit below it rather than under it.
+  const loaded = state.status === 'success'
+  useEffect(() => {
+    const bar = barRef.current
+    if (!bar || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => setBarHeight(bar.offsetHeight))
+    observer.observe(bar)
+    return () => observer.disconnect()
+  }, [loaded])
+
+  useEffect(() => {
+    if (!focusViewHeading.current) return
+    focusViewHeading.current = false
+    // One frame later: Radix selects a tab on mousedown, and the browser's own default then
+    // focuses that tab — focusing the heading any sooner would be undone. The new panel has
+    // also mounted by then.
+    const frame = requestAnimationFrame(() => {
+      const heading = document.getElementById(`${view}-heading`)
+      if (!heading) return
+      heading.focus({ preventScroll: true })
+      const top = heading.getBoundingClientRect().top
+      const barBottom = barRef.current?.getBoundingClientRect().bottom ?? 0
+      if (top < barBottom || top > window.innerHeight / 2)
+        heading.scrollIntoView({ block: 'start' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [view])
 
   if (state.status === 'loading') {
     return (
@@ -87,52 +128,74 @@ export function RunReviewPage({
   const run = changedRun ?? state.run
   const decided = run.decision != null
 
+  function chooseView(next: RunView) {
+    focusViewHeading.current = true
+    setDetailsOpen(false)
+    setView(next)
+  }
+
+  // A link into one step: `StepsTab` focuses that row itself, not the heading.
   function showStep(eventId: string) {
     setFocusEventId(eventId)
+    setDetailsOpen(false)
     setView('steps')
   }
 
+  const barStyle =
+    barHeight == null ? undefined : ({ '--run-bar-height': `${barHeight}px` } as CSSProperties)
+
   return (
-    <Tabs value={view} onValueChange={(value) => setView(value as RunView)}>
-      <RunTopBar run={run} reviewsHref={reviewsHref} />
-      <RunOverview run={run} onRunUpdated={setChangedRun} />
+    <Tabs
+      value={view}
+      onValueChange={(value) => chooseView(value as RunView)}
+      activationMode="manual"
+    >
+      <div style={barStyle}>
+        <RunTopBar ref={barRef} run={run} reviewsHref={reviewsHref} />
+        <RunOverview
+          run={run}
+          onRunUpdated={setChangedRun}
+          expanded={detailsOpen}
+          onExpandedChange={setDetailsOpen}
+        />
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-[var(--space-6)] px-[var(--space-4)] pt-[var(--space-6)] pb-[var(--space-7)] md:grid-cols-[minmax(0,1fr)_21.25rem] md:gap-[var(--space-7)] md:px-[var(--space-6)]">
-        <div className="min-w-0">
-          <TabsContent value="story">
-            <StoryTimeline run={run} onShowSteps={showStep} />
-          </TabsContent>
-          <TabsContent value="evidence">
-            <EvidenceTab run={run} onOpenStep={showStep} />
-          </TabsContent>
-          <TabsContent value="steps">
-            <StepsTab run={run} focusEventId={focusEventId} />
-          </TabsContent>
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-[var(--space-6)] px-[var(--space-4)] pt-[var(--space-6)] pb-[var(--space-7)] md:grid-cols-[minmax(0,1fr)_21.25rem] md:gap-[var(--space-7)] md:px-[var(--space-6)]">
+          <div className="min-w-0">
+            <TabsContent value="story">
+              <StoryTimeline run={run} onShowSteps={showStep} />
+            </TabsContent>
+            <TabsContent value="evidence">
+              <EvidenceTab run={run} onOpenStep={showStep} />
+            </TabsContent>
+            <TabsContent value="steps">
+              <StepsTab run={run} focusEventId={focusEventId} />
+            </TabsContent>
+          </div>
+
+          <aside
+            aria-label={decided ? 'The decision record' : 'Your decision'}
+            className="order-first flex flex-col gap-[var(--space-4)] md:sticky md:top-[calc(var(--run-bar-height,4rem)+var(--space-4))] md:order-none"
+          >
+            {decided ? (
+              <>
+                <UnverifiedList run={run} />
+                <RunShape run={run} />
+              </>
+            ) : (
+              <>
+                <DecisionPanel
+                  // A fresh panel after an undo: the earlier ticks and reason belonged to a
+                  // decision that no longer stands.
+                  key={run.status}
+                  run={run}
+                  onRunUpdated={setChangedRun}
+                  submitDecisionOptions={submitDecisionOptions}
+                />
+                <UnverifiedList run={run} />
+              </>
+            )}
+          </aside>
         </div>
-
-        <aside
-          aria-label={decided ? 'The decision record' : 'Your decision'}
-          className="order-first flex flex-col gap-[var(--space-4)] md:sticky md:top-[var(--space-5)] md:order-none"
-        >
-          {decided ? (
-            <>
-              <UnverifiedList run={run} />
-              <RunShape run={run} />
-            </>
-          ) : (
-            <>
-              <DecisionPanel
-                // A fresh panel after an undo: the earlier ticks and reason belonged to a
-                // decision that no longer stands.
-                key={run.status}
-                run={run}
-                onRunUpdated={setChangedRun}
-                submitDecisionOptions={submitDecisionOptions}
-              />
-              <UnverifiedList run={run} />
-            </>
-          )}
-        </aside>
       </div>
     </Tabs>
   )

@@ -6,7 +6,12 @@ const meta = {
   title: 'Features/Run/RunOverview',
   component: RunOverview,
   parameters: { layout: 'fullscreen' },
-  args: { run: runMessyPending, onRunUpdated: () => {} },
+  args: {
+    run: runMessyPending,
+    onRunUpdated: () => {},
+    expanded: true,
+    onExpandedChange: () => {},
+  },
 } satisfies Meta<typeof RunOverview>
 
 export default meta
@@ -35,3 +40,8 @@ export const LongInitiative: Story = {
     },
   },
 }
+
+/** After the reviewer has switched views: one compact row, with "Show details" on the border. */
+export const Collapsed: Story = { args: { expanded: false } }
+
+export const CollapsedApproved: Story = { args: { run: runMessy, expanded: false } }

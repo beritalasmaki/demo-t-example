@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { NOT_FOUND_RUN_ID } from '../../lib/api'
@@ -36,6 +36,57 @@ describe('RunReviewPage', () => {
 
     await user.click(screen.getByRole('tab', { name: 'All 200 steps' }))
     expect(screen.getByRole('region', { name: 'All 200 steps' })).toBeVisible()
+  })
+
+  it('shows the details by default, and the top bar stays in place while scrolling', async () => {
+    render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+    expect(screen.getByText('Why the agent was asked')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Hide details', expanded: true })).toBeVisible()
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' }).closest('.sticky')).not.toBeNull()
+  })
+
+  it('choosing a tab moves focus to that view, and hides the details until asked', async () => {
+    const user = userEvent.setup()
+    render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+
+    await user.click(screen.getByRole('tab', { name: 'Evidence' }))
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2, name: 'Evidence' })).toHaveFocus(),
+    )
+    expect(screen.queryByText('Why the agent was asked')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: 'Story' }))
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'What happened, in order' }),
+      ).toHaveFocus(),
+    )
+    expect(screen.queryByText('Why the agent was asked')).not.toBeInTheDocument()
+    // The compact row still carries what must never be hidden.
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(runMessyPending.initiative)
+    expect(screen.getByRole('link', { name: '3 open items' })).toBeVisible()
+
+    await user.click(screen.getByRole('button', { name: 'Show details', expanded: false }))
+    expect(screen.getByText('Why the agent was asked')).toBeVisible()
+  })
+
+  it('arrow keys move along the tabs without switching; Enter switches and moves focus', async () => {
+    const user = userEvent.setup()
+    render(<RunReviewPage runId={runMessyPending.id} getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+
+    screen.getByRole('tab', { name: 'Story' }).focus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('tab', { name: 'Evidence' })).toHaveFocus()
+    expect(screen.getByRole('tab', { name: 'Story', selected: true })).toBeVisible()
+
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('tab', { name: 'Evidence', selected: true })).toBeVisible()
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2, name: 'Evidence' })).toHaveFocus(),
+    )
   })
 
   it('"Show all 180 steps" opens the step list with the shard group expanded', async () => {

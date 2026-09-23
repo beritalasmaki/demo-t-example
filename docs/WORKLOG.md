@@ -39,6 +39,65 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · View tabs above the view
+
+**Goal**
+Move the Story / Evidence / All steps tabs from the top bar to just above "What happened, in
+order", since only that area changes when a tab is clicked.
+
+**What changed**
+- New `RunViewTabs.tsx` (+ story). `RunTopBar.tsx` keeps only the breadcrumb, and its story
+  loses the Tabs wrapper.
+- `RunReviewPage.tsx`: the tabs sit at the top of the view column, sticky under the bar. The
+  page measures their height into `--run-tabs-height`.
+- `SectionHeading.tsx`: the scroll margin now clears the bar and the tabs.
+- `features/run/README.md`, DECISIONS 0052.
+
+**Steps, in order**
+1. `git checkout -b feat/tabs-in-main`, stacked on `feat/approve-pop`.
+2. Extracted the tab list and moved it into the view column.
+3. Tests, `npm run check`, then screenshots and scroll measurements in Chromium.
+
+**Why it was done this way**
+See DECISIONS 0052. The tabs stay sticky, so the views are still one click away in a long
+run.
+
+**How to do this by hand**
+Open the page and scroll down the story: the tabs stick under the breadcrumb bar. Click
+Evidence: the page scrolls so the Evidence heading sits right under the tabs.
+
+**Verification**
+`npm run check` passed. In Chromium at 1440 px, after the smooth scroll the heading's top was
+at 125 px, equal to the bottom of the tabs, and the heading had focus.
+
+### 2026-09-23 · Approve button pop
+
+**Goal**
+Make "Approve and release" pop like the button in the user's reference video when clicked.
+
+**What changed**
+- `src/styles/transitions.css`: new "Approve pop" section with `t-pop-button` and
+  `t-pop-label` keyframes, `--pop-dur` and `--pop-ease`, and a reduced-motion guard.
+- `DecisionPanel.tsx`: Approve plays the pop, then opens the confirmation. The label is
+  wrapped in `.t-pop-label`.
+- `DecisionPanel.test.tsx`: two tests, one for pop then dialog and one for reduced motion.
+- DECISIONS 0051.
+
+**Steps, in order**
+1. Read the video frame by frame (ffmpeg, 30 fps) to get the scale curve and timings.
+2. Wrote the keyframes and wired them into the panel's Approve click.
+3. Tests, then sampled the transform and dialog timing in Chromium.
+
+**Why it was done this way**
+See DECISIONS 0051. The dialog waits for the pop, or the modal would cover it.
+
+**How to do this by hand**
+Open `?run=run-clean` and click "Approve and release": the button pops, then the confirmation
+opens. With reduced motion turned on in the OS, the confirmation opens straight away.
+
+**Verification**
+`npm run check` passed. In Chromium, the transform followed the keyframes and the dialog
+opened at about 470 ms, or about 20 ms with reduced motion.
 ### 2026-09-23 · Loading state: thinking orb, centred
 
 **Goal**

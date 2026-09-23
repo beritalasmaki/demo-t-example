@@ -59,8 +59,10 @@ the run, and a right column that stays in place.
   screen straight away, without a refetch. Lays out the three columns, owns which view is
   open, and where focus goes when the view changes: the view's heading after a
   tab, or one step's row after a link into the step list (docs/DECISIONS.md, 0044).
-- `RunTopBar.tsx` — sticky: breadcrumb back to "My reviews", and the Story / Evidence / All N
-  steps tab list. No logo or main menu: the page sits inside a host platform (0042).
+- `RunTopBar.tsx` — sticky: breadcrumb back to "My reviews". No logo or main menu: the page
+  sits inside a host platform (0042).
+- `RunViewTabs.tsx` — the Story / Evidence / All N steps tab list, at the top of the view it
+  switches, sticky under the top bar (0052).
 - `RunOverview.tsx` — the card at the top of the middle column: status, initiative, why the
   agent was asked, where the run is now.
 - `RunDetails.tsx` — "Run details", the left-hand column: *The change* (target, revision, run

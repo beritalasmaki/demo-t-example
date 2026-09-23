@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { runBlocked, runClean, runMessyPending } from '../../fixtures'
 import type { Run } from '../../lib/types'
 import { DecisionPanel } from './DecisionPanel'
@@ -100,5 +100,44 @@ describe('DecisionPanel', () => {
   it('names who is deciding', () => {
     render(<DecisionPanel run={runClean} onRunUpdated={vi.fn()} />)
     expect(screen.getByText('Juhani Virtaleppäsoutu')).toBeVisible()
+  })
+
+  describe('the approve pop', () => {
+    function stubMotion(reduce: boolean) {
+      vi.stubGlobal('matchMedia', (query: string) => ({
+        matches: reduce && query.includes('reduce'),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }))
+    }
+    afterEach(() => {
+      vi.unstubAllGlobals()
+      vi.useRealTimers()
+    })
+
+    it('pops the button, then opens the confirmation', () => {
+      stubMotion(false)
+      vi.useFakeTimers()
+      render(<DecisionPanel run={runClean} onRunUpdated={vi.fn()} />)
+      const approve = screen.getByRole('button', { name: 'Approve and release' })
+      fireEvent.click(approve)
+      expect(approve).toHaveAttribute('data-popping')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      act(() => {
+        vi.advanceTimersByTime(440)
+      })
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      expect(approve).not.toHaveAttribute('data-popping')
+    })
+
+    it('skips the pop for reduced motion and opens the confirmation at once', () => {
+      stubMotion(true)
+      render(<DecisionPanel run={runClean} onRunUpdated={vi.fn()} />)
+      const approve = screen.getByRole('button', { name: 'Approve and release' })
+      fireEvent.click(approve)
+      expect(approve).not.toHaveAttribute('data-popping')
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
   })
 })

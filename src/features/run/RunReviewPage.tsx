@@ -11,6 +11,7 @@ import { RunDetails } from './RunDetails'
 import { RunOverview } from './RunOverview'
 import { RunShape } from './RunShape'
 import { RunTopBar } from './RunTopBar'
+import { RunViewTabs } from './RunViewTabs'
 import { StepsTab } from './StepsTab'
 import { StoryTimeline } from './StoryTimeline'
 import { UndoBox } from './UndoBox'
@@ -19,16 +20,16 @@ import { useRun } from './useRun'
 
 /**
  * The review page — the "story layout" (docs/DECISIONS.md, 0038, and 0046 for the columns).
- * Under the page's own bar (breadcrumb and the three views), three columns: *Run details*
- * on the left; the overview card and one view at a time — Story, Evidence or All steps — in the
- * middle; on the right, what is open, the decision panel and what is not checked before a
+ * Under the page's own bar (the breadcrumb), three columns: *Run details*
+ * on the left; the overview card, then the view tabs and one view at a time — Story, Evidence or
+ * All steps — in the middle (0052); on the right, what is open, the decision panel and what is not checked before a
  * decision, or the undo window, what is still unverified and the run's shape after one. The
  * side columns stay the same for all three views.
  *
  * Loading, not-found and error states are handled here, once. The run is held in local state
  * so a decision, a conflict or an undo updates the screen immediately, without a refetch.
  *
- * Switching views (docs/DECISIONS.md, 0044): the top bar is sticky; choosing a tab moves focus
+ * Switching views (docs/DECISIONS.md, 0044): the top bar and the view tabs are sticky; choosing a tab moves focus
  * to the chosen view's heading, scrolling it into view when it is not already near the top —
  * so the change is visible, and a screen reader hears where it landed. The tabs use manual activation: arrow keys move along the tab list,
  * Enter, Space or a click selects.
@@ -65,16 +66,23 @@ export function RunReviewPage({
   // Set when the reviewer picks a tab, read once after the new view has rendered.
   const focusViewHeading = useRef(false)
   const barRef = useRef<HTMLDivElement>(null)
+  const tabsRef = useRef<HTMLDivElement>(null)
   const [barHeight, setBarHeight] = useState<number | undefined>(undefined)
+  const [tabsHeight, setTabsHeight] = useState<number | undefined>(undefined)
 
-  // The sticky bar's height — it wraps to two rows on narrow screens — so scrolled-to headings
-  // and the sticky "Run details" column sit below it rather than under it.
+  // The sticky bar's and view tabs' heights, so the tabs stick under the bar, and scrolled-to
+  // headings and the sticky "Run details" column sit below them rather than under them.
   const loaded = state.status === 'success'
   useEffect(() => {
     const bar = barRef.current
-    if (!bar || typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(() => setBarHeight(bar.offsetHeight))
+    const tabs = tabsRef.current
+    if (!bar || !tabs || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => {
+      setBarHeight(bar.offsetHeight)
+      setTabsHeight(tabs.offsetHeight)
+    })
     observer.observe(bar)
+    observer.observe(tabs)
     return () => observer.disconnect()
   }, [loaded])
 
@@ -89,8 +97,8 @@ export function RunReviewPage({
       if (!heading) return
       heading.focus({ preventScroll: true })
       const top = heading.getBoundingClientRect().top
-      const barBottom = barRef.current?.getBoundingClientRect().bottom ?? 0
-      if (top < barBottom || top > window.innerHeight / 2)
+      const tabsBottom = tabsRef.current?.getBoundingClientRect().bottom ?? 0
+      if (top < tabsBottom || top > window.innerHeight / 2)
         heading.scrollIntoView({ block: 'start' })
     })
     return () => cancelAnimationFrame(frame)
@@ -141,8 +149,10 @@ export function RunReviewPage({
     setView('steps')
   }
 
-  const barStyle =
-    barHeight == null ? undefined : ({ '--run-bar-height': `${barHeight}px` } as CSSProperties)
+  const barStyle = {
+    ...(barHeight != null && { '--run-bar-height': `${barHeight}px` }),
+    ...(tabsHeight != null && { '--run-tabs-height': `${tabsHeight}px` }),
+  } as CSSProperties
 
   return (
     <Tabs
@@ -195,7 +205,8 @@ export function RunReviewPage({
             <RunDetails run={run} />
           </div>
 
-          <div className="min-w-0 pt-[var(--space-2)] md:col-start-1 md:row-start-3 xl:col-start-2 xl:row-start-2">
+          <div className="min-w-0 md:col-start-1 md:row-start-3 xl:col-start-2 xl:row-start-2">
+            <RunViewTabs ref={tabsRef} run={run} />
             <TabsContent value="story">
               <StoryTimeline run={run} onShowSteps={showStep} />
             </TabsContent>

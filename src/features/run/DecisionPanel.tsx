@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, Info, ShieldCheck, X } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { SubmitDecisionOptions } from '../../lib/api'
 import { UNDO_WINDOW_MINUTES } from '../../lib/decision'
 import { formatCount } from '../../lib/format'
@@ -61,6 +61,9 @@ export function DecisionPanel({
   const [ticked, setTicked] = useState<Set<string>>(() => new Set(defaultTickedIds))
   const [reason, setReason] = useState(defaultReason)
   const [openAction, setOpenAction] = useState<DecisionAction | null>(null)
+  const [popping, setPopping] = useState(false)
+  const popTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(popTimer.current), [])
   const reasonId = useId()
   const hintId = useId()
 
@@ -84,6 +87,27 @@ export function DecisionPanel({
       else next.add(id)
       return next
     })
+  }
+
+  // "Approve and release" pops before its confirmation opens (docs/DECISIONS.md, 0051). No
+  // motion — reduced-motion users, or an environment that can't report the preference —
+  // means no pop and no wait: the confirmation opens at once.
+  function approve() {
+    const canAnimate =
+      typeof window.matchMedia === 'function' &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!canAnimate) {
+      setOpenAction('approved')
+      return
+    }
+    if (popping) return
+    setPopping(true)
+    // Matches --pop-dur in transitions.css, plus a little slack; a timer rather than
+    // `animationend`, so the dialog always opens even if the animation never runs.
+    popTimer.current = window.setTimeout(() => {
+      setPopping(false)
+      setOpenAction('approved')
+    }, 440)
   }
 
   function applyConflict(decision: Decision) {
@@ -204,19 +228,22 @@ export function DecisionPanel({
           />
           <button
             type="button"
-            onClick={() => setOpenAction('approved')}
+            onClick={approve}
             disabled={!ready}
             aria-describedby={hintId}
+            data-popping={popping || undefined}
             className={cn(
-              'inline-flex items-center justify-center gap-[var(--space-3)] rounded-md border px-[var(--space-4)] py-[var(--space-3)]',
+              't-pop inline-flex items-center justify-center gap-[var(--space-3)] rounded-md border px-[var(--space-4)] py-[var(--space-3)]',
               'text-body font-semibold font-heading leading-none whitespace-nowrap',
               ready
                 ? 'cursor-pointer border-text-primary bg-text-primary text-surface hover:opacity-90'
                 : 'cursor-not-allowed border-border-subtle bg-border-subtle text-text-disabled',
             )}
           >
-            <Check aria-hidden className="h-4 w-4" strokeWidth={2.5} />
-            Approve and release
+            <span className="t-pop-label">
+              <Check aria-hidden className="h-4 w-4" strokeWidth={2.5} />
+              Approve and release
+            </span>
           </button>
           <span
             id={hintId}

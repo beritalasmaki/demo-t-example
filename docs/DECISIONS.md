@@ -6,6 +6,44 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0052 · The view tabs sit above the view they switch
+
+**Context.** The Story / Evidence / All steps tabs were in the sticky top bar, next to the
+breadcrumb. The user asked to move them above "What happened, in order", because that area is
+the only part of the page they change.
+
+**Choice.** A new `RunViewTabs`, at the top of the middle column, between the overview card and
+the view. The top bar keeps only the breadcrumb. The tabs are sticky too, just under the top bar
+(`--run-bar-height`), so a long view can still be switched from anywhere in it (0044). Their
+height is measured into `--run-tabs-height`, so a view heading that a tab click scrolls to
+lands just below them. The sticky "Run details" column and the decision column stay clear of
+the bar only. The tabs stay sticky only inside the view's column: below xl, the decision panel
+comes before the view, and the tabs don't follow the reader there.
+
+**Consequence.** Checked in Chromium at 1440 and 390 px wide. Scrolled 1400 px down in the
+story, a click on Evidence scrolled back so the Evidence heading sat directly under the tabs,
+and took focus. 0044's focus behaviour is unchanged.
+
+---
+
+## 0051 · "Approve and release" pops, then asks for confirmation
+
+**Context.** The user shared a short video of a button press: the button squashes, springs
+past its size, bounces and settles, and its label pops back in. They asked for the same on
+"Approve and release".
+
+**Choice.** The same motion, timed from the video at 30 fps, as `.t-pop` keyframes in
+`transitions.css`. The button goes to about 0.94 × 0.9, up to 1.05, down to 0.985, and
+settles within 420 ms. The label shrinks away and pops back with a 1.12 overshoot. Our dark
+button colour stays; the video's blue does not. The confirmation dialog opens when the pop
+ends, about 0.44 s after the click, so the modal doesn't hide the animation. A timer opens
+it, not `animationend`, so it opens even if the animation never runs. A second click during
+the pop does nothing. Reduced motion, or no `matchMedia` (jsdom), means no pop and no wait.
+
+**Consequence.** Checked in Chromium. The transform sampled over time follows the keyframes,
+and the dialog opened at about 470 ms. With reduced motion, the dialog opened at once. The
+other decisions (Request changes, Reject run) do not pop: approving is the one celebrated
+action (0046's success check is its pair).
 ## 0050 · The loading state is the `thinking-orbs` orb, centred, with its label under it
 
 **Context.** The user asked to replace the plain "Loading…" text with

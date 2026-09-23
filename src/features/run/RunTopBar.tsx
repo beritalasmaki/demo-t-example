@@ -1,22 +1,18 @@
 import { ChevronLeft } from 'lucide-react'
 import type { Ref } from 'react'
-import { TabsList, TabsTrigger } from '../../components/Tabs'
-import { formatCount } from '../../lib/format'
 import type { Run } from '../../lib/types'
 
 /**
  * The page's own bar, directly under the host platform's navigation: a breadcrumb back to the
- * reviewer's list, and the three views of the run. No logo, no main menu — this page sits
+ * reviewer's list. The three views of the run sit above the view they switch, in
+ * `RunViewTabs` (docs/DECISIONS.md, 0052). No logo, no main menu — this page sits
  * inside another platform that owns those (docs/DECISIONS.md, 0042). A long initiative name
  * truncates with the full name on hover; the revision chip next to it never truncates, so two
  * runs of the same initiative stay distinguishable.
  *
- * Must render inside the page's `Tabs` root: the tab list lives here, the tab panels in the
- * main column.
- *
- * Sticky at the top of the page, so the views can be switched from anywhere in a long run
- * (docs/DECISIONS.md, 0044). `ref` lets the page measure its height, so headings scrolled to
- * and the sticky right column stay clear of it.
+ * Sticky at the top of the page, so the way back is always one click away
+ * (docs/DECISIONS.md, 0044). `ref` lets the page measure its height, so headings scrolled to,
+ * the view tabs and the sticky side column stay clear of it.
  */
 export interface RunTopBarProps {
   run: Run
@@ -27,8 +23,8 @@ export interface RunTopBarProps {
 export function RunTopBar({ run, reviewsHref, ref }: RunTopBarProps) {
   return (
     <div ref={ref} className="sticky top-0 z-20 border-b border-border-subtle bg-surface">
-      <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-x-[var(--space-5)] gap-y-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] md:px-[var(--space-6)]">
-        <nav aria-label="Breadcrumb" className="w-full min-w-0 md:w-auto">
+      <div className="mx-auto flex max-w-[90rem] items-center px-[var(--space-4)] py-[var(--space-3)] md:px-[var(--space-6)]">
+        <nav aria-label="Breadcrumb" className="min-w-0">
           <ol className="flex min-w-0 items-center gap-[var(--space-2)] text-meta font-normal font-body text-text-secondary">
             <li className="shrink-0">
               <a
@@ -52,29 +48,6 @@ export function RunTopBar({ run, reviewsHref, ref }: RunTopBarProps) {
             </li>
           </ol>
         </nav>
-        <TabsList variant="pill" label="Views of this run">
-          <TabsTrigger
-            variant="pill"
-            value="story"
-            tooltip="What the agent did, in order, in plain sentences"
-          >
-            Story
-          </TabsTrigger>
-          <TabsTrigger
-            variant="pill"
-            value="evidence"
-            tooltip="Every file, test and check the page's claims are based on"
-          >
-            Evidence
-          </TabsTrigger>
-          <TabsTrigger
-            variant="pill"
-            value="steps"
-            tooltip="The full record, one row for each step the agent took"
-          >
-            All {formatCount(run.timeline.length, 'step')}
-          </TabsTrigger>
-        </TabsList>
       </div>
     </div>
   )

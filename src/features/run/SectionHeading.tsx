@@ -13,7 +13,7 @@ export interface SectionHeadingProps {
   iconClassName?: string
   className?: string
   /** The heading a view's tab moves focus to (`RunReviewPage`). Makes it focusable by script
-   * only (`tabIndex={-1}`), and keeps it clear of the sticky top bar when scrolled to. */
+   * only (`tabIndex={-1}`), and keeps it clear of the sticky top bar and view tabs when scrolled to. */
   focusTarget?: boolean
 }
 
@@ -30,7 +30,8 @@ export function SectionHeading({
       id={id}
       tabIndex={focusTarget ? -1 : undefined}
       className={cn(
-        focusTarget && 'scroll-mt-[calc(var(--run-bar-height,4rem)+var(--space-5))]',
+        focusTarget &&
+          'scroll-mt-[calc(var(--run-bar-height,3rem)+var(--run-tabs-height,3.5rem)+var(--space-4))]',
         'flex items-center gap-[var(--space-3)] text-section-heading leading-tight font-semibold font-heading text-text-primary',
         className,
       )}

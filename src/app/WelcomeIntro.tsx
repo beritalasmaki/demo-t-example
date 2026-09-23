@@ -6,8 +6,8 @@ import { SignatureMark } from './SignatureMark'
 import './intro.css'
 
 /**
- * A one-time welcome intro, shown once ever per browser before the app appears
- * (docs/DECISIONS.md, 0048). Decorative, not informational: the page loads underneath from the
+ * A welcome intro, shown once per visit before the app appears (docs/DECISIONS.md, 0048 and
+ * 0049). Decorative, not informational: the page loads underneath from the
  * first moment, so the intro never delays the data, and it is not part of the loading state.
  *
  * Sequence: the signature draws itself in orange (900 ms), resolves to solid ink (200 ms), the
@@ -18,8 +18,9 @@ import './intro.css'
  * tracked out to exactly the name's width — measured once the fonts have loaded, so the two
  * edges line up whatever font actually renders.
  *
- * - Shown only while `ledger:intro-seen` is absent from localStorage; the flag is set when the
- *   intro completes or is skipped. No cookies, no backend.
+ * - Shown once per visit: while `ledger:intro-seen` is absent from sessionStorage, which the
+ *   browser clears when the tab or window closes. The flag is set when the intro completes or
+ *   is skipped, so page loads inside the visit don't replay it. No cookies, no backend.
  * - Skipped outright for `prefers-reduced-motion: reduce`.
  * - Any click, tap or key press dismisses it at once. The overlay is `aria-hidden` and holds
  *   no focusable element, so it never traps keyboard focus; the page underneath stays

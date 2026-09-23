@@ -39,6 +39,39 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-23 · Intro: once per visit
+
+**Goal**
+Show the welcome intro every time someone comes back to the site, not only on their very first
+visit.
+
+**What changed**
+- `src/app/intro.ts`: the flag moves from localStorage to sessionStorage, and the old
+  localStorage flag is removed.
+- `WelcomeIntro.tsx`: doc comment updated. Story note, tests and `app/README.md` updated.
+- DECISIONS 0049.
+
+**Steps, in order**
+1. `git checkout -B feat/intro-every-visit origin/main`.
+2. Swapped the storage and updated the tests: a new visit (empty sessionStorage) shows it
+   again, and the old flag is cleared.
+3. `npm run check`, then five visit cases in Playwright.
+
+**Why it was done this way**
+See DECISIONS 0049. "Every page load" would replay the intro on every in-app link, because
+those links reload the page.
+
+**How to do this by hand**
+Open the site in a new tab: the intro plays. Click "My reviews", or reload: it doesn't play.
+Close the tab, open the site again: it plays.
+
+**Verification**
+`npm run check` passed. In Playwright, the intro showed on a first visit, a new tab and a new
+browser session. It did not show on navigating inside the visit, or on a reload.
+
+**Open questions / next**
+None.
+
 ### 2026-09-23 · Intro: signature closer to the name
 
 **Goal**

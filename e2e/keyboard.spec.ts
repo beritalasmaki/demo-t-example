@@ -12,7 +12,9 @@ import { expect, test } from './fixtures'
 function focused(page: Page) {
   return page.evaluate(() => {
     const element = document.activeElement as HTMLElement
-    const shown = element.matches('input[type="checkbox"]') ? element.closest('label') : element
+    const shown = element.matches('input[type="checkbox"]')
+      ? (element.closest('label') ?? element)
+      : element
     const style = shown ? getComputedStyle(shown) : null
     return {
       name: (element.getAttribute('aria-label') ?? element.textContent ?? '').trim(),
@@ -86,4 +88,58 @@ test('the whole review, keyboard only', async ({ page }) => {
   await expect(page.getByRole('tab', { name: 'Evidence' })).toBeFocused()
   await keys.press('Enter')
   await expect(page.getByRole('heading', { level: 2, name: 'Evidence' })).toBeFocused()
+})
+
+test('My reviews, keyboard only', async ({ page }) => {
+  await page.goto('/?view=reviews')
+  await expect(page.getByRole('tablist', { name: 'Run types' })).toBeVisible()
+  const keys = page.keyboard
+
+  // The run-type tabs: arrow keys move along them and select.
+  await tabTo(page, /^Pending/)
+  await keys.press('ArrowRight')
+  await keys.press('ArrowRight')
+  await keys.press('ArrowRight')
+  await expect(page.getByRole('tab', { name: /Approved/, selected: true })).toBeFocused()
+
+  // Filters open with Enter; the panel's first field is next in the order.
+  await tabTo(page, /^Filters/)
+  await keys.press('Enter')
+  await expect(page.getByRole('button', { name: /^Filters/ })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
+
+  // An info tip shows on keyboard focus.
+  await tabTo(page, /^About Run type$/)
+  await expect(page.getByRole('tooltip', { name: /Where the run stands overall/ })).toBeVisible()
+
+  // Tick the approved run with Space, then archive it from its row.
+  await tabTo(page, /^Select “Move refund/)
+  await keys.press('Space')
+  await expect(page.getByText('1 run selected')).toBeVisible()
+  await tabTo(page, /^Archive “Move refund/)
+  await keys.press('Enter')
+  await expect(page.getByRole('status')).toContainText('Archived')
+  // The row is gone; focus went to its table, not to <body>.
+  await expect(page.getByRole('table', { name: /runs$/ })).toBeFocused()
+
+  // The archive, then restore, all from the keyboard.
+  await keys.press('Shift+Tab')
+  await tabTo(page, /^Archive, 1 archived run$/)
+  await keys.press('Enter')
+  await expect(page.getByRole('heading', { level: 1, name: 'Archive' })).toBeFocused()
+  await tabTo(page, /^Restore “Move refund/)
+  await keys.press('Enter')
+  await expect(page.getByText('No archived runs match these filters.')).toBeVisible()
+
+  // A dialog opens with Enter and closes with Escape, giving focus back.
+  await tabTo(page, /^My reviews$/, 60)
+  await keys.press('Enter')
+  await tabTo(page, /^Decision details: Move refund/, 60)
+  await keys.press('Enter')
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await keys.press('Escape')
+  await expect(page.getByRole('dialog')).toBeHidden()
+  await expect(page.getByRole('button', { name: /^Decision details: Move refund/ })).toBeFocused()
 })

@@ -6,6 +6,28 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0065 · The mustache heart favicon
+
+**Context.** The user asked for a favicon in the "Mustache heart" style from their icon sheet
+(1a): a heart with a mustache, half flat pink, half stripes, on a rounded lavender square.
+The notification version from 0054 had to follow.
+
+**Options.** (a) Redraw it as SVG, like the old icon. (b) Export PNGs at each size. SVG stays
+sharp at every size, and the page already swaps icons by path.
+
+**Choice.** (a):
+- `public/favicon.svg` is redrawn with these colours: lavender `#cbc5f7`, outline and face
+  `#2b1f5c`, pink `#ffc2e6`, stripes `#6b4fd8`. The stripes are clipped to the heart's right
+  half.
+- `public/favicon-attention.svg` is the same icon with the amber dot (`#e0a94d`, as in 0054)
+  at the top right. The heart now reaches that corner, so the dot has a lavender ring to keep
+  it apart at 16 px.
+
+**Consequence.** `useAttentionFavicon` and index.html are unchanged. The icon's colours are
+fixed, as a favicon's must be: they do not follow the theme.
+
+---
+
 ## 0064 · Decisions hold across pages, and undo is real in the api
 
 **Context.** Declining a run could end with it showing "Approved". There were three causes:
@@ -358,7 +380,7 @@ to.
   screen readers name it "Run details" from its heading. Below xl it is not sticky, and nothing
   changes.
 - Favicon: `public/favicon-attention.svg` is the same icon with an amber circle (#e0a94d, the
-  dot token's colour, 0053) in its empty top-right corner. `useAttentionFavicon` swaps the
+  dot token's colour, 0053) in its top-right corner (redrawn in 0065). `useAttentionFavicon` swaps the
   icon link to it while the run shown has open items and no decision. It puts the original
   back after a decision or when the page leaves, so "My reviews" and clean runs keep the plain
   icon. It is visual only; the page's own notice says the same in text.

@@ -39,6 +39,31 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · Mustache heart favicon
+
+**Goal**
+Replace the favicon with the "Mustache heart" style from the user's icon sheet, and its
+notification version too.
+
+**What changed**
+- `public/favicon.svg` and `public/favicon-attention.svg`, redrawn.
+- DECISIONS 0065, and a note in 0054.
+
+**Steps, in order**
+1. `git checkout -b feat/mustache-heart-favicon` from main.
+2. Drew the heart in a 140 × 140 SVG: a clip path for the stripes, the eyes as two bars, and
+   the mustache as one thick stroke with round ends.
+3. Rendered both icons at 280, 64, 32 and 16 px in Chromium and compared them with the
+   sheet. The first mustache was too thin and too high, so it was thickened and moved down.
+4. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0065. The icon files keep their paths, so no code changed.
+
+**How to do this by hand**
+Open `/`: the tab shows the heart with an amber dot while the run has things to solve. Open
+`/?run=run-clean`: the plain heart.
+
 ### 2026-09-24 · A decline that came back as "Approved"
 
 **Goal**

@@ -81,7 +81,7 @@ every run over.
 - Tailwind CSS 4, with every colour, space, size and motion value from design tokens in
   `src/styles/tokens.css`
 - Radix UI (tabs), lucide-react (icons), `thinking-orbs` (the loading orb)
-- Vitest and React Testing Library: 48 test files, 273 tests
+- Vitest and React Testing Library: 47 test files, 273 tests
 - Storybook 10, with the accessibility add-on, for components and tokens
 - Playwright: three end-to-end specs in `e2e/` (the approve flow and a decline after an
   undo, keyboard-only runs of the review and of My reviews, and axe WCAG A/AA and contrast

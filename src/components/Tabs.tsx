@@ -76,7 +76,7 @@ export function TabsList({ children, className, variant = 'segmented', label }: 
       <TabsPrimitive.List
         aria-label={label}
         className={cn(
-          'flex gap-[var(--space-2)] overflow-x-auto border-b border-border-subtle px-[var(--space-5)] pt-[var(--space-3)]',
+          'scrollbar-none flex gap-[var(--space-2)] overflow-x-auto border-b border-border-subtle px-[var(--space-5)] pt-[var(--space-3)]',
           className,
         )}
       >

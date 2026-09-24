@@ -12,13 +12,13 @@ Most of the data already exists: what the agent did, which checks it passed, the
 
 ## Files
 
-| File | What it is |
-| --- | --- |
-| `iteration2-design-v3` | Third and more advanced version of the page. Changes done after iteration phase 2. |
-| `ledger-design-v2.0.png` | Second and more advanced version of the page designed in Claude Design. |
-| `early-design-v1.png` | First fast mock-up for the page just to perceive what needs to be added to the page. Made by human in Figma to understand the concept better. |
-| `Project timeline` | A 16-week plan for building a service like this in a real company. |
-| `User Journey Map` | Example of how I do User Journey Mapping. In this file we explore how a reviewer gets to the page, and what happens after they decide. |
+| File                     | What it is                                                                                                                                    |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `iteration2-design-v3`   | Third and more advanced version of the page. Changes done after iteration phase 2.                                                            |
+| `ledger-design-v2.0.png` | Second and more advanced version of the page designed in Claude Design.                                                                       |
+| `early-design-v1.png`    | First fast mock-up for the page just to perceive what needs to be added to the page. Made by human in Figma to understand the concept better. |
+| `Project timeline`       | A 16-week plan for building a service like this in a real company.                                                                            |
+| `User Journey Map`       | Example of how I do User Journey Mapping. In this file we explore how a reviewer gets to the page, and what happens after they decide.        |
 
 ## 1. Review page designs
 
@@ -26,14 +26,13 @@ I sketched the first version by hand to quickly map out all the necessary pieces
 
 In the second version, we introduced a clear order. We improved the visual layout and refined the user journeys to make the most important actions stand out.
 
-
 **Main design decisions**
 
 - **Open items first.** What the run could not finish is at the top, above all details.
 - **Every score is explained.** Each confidence score has a level (high, medium, low), an action ("check this yourself before approving"), and the sentence that explains what it is based on.
 - **Safer decisions in high-risk cases.** For a change to payments in production, the reviewer ticks each open item separately and must write a reason before approving.
-- **Clear order for the buttons.** *Approve and release* is the only dark button. *Request changes* and *Reject run* sit below a divider ("or, if it is not ready"). Each button says what happens next. *Undo* has its own box, away from the other actions.
-- **A next step for every failure.** A check that did not run offers *Run check again*.
+- **Clear order for the buttons.** _Approve and release_ is the only dark button. _Request changes_ and _Reject run_ sit below a divider ("or, if it is not ready"). Each button says what happens next. _Undo_ has its own box, away from the other actions.
+- **A next step for every failure.** A check that did not run offers _Run check again_.
 - **People are always visible.** When a real person did something, their name is shown in a user pill, so human work never looks like agent work.
 - **Works inside another platform.** The page has no logo or main menu of its own. Run names such as `e91a4c` or `run-messy` are labelled fields with a short info text.
 - **Plain language.** Short sentences, one date and time format (24-hour clock, with time zone), and button names written exactly as they appear.
@@ -74,15 +73,6 @@ The designs follow ideas from two guides, and one broader design philosophy. The
 **Google People + AI Guidebook.** Help people trust an AI system the right amount. Explain confidence scores and the data behind them. Ask for more care when the risk is high. Give a way forward when something fails.
 The designs use ideas from two guides. They follow the principles, not the visual style.
 
-
 ## Built on
 
 The designs use the tokens from the Ledger code repository e.g. Raleway and Montserrat fonts, colours, and a 4 px spacing scale.
-
-
-
-
-
-
-
-

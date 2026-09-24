@@ -5,9 +5,8 @@ import { cn } from '../lib/utils'
 
 /**
  * A real ARIA tabs widget (`role="tablist"`/`"tab"`/`"tabpanel"`, arrow-key navigation between
- * triggers) built on `radix-ui`'s `Tabs` primitive rather than a hand-rolled toggle, the same
- * reasoning as `Disclosure` using native `<details>` — the correct keyboard behaviour and
- * assistive-tech semantics come for free. Knows nothing about policy gates or any other
+ * triggers) built on `radix-ui`'s `Tabs` primitive rather than a hand-rolled toggle, so the
+ * correct keyboard behaviour and assistive-tech semantics come for free. Knows nothing about policy gates or any other
  * product concept; `value`/`onValueChange` are the caller's, same shape as
  * `TabsPrimitive.Root`.
  */

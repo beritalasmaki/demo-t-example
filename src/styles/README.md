@@ -45,10 +45,8 @@ will drop it next to a colour class (docs/DECISIONS.md, 0043).
 Each `--text-*` value is a real Tailwind utility (`text-item-title`, ...) — that namespace is
 Tailwind's own for font-size. A single CSS property can't also carry a weight or a font, so
 every use combines it with the matching `font-bold`/`font-semibold`/`font-normal` and
-`font-heading`/`font-body` utility; a component never applies one of these sizes alone. `Tag`
-and `ToggleChip` are a deliberately different role from `StatusBadge` (`docs/DECISIONS.md`,
-0010) and keep Tailwind's ordinary sizing rather than `--text-badge-label`, which names
-`StatusBadge` specifically.
+`font-heading`/`font-body` utility; a component never applies one of these sizes alone.
+`--text-badge-label` names `StatusBadge` specifically (`docs/DECISIONS.md`, 0010).
 
 ## Spacing scale
 

@@ -3,8 +3,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../lib/utils'
 
 /**
- * A generic modal, built on native `<dialog>` rather than custom JS — the same reasoning as
- * `Disclosure` and `<details>`. `showModal()` gets a focus trap, Escape-to-close (the native
+ * A generic modal, built on native `<dialog>` rather than custom JS. `showModal()` gets a focus trap, Escape-to-close (the native
  * `close` event, wired straight to `onClose`) and top-layer stacking for free. Knows nothing
  * about decisions or any other product concept: the caller supplies the title and body.
  *

@@ -27,19 +27,15 @@ and `lib` can be tested on its own with no UI at all.
   percentage, and an unknown value is shown as the word unknown" live here, not in a
   component.
 - **`api.ts`** — the only place that fetches data. See below.
-- **`gates.ts`** — small domain helpers that are not UI: sorting gates so failed and waived
-  come first, resolving a gate's evidence, and the one sentence that explains a failed or
+- **`gates.ts`** — small domain helpers that are not UI: resolving a gate's evidence, and the
+  one sentence that explains a failed or
   not-run gate (its own evaluation's detail first — docs/DECISIONS.md, 0043).
 - **`decision.ts`** — the undo window: a fixed policy computed from `Decision.at`
   (docs/DECISIONS.md, 0003), not stored data.
 - **`timeline.ts`** — the same kind of helper for the audit log: the shape of a run (step,
-  error and retry counts), filtering that never actually hides an error or a retry, only
-  shrinks the count of what's genuinely excluded, `testsPassing` (read from test-run details), and `resolveEvidenceIds`, which `gates.ts`,
-  `summary.ts` and `story.ts` use to turn a list of evidence ids into the real timeline events
-  they point to.
-- **`summary.ts`** — resolves the run summary's sentences against the timeline and drops any
-  sentence whose evidence doesn't resolve to a real event, per docs/spec-review-screen.md's
-  "a sentence with no evidence does not render."
+  error and retry counts), `testsPassing` (read from test-run details), and
+  `resolveEvidenceIds`, which `gates.ts` and `story.ts` use to turn a list of evidence ids into
+  the real timeline events they point to.
 - **`utils.ts`** — `cn()` (taught the `--text-*` type-scale names, so a size is never dropped
   next to a colour — docs/DECISIONS.md, 0043), the class-name merger every shadcn/ui component expects at the
   `utils` alias in `components.json`. It lives here because that is where shadcn looks, and

@@ -75,4 +75,4 @@ The designs use ideas from two guides. They follow the principles, not the visua
 
 ## Built on
 
-The designs use the tokens from the Ledger code repository e.g. Raleway and Montserrat fonts, colours, and a 4 px spacing scale.
+The designs use the tokens from the code repository e.g. Raleway and Montserrat fonts, colours, and a 4 px spacing scale.

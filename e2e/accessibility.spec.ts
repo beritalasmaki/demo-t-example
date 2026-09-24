@@ -25,6 +25,59 @@ const STATES: { name: string; url: string; open?: (page: Page) => Promise<void> 
   { name: 'decided run, undo window open', url: '/?run=run-messy' },
   { name: 'My reviews', url: '/?view=reviews' },
   {
+    name: 'My reviews, approved tab with filters open and a run selected',
+    url: '/?view=reviews',
+    open: async (page) => {
+      await page.getByRole('tab', { name: /Approved/ }).click()
+      await page.getByRole('button', { name: /^Filters/ }).click()
+      await page
+        .getByRole('checkbox', { name: /^Select/ })
+        .first()
+        .check()
+    },
+  },
+  {
+    name: 'My reviews, decision details',
+    url: '/?view=reviews',
+    open: async (page) => {
+      await page.getByRole('tab', { name: /Approved/ }).click()
+      await page.getByRole('button', { name: /^Decision details/ }).click()
+      await expect(page.getByRole('dialog')).toBeVisible()
+    },
+  },
+  {
+    name: 'My reviews, request a new run',
+    url: '/?view=reviews',
+    open: async (page) => {
+      await page.getByRole('tab', { name: /Approved/ }).click()
+      await page.getByRole('button', { name: /^Request a new run/ }).click()
+      await expect(page.getByRole('dialog')).toBeVisible()
+    },
+  },
+  {
+    name: 'My reviews, create a report',
+    url: '/?view=reviews',
+    open: async (page) => {
+      await page.getByRole('tab', { name: /Approved/ }).click()
+      await page
+        .getByRole('checkbox', { name: /^Select/ })
+        .first()
+        .check()
+      await page.getByRole('button', { name: 'Create report' }).click()
+      await expect(page.getByRole('dialog')).toBeVisible()
+    },
+  },
+  {
+    name: 'My reviews, archive with a run in it, and the toast',
+    url: '/?view=reviews',
+    open: async (page) => {
+      await page.getByRole('tab', { name: /Approved/ }).click()
+      await page.getByRole('button', { name: /^Archive “/ }).click()
+      await page.getByRole('button', { name: /^Archive, / }).click()
+      await expect(page.getByRole('heading', { level: 1, name: 'Archive' })).toBeVisible()
+    },
+  },
+  {
     name: 'decision dialog',
     url: '/?run=run-clean',
     open: async (page) => {
@@ -40,6 +93,33 @@ function backgroundLightness(page: Page) {
     const [r, g, b] = getComputedStyle(document.body).backgroundColor.match(/\d+/g)!.map(Number)
     return (r + g + b) / 3
   })
+}
+
+/** The contrast of an element's text against the nearest background actually painted
+ * behind it, for text inside an open modal dialog only (the dialog's own surfaces). */
+function ownContrast(page: Page, selector: string) {
+  return page.evaluate((sel) => {
+    const element = document.querySelector(sel)
+    if (!element?.closest('dialog[open]')) return 0
+    const rgb = (value: string) => value.match(/[\d.]+/g)!.map(Number)
+    const luminance = ([r, g, b]: number[]) => {
+      const channel = (c: number) => {
+        const v = c / 255
+        return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+      }
+      return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+    }
+    let background: Element | null = element
+    while (background) {
+      const [, , , alpha = 1] = rgb(getComputedStyle(background).backgroundColor)
+      if (alpha > 0) break
+      background = background.parentElement
+    }
+    if (!background) return 0
+    const fg = luminance(rgb(getComputedStyle(element).color))
+    const bg = luminance(rgb(getComputedStyle(background).backgroundColor))
+    return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05)
+  }, selector)
 }
 
 for (const scheme of ['light', 'dark'] as const) {
@@ -59,9 +139,25 @@ for (const scheme of ['light', 'dark'] as const) {
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
           .analyze()
         expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([])
-        // Contrast axe could not decide (text over an image or a gradient) would slip past
-        // `violations`; there is none today, and a new one should be looked at by eye.
-        expect(results.incomplete.filter((r) => r.id === 'color-contrast')).toEqual([])
+        // Contrast axe could not decide would slip past `violations`. One kind is measured here
+        // instead: text in an open modal dialog that axe calls "partially obscured". Axe does
+        // not model the browser's top layer, so a card on the page behind the dialog counts as
+        // overlapping its text, though nothing does (checked with elementsFromPoint; setting
+        // `inert` or moving the dialog to <body> does not change axe's answer — 0060). Any
+        // other undecided result fails and should be looked at by eye.
+        const undecided = results.incomplete
+          .filter((r) => r.id === 'color-contrast')
+          .flatMap((r) => r.nodes)
+        const behindModal = undecided.filter(
+          (node) =>
+            (node.any[0]?.data as { messageKey?: string } | undefined)?.messageKey ===
+            'elmPartiallyObscuring',
+        )
+        for (const node of behindModal) {
+          const ratio = await ownContrast(page, String(node.target[node.target.length - 1]))
+          expect(ratio, `contrast of ${node.html.slice(0, 60)}`).toBeGreaterThanOrEqual(4.5)
+        }
+        expect(undecided.filter((node) => !behindModal.includes(node))).toEqual([])
       })
     }
   })

@@ -37,6 +37,13 @@ not affiliated with any company, and every run in it is fictional.
     dialog.
   - A decision can be undone for 10 minutes. The page then shows what the approval accepted
     as unverified.
+- **My reviews:** every run assigned to the reviewer, in tabs by run type:
+  - search, filters and sortable columns;
+  - the runs still in progress, folded below the table;
+  - a Decision details dialog on every row;
+  - selected runs can go into a report (CSV, or PDF through the browser's print dialog) or
+    to the Archive, where they can be restored for seven days;
+  - a finished run can ask for a new run to fix a mistake. The old record never changes.
 - **Around it:** a short welcome intro once per visit (skipped for reduced motion, or on any
   key or click), a loading state, and "not found" and error states.
 
@@ -57,7 +64,7 @@ The app opens on a run awaiting review. Other states are one URL away:
 | `/?run=run-clean`   | everything passed; nothing to solve                                     |
 | `/?run=run-blocked` | a failed check, an exception, and an error and retry in the steps       |
 | `/?run=run-messy`   | the same run as `/`, already approved, inside its undo window           |
-| `/?view=reviews`    | _My reviews_, where the breadcrumb leads                                |
+| `/?view=reviews`    | _My reviews_: tabs, search, filters, archive and reports                |
 | `/?delay=3000`      | any of the above, with the load slowed down to show the loading state   |
 
 There is no backend. Runs are typed fixtures in `src/fixtures/`, served through `getRun()` in
@@ -70,11 +77,11 @@ held in memory: a reload starts the run over.
 - Tailwind CSS 4, with every colour, space, size and motion value from design tokens in
   `src/styles/tokens.css`
 - Radix UI (tabs), lucide-react (icons), `thinking-orbs` (the loading orb)
-- Vitest and React Testing Library: 42 test files, 225 tests
+- Vitest and React Testing Library: 45 test files, 253 tests
 - Storybook 10, with the accessibility add-on, for components and tokens
-- Playwright: three end-to-end specs in `e2e/` (the approve flow, a keyboard-only run of the
-  whole review, and axe WCAG A/AA and contrast checks in both themes, 18 tests in all), and
-  the theme-colour check
+- Playwright: three end-to-end specs in `e2e/` (the approve flow, keyboard-only runs of the
+  review and of My reviews, and axe WCAG A/AA and contrast checks in both themes; 29 tests in
+  all), and the theme-colour check
 
 Dependencies point one way, `fixtures → lib → components → features → app`, and a lint rule
 (`import/no-restricted-paths`) enforces it. `components/` and `styles/` are the design system
@@ -115,8 +122,9 @@ npm run build-storybook   # static Storybook build
 
 The review screen is built. It follows the redesign from Claude Design, with its later
 iterations: the three-column layout, the Story, Evidence and All steps views, the decision
-panel with undo, the welcome intro and the loading state. A polish pass and a cleanup have
-removed the code the redesign left behind.
+panel with undo, the welcome intro and the loading state. My reviews is built to its own
+Claude Design handoff (DECISIONS 0060). A polish pass and a cleanup have removed the code the
+redesign left behind.
 
 The end-to-end approve flow is a committed Playwright spec. The end-of-project accessibility
 review was done as a lighter, time-boxed pass, not a full audit: automated WCAG A/AA and

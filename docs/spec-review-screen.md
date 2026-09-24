@@ -390,6 +390,6 @@ already decided by someone else while this reviewer was reading.
 
 ## Out of scope
 
-Multi-run dashboards (filtering, search, aggregate stats), settings, authentication, real backend. A minimal list of sample runs, for navigation only, is in scope — see DECISIONS.md.
+Aggregate statistics dashboards, settings, authentication, real backend. My reviews — the list of the reviewer's runs, with search, filters, sorting, an archive and reports — is in scope, built to the user's Claude Design handoff (DECISIONS.md, 0060); it began as a minimal list for navigation only (0042).
 
 The page shell and navigation are responsive (a single column below Tailwind's `md` breakpoint, `AnchorNav` moving above the content) — see DECISIONS.md. A full per-region mobile design pass (density, touch targets) is not: that's still a real gap, not something this line is quietly claiming is done.

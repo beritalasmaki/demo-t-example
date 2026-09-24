@@ -47,6 +47,13 @@ describe('getRun', () => {
     expect(list.find((item) => item.id === 'run-clean')?.target.system).toBe('patient-portal')
   })
 
+  it('lists copies, not live references into the store', async () => {
+    const list = await listRuns({ delayMs: 0 })
+    list[0].initiative = 'tampered'
+    const again = await listRuns({ delayMs: 0 })
+    expect(again[0].initiative).not.toBe('tampered')
+  })
+
   it('returns a copy, not a live reference into the store', async () => {
     const run = await getRun('run-clean')
     run.initiative = 'tampered'

@@ -71,3 +71,26 @@ export const Pill: Story = {
   args: { value: 'story', onValueChange: () => {}, children: null },
   render: () => <PillInteractive />,
 }
+
+/** `line`: tabs that filter one list, each with its own count. */
+export const Line: Story = {
+  args: { value: 'pending', onValueChange: () => {}, children: null },
+  render: () => {
+    function LineTabs() {
+      const [value, setValue] = useState('pending')
+      return (
+        <Tabs value={value} onValueChange={setValue}>
+          <TabsList variant="line" label="Run types">
+            <TabsTrigger variant="line" value="pending">
+              Pending <span className="text-caption">3</span>
+            </TabsTrigger>
+            <TabsTrigger variant="line" value="approved">
+              Approved <span className="text-caption">1</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )
+    }
+    return <LineTabs />
+  },
+}

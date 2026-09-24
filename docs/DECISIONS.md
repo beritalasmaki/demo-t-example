@@ -6,6 +6,63 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0060 · My reviews is built to the Claude Design handoff, search, archive and reports included
+
+**Context.** "My reviews" was a navigation-only list: the spec left out filtering, search and
+statistics, and 0042 kept it minimal. The user then designed a full My reviews in Claude Design
+("My Reviews.dc.html"), with search, filters, sorting, bulk selection, reports, an archive and
+"Request a new run". Asked how much to build, they chose the whole design. Asked what data to
+show, they chose the four real fixture runs over the design's 63 generated ones: every number
+on screen must come from real data (non-negotiable 3).
+
+**Choice.**
+- Built as designed:
+  - tabs by run type, with counts and "N need your review";
+  - search over name, reference, service and requester;
+  - filters: calendar time ranges, run type and requester;
+  - sortable columns with info tips, "needs your review" pinned first when ordered by Updated;
+  - runs still in progress, folded below the table;
+  - selection, then Create report or Archive;
+  - an Archive view: runs move there automatically six months after the decision, or by
+    hand, and can be restored for seven days;
+  - the Decision details, Request a new run and Create a report dialogs.
+- The rules live in `lib/reviews.ts`, with a `now` parameter, so they are tested with fixed
+  dates.
+- No backend. Archiving, restoring and new-run requests change the page's own state only, and
+  a reload starts over, like decisions. Reports are real files, made in the browser from the
+  runs' data: CSV as a download, PDF as a print-ready page the browser saves. A PDF library
+  would have been a new dependency, and the print route needs none.
+- Where the build departs from the design, and why:
+  - dialogs close with Escape or their Close button, like every other dialog here, with no
+    corner ✕;
+  - archive and restore also show a toast, because the row disappears and a screen reader
+    needs to hear what happened;
+  - the row tick box is a native checkbox;
+  - the model has no "checks are running" status yet, so that stage never shows.
+- The design is desktop-only. Below that width the tabs and the table scroll inside their card,
+  and the page itself never scrolls sideways.
+- New tokens, in both themes: a blue status tint for "Requested for change", a violet tint for
+  selection, the tab marks and the toast colours. New components: the `line` Tabs variant,
+  InfoTip and Toast.
+
+Found and fixed while building it:
+- dialogs opened in the top-left corner, on the run page too, because Tailwind's reset
+  removed the auto margins that centre a modal `<dialog>`;
+- invisible tooltips were transparent but still in place;
+- the restore window counted one day too many for a run archived after the page loaded;
+- the row tick boxes had no visible keyboard focus.
+
+**Consequence.** The spec's Out of scope line changes: search, filters, an archive and reports
+are now in scope for My reviews. Aggregate statistics dashboards stay out. All six new states
+are in the accessibility check, in both themes, and My reviews has its own keyboard-only pass.
+One axe limitation is worked around rather than ignored: axe does not model a modal's top
+layer, so it calls some dialog text "partially obscured" by the page behind. Checked with
+`elementsFromPoint`, nothing covers it, and setting `inert` or moving the dialog to `<body>`
+does not change axe's answer. The spec measures that text's contrast in the browser instead
+(6.7:1 to 16.7:1).
+
+---
+
 ## 0059 · The final accessibility review is a lighter, time-boxed pass, not the full audit
 
 **Context.** AGENTS.md (non-negotiable 4) planned one full accessibility and contrast review

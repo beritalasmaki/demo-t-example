@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { ReviewList } from './ReviewList'
+import { MyReviews } from './MyReviews'
 
 const meta = {
-  title: 'Features/Run/ReviewList',
-  component: ReviewList,
+  title: 'Features/Run/MyReviews',
+  component: MyReviews,
   parameters: { layout: 'fullscreen' },
   args: { runHref: (id: string) => `?run=${id}`, options: { delayMs: 0 } },
-} satisfies Meta<typeof ReviewList>
+} satisfies Meta<typeof MyReviews>
 
 export default meta
 type Story = StoryObj<typeof meta>

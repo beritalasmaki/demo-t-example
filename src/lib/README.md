@@ -50,6 +50,9 @@ and `lib` can be tested on its own with no UI at all.
 - **`openItems.ts`** — what is still open on a run and what approving it takes: the
   tick-each-item list, whether a reason is required, and the "What is not checked" list
   (docs/DECISIONS.md, 0040). Replaced `attention.ts`.
+- **`reviews.ts`** — My reviews (docs/DECISIONS.md, 0060): run type and stage, open-item
+  counts, search and calendar time ranges, sort, the archive rule (six months, then seven days
+  to restore) and report records with a CSV writer. Takes `now`, so it tests with fixed dates.
 - **`story.ts`** — resolves `Run.story` against the timeline (a step with no resolvable
   evidence is dropped; times come from the evidence), and writes the "Where the run is now"
   sentences.

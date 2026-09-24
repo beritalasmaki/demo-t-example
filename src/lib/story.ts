@@ -114,6 +114,9 @@ export function describePendingRun(run: Run): string {
     new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime(),
   )
   const files = run.timeline.filter((event) => event.type === 'file_change').length
+  if (run.status === 'checks_running') {
+    return `Nothing has been released. The agent worked for ${elapsed} and changed ${formatCount(files, 'file')}. The checks are still running.`
+  }
   const failed = run.gates.filter((gate) => gate.result === 'fail').length
   const unknown = run.gates.filter((gate) => gate.result === 'unknown').length
   const passed = run.gates.filter((gate) => gate.result === 'pass').length

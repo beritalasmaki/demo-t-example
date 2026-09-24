@@ -2,6 +2,7 @@ import { isSystemActor } from './actors'
 import { resolveConfidenceAreas } from './confidence'
 import { formatConfidenceAreaLabel, formatConfidencePercent, formatCount } from './format'
 import { gateForEvent, stepActor } from './steps'
+import { noResultLabel } from './gates'
 import type { ConfidenceArea, Run, TimelineEvent } from './types'
 
 /**
@@ -102,7 +103,7 @@ export function buildEvidenceGroups(run: Run): EvidenceGroup[] {
   const failed = run.gates.filter((gate) => gate.result === 'fail').length
   const checkParts = [`${passed} passed`]
   if (failed > 0) checkParts.push(`${failed} failed`)
-  if (notRun > 0) checkParts.push(`${notRun} not run`)
+  if (notRun > 0) checkParts.push(`${notRun} ${noResultLabel(run.status)}`)
 
   const groups: EvidenceGroup[] = [
     {

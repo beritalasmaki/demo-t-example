@@ -6,6 +6,33 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0063 · A light and dark theme switch at the top of the page
+
+**Context.** The user asked for a switch between dark and light mode at the top of the page.
+Both themes already existed: the tokens follow the system setting, and an explicit
+`data-theme` on `<html>` overrides it.
+
+**Choice.**
+- `ThemeToggle` (components): a switch, announced as "Dark theme, on/off", with a sun and a
+  moon. The active icon is in the brand colour, and the knob has its own border, so the state
+  reads at a glance in both themes, not only from the knob's position.
+- Until the viewer uses it, the page follows the system setting, and follows it if it changes.
+  A choice sets `data-theme` and is remembered in this browser (`localStorage`,
+  `ledger:theme`).
+- A short script in `index.html` applies a remembered choice before the first paint, so a
+  reload never flashes the other theme. If storage is blocked, the choice lasts until the page
+  reloads.
+- Placement:
+  - the run page's top bar, at the far right, and beside the breadcrumb on narrow screens;
+  - My reviews, after the Archive button;
+  - the Archive view, across from "‹ My reviews".
+  The welcome intro keeps its own fixed colours (0048).
+
+**Consequence.** The theme is the viewer's choice, per browser. The keyboard spec checks
+the switch by keyboard and that the choice survives a reload.
+
+---
+
 ## 0062 · Archiving and restoring ask first
 
 **Context.** The user asked for a warning dialog before a run is moved to the archive and

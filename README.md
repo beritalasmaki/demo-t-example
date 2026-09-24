@@ -51,7 +51,8 @@ Nothing on the page is decided by the interface. Every number and status comes f
 data and links to its evidence, and anything unknown says "unknown". The rules behind this are
 in [`AGENTS.md`](./AGENTS.md).
 
-Light and dark themes both work, the whole page works from the keyboard, status is never shown
+Light and dark themes both work, switched from the top of the page (or following the system
+setting until you choose), the whole page works from the keyboard, status is never shown
 by colour alone, and motion respects `prefers-reduced-motion`.
 
 ## Try it
@@ -77,10 +78,10 @@ held in memory: a reload starts the run over.
 - Tailwind CSS 4, with every colour, space, size and motion value from design tokens in
   `src/styles/tokens.css`
 - Radix UI (tabs), lucide-react (icons), `thinking-orbs` (the loading orb)
-- Vitest and React Testing Library: 46 test files, 260 tests
+- Vitest and React Testing Library: 47 test files, 262 tests
 - Storybook 10, with the accessibility add-on, for components and tokens
 - Playwright: three end-to-end specs in `e2e/` (the approve flow, keyboard-only runs of the
-  review and of My reviews, and axe WCAG A/AA and contrast checks in both themes; 33 tests in
+  review and of My reviews, and axe WCAG A/AA and contrast checks in both themes; 34 tests in
   all), and the theme-colour check
 
 Dependencies point one way, `fixtures → lib → components → features → app`, and a lint rule

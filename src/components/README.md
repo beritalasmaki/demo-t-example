@@ -22,6 +22,9 @@ background and optional per-tab tooltips (`tooltip`), both from transitions.dev
 short confirmation that stays until closed. Both come from the My reviews design (0060).
 `tooltipPlacement.ts` keeps any `.t-tt` tooltip inside the window; `Tabs` and `InfoTip` use it.
 
+`ThemeToggle` switches light and dark (docs/DECISIONS.md, 0063); `theme.ts` reads and sets the
+page's theme for it.
+
 `LoadingState` is the loading indicator: the `thinking-orbs` "working" orb with a label under
 it, centred (docs/DECISIONS.md, 0050). It is the one component here built on a third-party
 visual. jsdom can't draw it, so the test setup stubs the canvas.

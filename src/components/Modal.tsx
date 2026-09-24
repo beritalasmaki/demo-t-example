@@ -15,12 +15,15 @@ import { cn } from '../lib/utils'
  */
 export interface ModalProps {
   title: string
+  /** A short line above the title that says what kind of dialog this is ("Decision details"),
+   * when the title itself is a name. */
+  eyebrow?: string
   onClose: () => void
   children: ReactNode
   className?: string
 }
 
-export function Modal({ title, onClose, children, className }: ModalProps) {
+export function Modal({ title, eyebrow, onClose, children, className }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const titleId = useId()
 
@@ -88,6 +91,7 @@ export function Modal({ title, onClose, children, className }: ModalProps) {
         className,
       )}
     >
+      {eyebrow && <p className="mb-[var(--space-2)] text-caption text-text-secondary">{eyebrow}</p>}
       <h2 id={titleId} className="text-section-heading font-semibold">
         {title}
       </h2>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ReviewList } from '../features/run/ReviewList'
+import { MyReviews } from '../features/run/MyReviews'
 import { RunReviewPage } from '../features/run/RunReviewPage'
 import { shouldShowIntro } from './intro'
 import { WelcomeIntro } from './WelcomeIntro'
@@ -36,7 +36,7 @@ export default function App() {
     <>
       <main className="min-h-screen bg-bg">
         {view === 'reviews' ? (
-          <ReviewList runHref={runHref} />
+          <MyReviews runHref={runHref} />
         ) : (
           <RunReviewPage runId={runId} getRunOptions={delayMs ? { delayMs } : undefined} />
         )}

@@ -1,28 +1,87 @@
-import { useEffect, useState } from 'react'
+import {
+  Archive,
+  Check,
+  Clock,
+  ArrowRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronUp,
+  FileBarChart,
+  List,
+  ListChecks,
+  RefreshCw,
+  X,
+} from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import type { ComponentType } from 'react'
 import { LoadingState } from '../../components/LoadingState'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs'
+import { Toast } from '../../components/Toast'
 import { listRuns } from '../../lib/api'
 import type { GetRunOptions } from '../../lib/api'
+import { formatCalendarDate, formatRelativeTime } from '../../lib/format'
+import type {
+  ArchiveSortKey,
+  ManualArchive,
+  ReviewTab,
+  SortDirection,
+  SortKey,
+  TimeRange,
+} from '../../lib/reviews'
+import {
+  ARCHIVE_AFTER_MONTHS,
+  RESTORE_DAYS,
+  archiveState,
+  countByTab,
+  formatReviewStage,
+  inTimeRange,
+  isFinished,
+  isInProgress,
+  matchesQuery,
+  needsReview,
+  requesters,
+  reviewStage,
+  reviewStatus,
+  sortArchivedRuns,
+  sortRuns,
+  updatedAt,
+} from '../../lib/reviews'
 import type { Run } from '../../lib/types'
-import { formatRunStatusLabel } from '../../lib/format'
+import { cn } from '../../lib/utils'
+import { ActorName } from './ActorName'
+import { ArchiveTable } from './ArchiveTable'
+import { DecisionDetailsDialog, NewRunDialog, ReportDialog } from './ReviewDialogs'
+import type { ReportFormat } from './ReviewDialogs'
+import { StageSteps } from './ReviewParts'
+import { ReviewsTable } from './ReviewsTable'
+import { ReviewsToolbar } from './ReviewsToolbar'
+import type { FilterState } from './ReviewsToolbar'
+import { downloadCsvReport, openPdfReport } from './reportExport'
 
 /**
- * "My reviews" — where the breadcrumb goes back to. A minimal list for navigation only
- * (docs/spec-review-screen.md, Out of scope: no filtering, search or statistics). In a real
- * deployment this list belongs to the host platform; it is here so the breadcrumb leads
- * somewhere real.
+ * "My reviews" — the runs assigned to the reviewer (docs/DECISIONS.md, 0060, built from the
+ * Claude Design handoff "My Reviews"). Tabs by run type; search, filters and sorting; the
+ * runs still in progress below the table; an archive, where finished runs go after six months
+ * or by hand and can be restored for seven days; a report on selected runs; and a request for
+ * a new run to fix a mistake.
+ *
+ * There is no backend: archiving, restoring and new-run requests change this page's own state
+ * only, and are gone after a reload, like decisions (README, "Try it"). Reports are real files,
+ * made in the browser from the runs' data.
  */
-export interface ReviewListProps {
+export interface MyReviewsProps {
   runHref: (id: string) => string
   options?: GetRunOptions
+  /** Fixed "now", for tests and stories. */
+  now?: Date
 }
 
-type State =
+type LoadState =
   { status: 'loading' } | { status: 'error'; message: string } | { status: 'success'; runs: Run[] }
 
-export function ReviewList({ runHref, options }: ReviewListProps) {
-  const [state, setState] = useState<State>({ status: 'loading' })
+export function MyReviews({ runHref, options, now }: MyReviewsProps) {
+  const [state, setState] = useState<LoadState>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
-
   const delayMs = options?.delayMs
   const simulateNetworkError = options?.simulateNetworkError
 
@@ -43,15 +102,15 @@ export function ReviewList({ runHref, options }: ReviewListProps) {
     }
   }, [delayMs, simulateNetworkError, attempt])
 
+  if (state.status === 'success') {
+    return <ReviewsBoard runs={state.runs} runHref={runHref} now={now} />
+  }
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-[var(--space-5)] px-[var(--space-4)] py-[var(--space-6)] md:px-[var(--space-6)]">
-      <h1 className="text-page-title leading-tight font-bold font-heading text-text-primary">
-        My reviews
-      </h1>
-      {state.status === 'loading' && (
+    <div className="mx-auto flex max-w-[90rem] flex-col gap-[var(--space-5)] px-[var(--space-4)] py-[var(--space-6)] md:px-[var(--space-6)]">
+      <PageTitle icon={ListChecks}>My reviews</PageTitle>
+      {state.status === 'loading' ? (
         <LoadingState label="Loading reviews…" className="min-h-[40vh]" />
-      )}
-      {state.status === 'error' && (
+      ) : (
         <p className="text-body text-text-secondary">
           Could not load your reviews. {state.message}{' '}
           <button
@@ -66,30 +125,644 @@ export function ReviewList({ runHref, options }: ReviewListProps) {
           </button>
         </p>
       )}
-      {state.status === 'success' &&
-        (state.runs.length === 0 ? (
-          <p className="text-body text-text-secondary">No reviews are waiting for you.</p>
-        ) : (
-          <ul className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
-            {state.runs.map((run) => (
-              <li key={run.id} className="border-b border-border-subtle last:border-b-0">
-                <a
-                  href={runHref(run.id)}
-                  className="flex flex-col gap-[var(--space-1)] px-[var(--space-4)] py-[var(--space-3)] no-underline hover:bg-bg"
-                >
-                  <span className="text-item-title font-semibold font-body text-text-primary">
+    </div>
+  )
+}
+
+function PageTitle({
+  icon: Icon,
+  children,
+  headingRef,
+}: {
+  icon: ComponentType<{ className?: string }>
+  children: string
+  headingRef?: React.Ref<HTMLHeadingElement>
+}) {
+  return (
+    <h1
+      ref={headingRef}
+      tabIndex={-1}
+      className="flex items-center gap-[var(--space-3)] text-page-title leading-tight font-bold font-heading text-text-primary outline-none"
+    >
+      <Icon aria-hidden className="h-6 w-6 text-primary" />
+      {children}
+    </h1>
+  )
+}
+
+const TABS: {
+  value: ReviewTab
+  label: string
+  mark?: string
+  icon: ComponentType<{ className?: string }>
+}[] = [
+  { value: 'pending', label: 'Pending', mark: 'bg-mark-pending', icon: Clock },
+  {
+    value: 'requested',
+    label: 'Requested for change',
+    mark: 'bg-mark-requested',
+    icon: ArrowRight,
+  },
+  { value: 'declined', label: 'Declined', mark: 'bg-mark-declined', icon: X },
+  { value: 'approved', label: 'Approved', mark: 'bg-mark-approved', icon: Check },
+  { value: 'all', label: 'All runs', icon: List },
+]
+
+const MAIN_TIMES: { value: TimeRange; label: string }[] = [
+  { value: 'all', label: 'Any time' },
+  { value: 'thisWeek', label: 'This week' },
+  { value: 'lastWeek', label: 'Last week' },
+  { value: 'thisMonth', label: 'This month' },
+  { value: 'thisYear', label: 'This year' },
+  { value: 'custom', label: 'Custom…' },
+]
+const ARCHIVE_TIMES = MAIN_TIMES.filter((t) =>
+  ['all', 'thisMonth', 'thisYear', 'custom'].includes(t.value),
+)
+
+type Dialog = { type: 'details' | 'newrun'; id: string } | { type: 'report' } | null
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+function ReviewsBoard({
+  runs,
+  runHref,
+  now: fixedNow,
+}: {
+  runs: Run[]
+  runHref: (id: string) => string
+  now?: Date
+}) {
+  const [now] = useState(() => fixedNow ?? new Date())
+  const today = formatCalendarDate(now.toISOString())
+  const [view, setView] = useState<'main' | 'archive'>('main')
+  const [tab, setTab] = useState<ReviewTab>('pending')
+  const [filters, setFilters] = useState<FilterState>({
+    query: '',
+    time: 'all',
+    from: `${today.slice(0, 8)}01`,
+    to: today,
+    requester: 'all',
+  })
+  const [archiveType, setArchiveType] = useState<'all' | 'approved' | 'declined'>('all')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDirection }>({
+    key: 'updated',
+    dir: 'desc',
+  })
+  const [aSort, setASort] = useState<{ key: ArchiveSortKey; dir: SortDirection }>({
+    key: 'archived',
+    dir: 'desc',
+  })
+  const [manual, setManual] = useState<ManualArchive>({})
+  // Runs brought back from the archive: they stay in My reviews even past the six-month rule.
+  const [restored, setRestored] = useState<ReadonlySet<string>>(new Set())
+  const [requested, setRequested] = useState<ReadonlySet<string>>(new Set())
+  const [dialog, setDialog] = useState<Dialog>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const [progOpen, setProgOpen] = useState(false)
+  const tableRef = useRef<HTMLTableElement>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const focusHeading = useRef(false)
+
+  // A view change moves focus to the new view's heading, so a keyboard or screen reader user
+  // lands on what just changed.
+  useEffect(() => {
+    if (!focusHeading.current) return
+    focusHeading.current = false
+    headingRef.current?.focus()
+  }, [view])
+
+  const isArchived = (run: Run) => !restored.has(run.id) && archiveState(run, manual, now).archived
+  const matches = (run: Run) =>
+    matchesQuery(run, filters.query) &&
+    inTimeRange(updatedAt(run), filters.time, now, { from: filters.from, to: filters.to }) &&
+    (filters.requester === 'all' || run.requestedBy === filters.requester)
+
+  const active = runs.filter((run) => !isArchived(run))
+  const archived = runs.filter(isArchived)
+  const base = active.filter(matches)
+  const counts = countByTab(base)
+  const sorted = sortRuns(
+    base.filter((run) => tab === 'all' || reviewStatus(run) === tab),
+    sort.key,
+    sort.dir,
+  )
+  const inProgress = sorted.filter(isInProgress)
+  const tableRuns = sorted.filter((run) => !isInProgress(run))
+  const onArchivePage = view === 'archive'
+  const archivedRuns = sortArchivedRuns(
+    archived
+      .filter(matches)
+      .filter(
+        (run) => !onArchivePage || archiveType === 'all' || reviewStatus(run) === archiveType,
+      ),
+    aSort.key,
+    aSort.dir,
+    manual,
+    now,
+  )
+  const needsYou = active.filter(needsReview).length
+  const hasFilters = !!filters.query.trim() || filters.time !== 'all' || filters.requester !== 'all'
+  const inlineArchive = !onArchivePage && !!filters.query.trim() && archivedRuns.length > 0
+  const selectedIds = [...selected]
+  const archivable = selectedIds.filter((id) => {
+    const run = runs.find((r) => r.id === id)
+    return run && isFinished(run) && !isArchived(run)
+  })
+  const people = requesters(runs)
+  const byId = (id: string) => runs.find((run) => run.id === id)
+
+  function patchFilters(next: Partial<FilterState>) {
+    setFilters((current) => ({ ...current, ...next }))
+  }
+  function clearFilters() {
+    patchFilters({ query: '', time: 'all', requester: 'all' })
+  }
+  function chooseTab(next: ReviewTab) {
+    setTab(next)
+    setSelected(new Set())
+  }
+  function toggle(id: string) {
+    setSelected((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+  function openView(next: 'main' | 'archive') {
+    focusHeading.current = true
+    setView(next)
+    setSelected(new Set())
+  }
+  function archive(ids: string[]) {
+    const at = new Date().toISOString()
+    setManual((current) => ({ ...current, ...Object.fromEntries(ids.map((id) => [id, at])) }))
+    setRestored((current) => new Set([...current].filter((id) => !ids.includes(id))))
+    setSelected(new Set())
+    const only = ids.length === 1 ? byId(ids[0]) : undefined
+    setToast(
+      `${only ? `Archived “${only.initiative}”` : `${plural(ids.length, 'run')} archived`}. You can restore ${
+        ids.length === 1 ? 'it' : 'them'
+      } for ${RESTORE_DAYS} days.`,
+    )
+    // The row is gone: focus goes to the table it left, not to <body>.
+    tableRef.current?.focus()
+  }
+  function restore(id: string) {
+    setManual((current) =>
+      Object.fromEntries(Object.entries(current).filter(([key]) => key !== id)),
+    )
+    setRestored((current) => new Set(current).add(id))
+    const run = byId(id)
+    setToast(`Restored “${run?.initiative ?? id}” to My reviews.`)
+    headingRef.current?.focus()
+  }
+  function createReport(report: {
+    name: string
+    format: ReportFormat
+    include: Parameters<typeof downloadCsvReport>[2]
+  }) {
+    const chosen = selectedIds.map(byId).filter((run): run is Run => !!run)
+    setDialog(null)
+    setSelected(new Set())
+    if (report.format === 'csv') {
+      downloadCsvReport(report.name, chosen, report.include)
+      setToast(`“${report.name}” created as CSV, ${plural(chosen.length, 'run')}.`)
+    } else if (openPdfReport(report.name, chosen, report.include)) {
+      setToast(
+        `“${report.name}” is open in a new tab. Choose Save as PDF in the print dialog to keep it.`,
+      )
+    } else {
+      setToast('Your browser blocked the report tab. Allow pop-ups for this page, then try again.')
+    }
+  }
+
+  const detailsRun = dialog && dialog.type === 'details' ? byId(dialog.id) : undefined
+  const newRunRun = dialog && dialog.type === 'newrun' ? byId(dialog.id) : undefined
+  const fromArchive = selectedIds.filter((id) => {
+    const run = byId(id)
+    return run && isArchived(run)
+  }).length
+
+  const selectionBar = (hint: string, withArchive: boolean) =>
+    selected.size > 0 && (
+      <div className="flex flex-wrap items-center gap-[var(--space-4)] border-b border-primary-tint-border bg-primary-tint px-[var(--space-5)] py-[var(--space-3)]">
+        <span className="text-body leading-none font-semibold whitespace-nowrap text-text-primary">
+          {plural(selected.size, 'run')} selected
+        </span>
+        <button
+          type="button"
+          onClick={() => setDialog({ type: 'report' })}
+          className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-text-primary bg-text-primary px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-surface hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          <FileBarChart aria-hidden className="h-3.5 w-3.5" />
+          Create report
+        </button>
+        {withArchive && (
+          <button
+            type="button"
+            onClick={() => archive(archivable)}
+            disabled={archivable.length === 0}
+            className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          >
+            <Archive aria-hidden className="h-3.5 w-3.5" />
+            Archive
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => setSelected(new Set())}
+          className="cursor-pointer text-meta font-semibold font-heading whitespace-nowrap text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          Clear selection
+        </button>
+        <span className="ml-auto text-caption text-text-secondary">{hint}</span>
+      </div>
+    )
+
+  const archiveTable = (selectable: boolean) => (
+    <div className="overflow-x-auto">
+      <ArchiveTable
+        runs={archivedRuns}
+        caption="Archived runs"
+        runHref={runHref}
+        sort={aSort}
+        onSort={(key, dir) => setASort({ key, dir })}
+        selectable={selectable}
+        selected={selected}
+        onToggle={toggle}
+        manual={manual}
+        now={now}
+        requestedRuns={requested}
+        onDetails={(id) => setDialog({ type: 'details', id })}
+        onNewRun={(id) => setDialog({ type: 'newrun', id })}
+        onRestore={restore}
+      />
+      {archivedRuns.length === 0 && (
+        <p className="px-[var(--space-5)] py-[var(--space-6)] text-center text-body text-text-secondary">
+          No archived runs match these filters.
+        </p>
+      )}
+    </div>
+  )
+
+  return (
+    <div className="mx-auto flex max-w-[90rem] flex-col gap-[var(--space-5)] px-[var(--space-4)] pt-[var(--space-6)] pb-[var(--space-7)] md:px-[var(--space-6)]">
+      {!onArchivePage ? (
+        <div className="flex flex-wrap items-end justify-between gap-[var(--space-5)]">
+          <div className="flex flex-col gap-[var(--space-2)]">
+            <PageTitle icon={ListChecks} headingRef={headingRef}>
+              My reviews
+            </PageTitle>
+            <p className="text-body text-text-secondary">
+              Agent runs assigned to you. Decide on pending runs, and find your past decisions.
+            </p>
+          </div>
+          <div className="flex items-center gap-[var(--space-3)]">
+            <span className="inline-flex items-center gap-[var(--space-2)] rounded-full bg-status-waived-tint-bg px-[var(--space-4)] py-[var(--space-2)] text-meta leading-none font-semibold whitespace-nowrap text-status-waived-tint-fg">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-status-waived-tint-fg" />
+              {needsYou} need{needsYou === 1 ? 's' : ''} your review
+            </span>
+            <button
+              type="button"
+              onClick={() => openView('archive')}
+              aria-label={`Archive, ${plural(archived.length, 'archived run')}`}
+              className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-3)] text-body leading-none font-semibold font-heading whitespace-nowrap text-text-primary hover:border-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            >
+              <Archive aria-hidden className="h-4 w-4" />
+              Archive
+              <span className="rounded-full bg-surface-raised px-[var(--space-2)] py-px text-caption font-semibold text-text-secondary">
+                {archived.length}
+              </span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-[var(--space-3)]">
+          <button
+            type="button"
+            onClick={() => openView('main')}
+            className="inline-flex cursor-pointer items-center gap-[var(--space-1)] self-start text-meta font-medium text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          >
+            <ChevronLeft aria-hidden className="h-4 w-4" />
+            My reviews
+          </button>
+          <PageTitle icon={Archive} headingRef={headingRef}>
+            Archive
+          </PageTitle>
+          <p className="max-w-[55rem] text-body text-text-secondary">
+            Approved and declined runs move here automatically {ARCHIVE_AFTER_MONTHS} months after
+            the decision. You can also archive them yourself from My reviews. For {RESTORE_DAYS}{' '}
+            days after archiving you can restore a run. After that it is locked, and you can request
+            a new run instead.
+          </p>
+        </div>
+      )}
+
+      {!onArchivePage && (
+        <section aria-label="Runs" className="rounded-lg border border-border-subtle bg-surface">
+          <Tabs value={tab} onValueChange={(value) => chooseTab(value as ReviewTab)}>
+            <TabsList variant="line" label="Run types">
+              {TABS.map(({ value, label, mark, icon: Icon }) => (
+                <TabsTrigger key={value} variant="line" value={value}>
+                  {mark ? (
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'inline-flex h-[1.125rem] w-[1.125rem] items-center justify-center rounded-full text-mark-glyph',
+                        mark,
+                      )}
+                    >
+                      <Icon className="h-3 w-3" />
+                    </span>
+                  ) : (
+                    <Icon aria-hidden className="h-4 w-4 text-text-secondary" />
+                  )}
+                  {label}
+                  <span
+                    className={cn(
+                      'rounded-full px-[var(--space-2)] py-px text-caption font-semibold font-body',
+                      tab === value
+                        ? 'bg-primary-tint text-primary'
+                        : 'bg-surface-raised text-text-secondary',
+                    )}
+                  >
+                    {counts[value]}
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value={tab}>
+              <ReviewsToolbar
+                searchLabel="Search runs"
+                searchPlaceholder="Search runs, also in the archive"
+                filters={filters}
+                onFilters={patchFilters}
+                open={filtersOpen}
+                onToggleOpen={() => setFiltersOpen((open) => !open)}
+                timeLabel="Time"
+                timeOptions={MAIN_TIMES}
+                type={{
+                  value: tab,
+                  counts: false,
+                  onChange: (value) => chooseTab(value as ReviewTab),
+                  options: [...TABS.filter((t) => t.value !== 'all'), TABS[4]].map((t) => ({
+                    value: t.value,
+                    label: t.value === 'all' ? 'All run types' : t.label,
+                  })),
+                }}
+                people={people}
+                resultLabel={`Showing ${tableRuns.length} of ${plural(active.length, 'active run')}`}
+                onClear={hasFilters ? clearFilters : undefined}
+              />
+              {selectionBar(
+                'You can select approved and declined runs, to make a report or to archive them.',
+                true,
+              )}
+              <div className="overflow-x-auto">
+                <ReviewsTable
+                  ref={tableRef}
+                  runs={tableRuns}
+                  caption={`${TABS.find((t) => t.value === tab)?.label ?? ''} runs`}
+                  runHref={runHref}
+                  sort={sort}
+                  onSort={(key, dir) => setSort({ key, dir })}
+                  selected={selected}
+                  onToggle={toggle}
+                  manual={manual}
+                  now={now}
+                  onDetails={(id) => setDialog({ type: 'details', id })}
+                  onNewRun={(id) => setDialog({ type: 'newrun', id })}
+                  onArchive={(id) => archive([id])}
+                />
+              </div>
+              {tableRuns.length === 0 && (
+                <div className="flex flex-col items-center gap-[var(--space-2)] px-[var(--space-5)] py-[var(--space-7)] text-center">
+                  <p className="text-item-title font-semibold font-heading text-text-primary">
+                    No active runs match these filters
+                  </p>
+                  <p className="text-body text-text-secondary">
+                    Try another tab, time range or requester.
+                  </p>
+                  {hasFilters && (
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="mt-[var(--space-1)] cursor-pointer rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-2)] text-meta font-semibold font-heading text-text-primary hover:border-text-secondary"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              )}
+              {inProgress.length > 0 && (
+                <InProgress
+                  runs={inProgress}
+                  open={progOpen}
+                  onToggle={() => setProgOpen((o) => !o)}
+                  now={now}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
+        </section>
+      )}
+
+      {inlineArchive && (
+        <div className="flex flex-wrap items-end justify-between gap-[var(--space-5)] pt-[var(--space-2)]">
+          <div className="flex flex-col gap-[var(--space-2)]">
+            <h2 className="flex items-center gap-[var(--space-3)] text-section-heading font-bold font-heading text-text-primary">
+              <Archive aria-hidden className="h-5 w-5 text-primary" />
+              Also found in the archive
+              <span className="rounded-full bg-surface-raised px-[var(--space-2)] py-px text-caption font-semibold text-text-secondary">
+                {archivedRuns.length}
+              </span>
+            </h2>
+            <p className="text-body text-text-secondary">
+              Archived runs that match “{filters.query.trim()}”. They are shown here only while you
+              search.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => openView('archive')}
+            className="inline-flex cursor-pointer items-center gap-[var(--space-2)] text-meta font-semibold font-heading text-primary underline-offset-2 hover:underline"
+          >
+            Open the archive
+            <ArrowRight aria-hidden className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+      {inlineArchive && (
+        <section
+          aria-label="Also found in the archive"
+          className="rounded-lg border border-border-subtle bg-surface"
+        >
+          {archiveTable(false)}
+        </section>
+      )}
+
+      {onArchivePage && (
+        <section
+          aria-label="Archived runs"
+          className="rounded-lg border border-border-subtle bg-surface"
+        >
+          <ReviewsToolbar
+            searchLabel="Search the archive"
+            searchPlaceholder="Search the archive"
+            filters={filters}
+            onFilters={patchFilters}
+            open={filtersOpen}
+            onToggleOpen={() => setFiltersOpen((open) => !open)}
+            timeLabel="Decided"
+            timeOptions={ARCHIVE_TIMES}
+            type={{
+              value: archiveType,
+              counts: true,
+              onChange: (value) => setArchiveType(value as typeof archiveType),
+              options: [
+                { value: 'all', label: 'All run types' },
+                { value: 'approved', label: 'Approved' },
+                { value: 'declined', label: 'Declined' },
+              ],
+            }}
+            people={people}
+            resultLabel={`Showing ${archivedRuns.length} of ${plural(archived.length, 'archived run')}`}
+          />
+          {selectionBar('Reports can include runs from the archive and from My reviews.', false)}
+          {archiveTable(true)}
+        </section>
+      )}
+
+      {detailsRun && (
+        <DecisionDetailsDialog
+          run={detailsRun}
+          href={runHref(detailsRun.id)}
+          now={now}
+          onClose={() => setDialog(null)}
+          onNewRun={() => setDialog({ type: 'newrun', id: detailsRun.id })}
+        />
+      )}
+      {newRunRun && (
+        <NewRunDialog
+          run={newRunRun}
+          onClose={() => setDialog(null)}
+          onSend={() => {
+            setRequested((current) => new Set(current).add(newRunRun.id))
+            setDialog(null)
+            setToast(
+              `Request sent to ${newRunRun.requestedBy}. You will get a message when they answer.`,
+            )
+          }}
+        />
+      )}
+      {dialog?.type === 'report' && (
+        <ReportDialog
+          count={selected.size}
+          fromArchive={fromArchive}
+          defaultName={`Review report ${today}`}
+          onClose={() => setDialog(null)}
+          onCreate={createReport}
+        />
+      )}
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+    </div>
+  )
+}
+
+/** Pending runs that are not ready for a person yet, folded away below the table. */
+function InProgress({
+  runs,
+  open,
+  onToggle,
+  now,
+}: {
+  runs: Run[]
+  open: boolean
+  onToggle: () => void
+  now: Date
+}) {
+  return (
+    <div className="flex flex-col border-t-4 border-surface-raised">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full cursor-pointer items-center gap-[var(--space-4)] rounded-b-lg px-[var(--space-5)] py-[var(--space-4)] text-left hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring"
+      >
+        <span
+          aria-hidden
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-tint text-primary"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+        </span>
+        <span className="flex flex-col gap-[var(--space-1)]">
+          <span className="text-body font-semibold text-text-primary">
+            {plural(runs.length, 'run')} still in progress
+          </span>
+          <span className="text-meta text-text-secondary">
+            The agent or the checks are not finished. You do not need to do anything yet. They move
+            up when they are ready for you.
+          </span>
+        </span>
+        <span className="ml-auto inline-flex items-center gap-[var(--space-2)] text-meta font-semibold font-heading whitespace-nowrap text-primary">
+          {open ? 'Hide' : 'Show'}
+          {open ? (
+            <ChevronUp aria-hidden className="h-3 w-3" />
+          ) : (
+            <ChevronDown aria-hidden className="h-3 w-3" />
+          )}
+        </span>
+      </button>
+      {open && (
+        <ul className="flex flex-col rounded-b-lg border-t border-border-subtle bg-bg">
+          {runs.map((run) => {
+            const stage = reviewStage(run)
+            return (
+              <li
+                key={run.id}
+                className="grid grid-cols-[minmax(0,1fr)_15rem_12.5rem_8rem] items-center gap-[var(--space-4)] border-b border-border-subtle py-[var(--space-3)] pr-[var(--space-5)] pl-[calc(var(--space-7)+var(--space-2))]"
+              >
+                <span className="flex min-w-0 flex-col gap-[var(--space-1)]">
+                  <span
+                    title={run.initiative}
+                    className="truncate text-body font-medium text-text-primary"
+                  >
                     {run.initiative}
                   </span>
-                  <span className="text-meta font-normal font-body text-text-secondary">
-                    {formatRunStatusLabel(run.status)} · {run.target.system} ·{' '}
-                    {run.target.environment} · requested by {run.requestedBy} ·{' '}
-                    <span className="font-mono">{run.id}</span>
+                  <span className="truncate text-caption text-text-secondary">
+                    <span className="font-mono">{run.id}</span> · {run.target.system} ·{' '}
+                    {run.target.environment}
                   </span>
-                </a>
+                </span>
+                {stage && (
+                  <span className="flex items-center gap-[var(--space-3)]">
+                    <StageSteps stage={stage} className="w-[4.5rem] shrink-0" />
+                    <span className="text-meta font-medium whitespace-nowrap text-text-primary">
+                      {formatReviewStage(stage)}
+                    </span>
+                  </span>
+                )}
+                <ActorName
+                  name={run.requestedBy}
+                  className="text-meta font-medium whitespace-nowrap"
+                />
+                <span className="flex flex-col gap-[var(--space-1)] whitespace-nowrap">
+                  <span className="text-meta font-medium text-text-primary">
+                    {formatCalendarDate(run.startedAt)}
+                  </span>
+                  <span className="text-caption text-text-secondary">
+                    Started {formatRelativeTime(run.startedAt, now)}
+                  </span>
+                </span>
               </li>
-            ))}
-          </ul>
-        ))}
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
 }

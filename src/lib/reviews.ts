@@ -118,7 +118,8 @@ export function archiveState(
   if (!archivedAt) {
     return { archived: false, autoAt: autoAt.toISOString(), canRestore: false, restoreDaysLeft: 0 }
   }
-  const daysSince = (now.getTime() - new Date(archivedAt).getTime()) / DAY_MS
+  // Never negative: a run archived a moment after the page read "now" is 0 days in, not -0.001.
+  const daysSince = Math.max(0, (now.getTime() - new Date(archivedAt).getTime()) / DAY_MS)
   const restoreDaysLeft = Math.max(0, Math.ceil(RESTORE_DAYS - daysSince))
   return {
     archived: true,
@@ -296,6 +297,16 @@ const STATUS_LABEL: Record<ReviewStatus, string> = {
 
 export function formatReviewStatus(status: ReviewStatus): string {
   return STATUS_LABEL[status]
+}
+
+const STAGE_LABEL: Record<ReviewStage, string> = {
+  agent: 'Agent is working',
+  checks: 'Checks are running',
+  review: 'Needs your review',
+}
+
+export function formatReviewStage(stage: ReviewStage): string {
+  return STAGE_LABEL[stage]
 }
 
 /** One run as a report shows it — only what the run's own data says. */

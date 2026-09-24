@@ -87,6 +87,12 @@ describe('archiveState', () => {
     expect(archiveState(run, { [run.id]: tenDaysAgo }, NOW)).toMatchObject({ canRestore: false })
   })
 
+  it('counts a restore window of exactly seven days from the moment of archiving', () => {
+    const run = decided(new Date(2026, 8, 1))
+    const justAfterNow = new Date(NOW.getTime() + 1000).toISOString()
+    expect(archiveState(run, { [run.id]: justAfterNow }, NOW).restoreDaysLeft).toBe(7)
+  })
+
   it('never archives a run that is not finished', () => {
     expect(archiveState(runMessyPending, { [runMessyPending.id]: NOW.toISOString() }, NOW)).toEqual(
       { archived: false, canRestore: false, restoreDaysLeft: 0 },

@@ -52,4 +52,47 @@ describe('Modal', () => {
     unmount()
     expect(onClose).toHaveBeenCalledTimes(1)
   })
+
+  it('gives focus back to what opened it when it closes', () => {
+    function Page({ open }: { open: boolean }) {
+      return (
+        <>
+          <button type="button">Open</button>
+          {open && (
+            <Modal title="Reject run" onClose={vi.fn()}>
+              <button type="button">Cancel</button>
+            </Modal>
+          )}
+        </>
+      )
+    }
+    const { rerender } = render(<Page open={false} />)
+    screen.getByRole('button', { name: 'Open' }).focus()
+    rerender(<Page open />)
+    screen.getByRole('button', { name: 'Cancel' }).focus()
+    rerender(<Page open={false} />)
+    expect(screen.getByRole('button', { name: 'Open' })).toHaveFocus()
+  })
+
+  it('leaves focus alone if something outside the dialog took it on purpose', () => {
+    function Page({ open }: { open: boolean }) {
+      return (
+        <>
+          <button type="button">Open</button>
+          <h2 tabIndex={-1}>Approved</h2>
+          {open && (
+            <Modal title="Approve" onClose={vi.fn()}>
+              <p>Body</p>
+            </Modal>
+          )}
+        </>
+      )
+    }
+    const { rerender } = render(<Page open={false} />)
+    screen.getByRole('button', { name: 'Open' }).focus()
+    rerender(<Page open />)
+    screen.getByRole('heading', { name: 'Approved' }).focus()
+    rerender(<Page open={false} />)
+    expect(screen.getByRole('heading', { name: 'Approved' })).toHaveFocus()
+  })
 })

@@ -6,7 +6,26 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
-## 0057 · A maker's mark, "By Berit ❤︎", at the top bar's left end
+## 0058 · The top bar names the app, "Review agent runs", instead of "By Berit ❤︎"
+
+**Context.** The user found the "By Berit ❤︎" mark (0057) distracting, and asked for a short
+description of the app in its place.
+
+**Choice.**
+- "Review agent runs", in plain text, where the mark was: at the far left, before the
+  breadcrumb, with the same thin rule. Heading font, semibold, meta size, primary text colour.
+  No heart and no orange.
+- It shows from md up only. On a 390 px phone it squeezed the run's name down to one letter,
+  and there the breadcrumb matters more.
+- It is still not a product logo, in line with 0042. The browser tab's title ("Ledger — demo")
+  is unchanged.
+
+**Consequence.** Replaces 0057. Checked in Chromium at 1440, 768 and 390 px. The bar is one row
+at 1440 px, and at 390 px it shows the breadcrumb with the full "Move refund processing …".
+
+---
+
+## 0057 · A maker's mark, "By Berit ❤︎", at the top bar's left end (replaced by 0058)
 
 **Context.** The user asked for a logo on the right side of the top navigation reading
 "By Berit ❤︎", with the heart in orange. 0042 kept product logos out of the bar, because the

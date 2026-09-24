@@ -39,6 +39,52 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · Final polish pass: audit, comments, small cleanups
+
+**Goal**
+Report leftover code, inconsistencies, unexplained complexity and type gaps, then fix only
+what is worth fixing. Anything that deletes tested code or changes dependencies is held for
+the user.
+
+**What changed**
+- Comments explaining *why* in four places: the tab pill's forced reflow (`Tabs.tsx`),
+  `StepsTab` updating state while rendering, the intro's `onDone` ref, and a sort comparator
+  in `RunDetails` that exists only for type narrowing.
+- Comments in `ActorName`, `DecisionDialog` (+ story) and `format.ts` now name live
+  components instead of removed ones. The lib README no longer mentions the removed
+  one-sentence summary.
+- `spotlight.ts` (+ test) moved from `lib/` to `components/`: `lib` must not touch the DOM
+  (AGENTS.md). `components/README.md` notes it.
+- `formatTimeZoneLabel` removed: it had no users and no test.
+- `scripts/*.mjs` formatted with Prettier (whitespace only).
+
+**Steps, in order**
+1. `npm run check` as a baseline: green, one warning in the unused `ui/button.tsx`.
+2. Searches, with `grep -rnE`, for `console.*`, `debugger`, `eslint-disable`, `@ts-ignore`,
+   `any`, TODOs and commented-out code. None found.
+3. `npx --yes knip@5` for unused files, exports and dependencies, then a grep per module for
+   code whose only users are its own tests or stories. `git log --diff-filter=D` traced each
+   one to the section components deleted in `5addfbe`.
+4. `npx prettier --check .` for formatting drift.
+5. Five commits, one concern each, with `npm run check` after each one.
+
+**Why it was done this way**
+The brief was to report first and to stop before touching tested behaviour. So the
+components left behind by the old sections, `lib/summary.ts`, and the unused `gates.ts` and
+`timeline.ts` functions all have passing tests of their own. Removing them deletes those
+tests, and that is held for the user. So are the unused shadcn `ui/` files and their
+`class-variance-authority` package, `eslint-config-prettier` (installed but never wired in),
+and the broken `.claude/settings.json`.
+
+**How to do this by hand**
+Run `npx --yes knip@5` to list unused files and exports. For each one, check `git log
+--diff-filter=D --name-only` to see what used to import it before deleting anything.
+
+**Verification**
+`npm run check` after each of the five commits: typecheck and lint clean (the one warning is
+in the unused `ui/button.tsx`), theme bridge ok (46 colours across 3 themes), format-locale
+ok, 262 tests passed.
+
 ### 2026-09-24 · Browser title
 
 **Goal**

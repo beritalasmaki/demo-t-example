@@ -7,7 +7,7 @@ import { cn } from '../../lib/utils'
 
 /**
  * The small pieces My reviews repeats in every row (docs/DECISIONS.md, 0060): the run-type
- * pill, the environment chip and the three-step progress of a pending run. Status is always
+ * pill, the run cell and the three-step progress of a pending run. Status is always
  * an icon and a word, never colour alone.
  */
 
@@ -30,22 +30,6 @@ export function ReviewStatusPill({ status, label }: { status: ReviewStatus; labe
     >
       <Icon aria-hidden className="h-3.5 w-3.5 shrink-0" />
       {label ?? formatReviewStatus(status)}
-    </span>
-  )
-}
-
-/** "PRODUCTION" with a red dot, "STAGING" with a grey one: the word carries it, not the dot. */
-export function EnvironmentChip({ environment }: { environment: Run['target']['environment'] }) {
-  return (
-    <span className="inline-flex shrink-0 items-center gap-[var(--space-1)] rounded-full border border-border px-[var(--space-2)] text-caption leading-snug font-semibold font-heading tracking-wide whitespace-nowrap text-text-primary uppercase">
-      <span
-        aria-hidden
-        className={cn(
-          'h-1.5 w-1.5 rounded-full',
-          environment === 'production' ? 'bg-status-fail' : 'bg-border',
-        )}
-      />
-      {environment}
     </span>
   )
 }
@@ -86,14 +70,9 @@ export function RunCell({ run, href }: { run: Run; href: string }) {
       >
         {run.initiative}
       </a>
-      <span className="flex min-w-0 items-center gap-[var(--space-2)] overflow-hidden text-caption whitespace-nowrap text-text-secondary">
-        <span className="shrink-0 font-mono">{run.id}</span>
-        <span aria-hidden className="text-text-secondary">
-          ·
-        </span>
-        <span className="min-w-0 truncate">{run.target.system}</span>
-        <EnvironmentChip environment={run.target.environment} />
-      </span>
+      {/* Only the run's reference under its title: the one thing a reviewer quotes to find the
+          case again. The system and environment are on the run page (docs/DECISIONS.md, 0067). */}
+      <span className="truncate font-mono text-caption text-text-secondary">{run.id}</span>
     </div>
   )
 }

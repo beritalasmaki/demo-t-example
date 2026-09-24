@@ -39,6 +39,27 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · Only the run's reference under each title in My reviews
+
+**Goal**
+Remove the system name and environment chip under each run's title; keep the case reference.
+
+**What changed**
+- `ReviewParts.tsx`: `RunCell` shows the id only, and `EnvironmentChip` is removed.
+- DECISIONS 0067.
+
+**Steps, in order**
+1. `git checkout -b feat/reviews-row-case-only` from main.
+2. Changed `RunCell`, then took a screenshot of the table in Chromium.
+3. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0067.
+
+**How to do this by hand**
+Open My reviews: each row has the title with its reference, such as `run-vat-estonia`, beneath
+it.
+
 ### 2026-09-24 · Line tabs showed no selected underline
 
 **Goal**

@@ -6,6 +6,24 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0067 · My reviews rows show only the run's reference under the title
+
+**Context.** Under each run's title, the table showed its id, the system and an environment
+chip (`run-vat-estonia · ledger-sync · PRODUCTION`). The user found the system and the
+environment unnecessary there. The reference is what matters: it's how a case is quoted and
+found again.
+
+**Options.** (a) Keep all three. (b) Keep only the reference.
+
+**Choice.** (b). `RunCell` shows the title, then the id in monospace. `EnvironmentChip` had
+no other use and is removed.
+
+**Consequence.** The system and environment are still on the run page, in the Decision
+details dialog and in reports. Search still matches the system's name, so typing
+`ledger-sync` still finds the run.
+
+---
+
 ## 0066 · No decision on a run that is still running
 
 **Context.** Runs the agent or the checks are still working on are kept out of the My reviews

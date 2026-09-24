@@ -69,8 +69,9 @@ The app opens on a run awaiting review. Other states are one URL away:
 | `/?delay=3000`      | any of the above, with the load slowed down to show the loading state   |
 
 There is no backend. Runs are typed fixtures in `src/fixtures/`, served through `getRun()` in
-`src/lib/api.ts`, so a real API can replace them without touching the interface. Decisions are
-held in memory: a reload starts the run over.
+`src/lib/api.ts`, so a real API can replace them without touching the interface. Decisions and
+undos last for the browser tab: they hold across pages and reloads, and a new tab starts
+every run over.
 
 ## Stack
 
@@ -78,11 +79,11 @@ held in memory: a reload starts the run over.
 - Tailwind CSS 4, with every colour, space, size and motion value from design tokens in
   `src/styles/tokens.css`
 - Radix UI (tabs), lucide-react (icons), `thinking-orbs` (the loading orb)
-- Vitest and React Testing Library: 47 test files, 262 tests
+- Vitest and React Testing Library: 47 test files, 269 tests
 - Storybook 10, with the accessibility add-on, for components and tokens
-- Playwright: three end-to-end specs in `e2e/` (the approve flow, keyboard-only runs of the
-  review and of My reviews, and axe WCAG A/AA and contrast checks in both themes; 34 tests in
-  all), and the theme-colour check
+- Playwright: three end-to-end specs in `e2e/` (the approve flow and a decline after an
+  undo, keyboard-only runs of the review and of My reviews, and axe WCAG A/AA and contrast
+  checks in both themes; 35 tests in all), and the theme-colour check
 
 Dependencies point one way, `fixtures → lib → components → features → app`, and a lint rule
 (`import/no-restricted-paths`) enforces it. `components/` and `styles/` are the design system
@@ -115,7 +116,7 @@ npm run build-storybook   # static Storybook build
 - **What is being built:** [`docs/spec-review-screen.md`](./docs/spec-review-screen.md)
 - **The rules the repository is built to** (stack, structure, dependency direction, design
   system, definition of done): [`AGENTS.md`](./AGENTS.md)
-- **Every choice with a trade-off**, 58 so far: [`docs/DECISIONS.md`](./docs/DECISIONS.md)
+- **Every choice with a trade-off**, 64 so far: [`docs/DECISIONS.md`](./docs/DECISIONS.md)
 - **What was done in each work session:** [`docs/WORKLOG.md`](./docs/WORKLOG.md)
 - **What belongs in each folder:** the `README.md` in each folder under `src/`
 

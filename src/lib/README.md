@@ -80,7 +80,14 @@ export async function submitDecision(
   runId: string,
   decision: DecisionInput,
 ): Promise<Run> { … }
+
+export async function undoDecision(runId: string): Promise<Run> { … }
 ```
+
+Decisions and undos are written to an in-memory copy of the fixtures, and also to
+sessionStorage (`ledger:decisions`), because every link in the app is a full page load. On
+load they are laid back over the fixtures, so a decision holds across pages until the tab is
+closed (docs/DECISIONS.md, 0064).
 
 Three reasons to write it this way instead of importing fixtures straight into components:
 

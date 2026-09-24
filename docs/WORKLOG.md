@@ -39,6 +39,44 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · A decline that came back as "Approved"
+
+**Goal**
+Find and fix why declining some runs ended with the run showing "Approved", and errors like it.
+
+**What changed**
+- `lib/api.ts`: `undoDecision()`, and decisions kept in sessionStorage (`ledger:decisions`)
+  so they survive page loads.
+- `UndoBox.tsx` undoes through the api, with "Undoing…" and an alert if it fails.
+- `DecisionPanel.tsx`: Reject or Request changes cancels a pending approve pop.
+- Tests in `api.test.ts`, `UndoBox`, `DecisionPanel`, `RunReviewPage`, and an e2e test in
+  `approve-flow.spec.ts`.
+- DECISIONS 0064, README, `src/lib/README.md`.
+
+**Steps, in order**
+1. `git checkout -b fix/decision-outcomes` from main.
+2. Rejected and requested changes on every pending run from a script: all correct on the run
+   page. So the bug was elsewhere.
+3. Rejected on `/`, then opened My reviews: the run was back to Pending, and its twin
+   `run-messy`, with the same title, showed Approved. Cause: every link is a full page load,
+   and decisions lived only in memory.
+4. On `?run=run-messy`: Undo, then Reject gave "Approved". Cause: undo only changed the screen,
+   so the api refused the Reject as a conflict with the old approval.
+5. Read the approve button's pop: a 440 ms timer opened the approve dialog even if Reject was
+   pressed meanwhile.
+6. Fixed all three, then repeated steps 3–5 in Chromium: Rejected every time, also after a
+   reload.
+7. `npm run check` after each commit, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0064. sessionStorage keeps a decision across pages without adding a router, and
+a new tab still starts the demo over.
+
+**How to do this by hand**
+Open `/?run=run-messy`, press Undo this decision, then Reject run with a reason: the page
+says Rejected. Open My reviews: the run is under Declined. Reload: still Declined. Open a new
+tab to start over.
+
 ### 2026-09-24 · Light and dark theme switch
 
 **Goal**

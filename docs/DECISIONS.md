@@ -6,6 +6,39 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0064 · Decisions hold across pages, and undo is real in the api
+
+**Context.** Declining a run could end with it showing "Approved". There were three causes:
+- **Undo was only on screen (0017).** After approving and undoing, the api still held the
+  approval. The next Reject was refused as a conflict, and the page showed the recorded
+  decision, "Approved". `run-messy` did this every time: it loads approved.
+- **Every link is a full page load (no router), and the api kept decisions only in memory.**
+  A run declined on its page went back to its fixture state in My reviews. On `/`, the
+  declined `run-messy-pending` has a twin with the same title, `run-messy`, which is approved.
+- **The approve button's pop (0051) opened its dialog after a 440 ms timer.** Pressing
+  Reject within that time opened Reject, then swapped it for the approve dialog.
+
+**Options.**
+(a) A client-side router, so the in-memory store lives across pages. It is out of scope
+(AGENTS.md), and a reload would still lose decisions.
+(b) Keep decisions in sessionStorage and lay them over the fixtures on load. (c) localStorage:
+then decisions last for good, and the demo can't be started over without clearing site data.
+
+**Choice.** (b), plus a real undo:
+- `api.ts` records each decision, or undo, in sessionStorage (`ledger:decisions`: run id →
+  decision, or `null` for an undone fixture decision). It reads them back when the module
+  loads. If storage is blocked, decisions last until the next load, as before.
+- `undoDecision(runId)` in `api.ts` clears the decision inside its 10-minute window (0003) and
+  throws `UndoClosedError` otherwise. `UndoBox` calls it, shows "Undoing…" while it runs, and
+  shows an alert if it fails. This supersedes 0017's local-only undo.
+- Request changes and Reject cancel a pending approve pop.
+
+**Consequence.** A decision, and its undo, holds across pages and reloads in one tab; a new
+tab starts every run over. The api, UndoBox, DecisionPanel and RunReviewPage tests cover
+each of the three paths.
+
+---
+
 ## 0063 · A light and dark theme switch at the top of the page
 
 **Context.** The user asked for a switch between dark and light mode at the top of the page.

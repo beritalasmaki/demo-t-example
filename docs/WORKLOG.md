@@ -39,6 +39,60 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · Line tabs showed no selected underline
+
+**Goal**
+The user saw no selected state and no hover on My reviews' run-type tabs.
+
+**What changed**
+- `components/Tabs.tsx`, line variant: removed `-mb-px` from the tab, and added a grey
+  underline on hover.
+
+**Steps, in order**
+1. `git checkout -b fix/line-tabs-underline` from main.
+2. Measured the selected tab in Chromium: its 2 px violet border was there, but its bottom sat
+   on the list's bottom edge. The list scrolls sideways (`overflow-x-auto`), which clips at
+   that edge, so the underline was cut away.
+3. Removed `-mb-px` and added `hover:border-border`, then took zoomed screenshots in both
+   themes.
+4. A colour transition on the tab made the keyboard spec lose arrow presses (5 of 8 runs
+   failed, 0 of 8 on main), so the transition was left out.
+5. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+The underline only needed to stop overlapping the clipped edge. The list keeps its sideways
+scroll for narrow screens.
+
+**How to do this by hand**
+Open My reviews: Pending has a violet underline. Hover Declined: a grey underline appears.
+
+### 2026-09-24 · No decision on a run that is still running
+
+**Goal**
+Hide the decision panel on runs the agent or the checks are still working on.
+
+**What changed**
+- `lib/decision.ts` `isStillRunning`, `lib/gates.ts` `noResultLabel`, `lib/story.ts`, and
+  `lib/api.ts` refusing the decision.
+- `features/run/InProgressBox.tsx`, used by `RunReviewPage.tsx` in the decision's place.
+- `RunDetails.tsx` and `lib/evidence.ts` wording, and the `RunOverview.tsx` status dot.
+- Tests for each, and DECISIONS 0066.
+
+**Steps, in order**
+1. `git checkout -b feat/in-progress-no-decision` from main.
+2. Added the helper, the box and the api rule.
+3. Screenshots of `run-sms-provider` (agent working, light) and `run-webhook-retries` (checks
+   running, dark). They showed the overview still saying "then decide", "5 not run", and a
+   badge with no dot. All three were fixed.
+4. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0066.
+
+**How to do this by hand**
+Open `/?run=run-webhook-retries`: the right column says "Not ready for review yet", and there
+are no decision buttons.
+
 ### 2026-09-24 · Mustache heart favicon
 
 **Goal**

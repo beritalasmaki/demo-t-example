@@ -74,6 +74,8 @@ export function RunDetails({ run, className, tabIndex, ref }: RunDetailsProps) {
   const notRun = run.gates.filter((gate) => gate.result === 'unknown').length
   const waived = run.gates.filter((gate) => gate.result === 'waived').length
   const notApplicable = run.gates.filter((gate) => gate.result === 'not_applicable').length
+  // The `missing` check in the comparator never fires (the filter already dropped those); it
+  // is there because the filter does not narrow the type, and only a present area has `value`.
   const lowest = resolveConfidenceAreas(run.confidence)
     .filter((area) => !area.missing)
     .sort((a, b) => (a.missing || b.missing ? 0 : a.value - b.value))[0]

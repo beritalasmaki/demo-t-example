@@ -44,6 +44,8 @@ export function StepsTab({ run, focusEventId }: StepsTabProps) {
   const focusRef = useRef<HTMLTableRowElement>(null)
 
   // Following a link into a folded group opens the whole group, so the row exists to focus.
+  // Done while rendering (React's "adjust state when a prop changes"), not in an effect, so
+  // the group is already open when the focus effect below runs for the same link.
   const [prevFocus, setPrevFocus] = useState<string | undefined>(undefined)
   if (focusEventId !== prevFocus) {
     setPrevFocus(focusEventId)

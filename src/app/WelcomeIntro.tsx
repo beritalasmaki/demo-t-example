@@ -48,6 +48,8 @@ export function WelcomeIntro({ onDone }: WelcomeIntroProps) {
   const nameRef = useRef<HTMLSpanElement>(null)
   const titleRef = useRef<HTMLSpanElement>(null)
   const [tracking, setTracking] = useState<number | null>(null)
+  // The timeline below runs once, on mount. It reads `onDone` through a ref, so a parent
+  // re-rendering with a new function neither restarts the intro nor calls a stale callback.
   const onDoneRef = useRef(onDone)
   useEffect(() => {
     onDoneRef.current = onDone

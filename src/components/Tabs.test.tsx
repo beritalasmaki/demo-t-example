@@ -38,6 +38,9 @@ describe('Tabs, pill variant', () => {
     const tooltip = screen.getByRole('tooltip', { hidden: true })
     expect(tooltip).toHaveTextContent('The first view')
     expect(tab).toHaveAttribute('aria-describedby', tooltip.id)
+    // Hidden from the tab list's children, still the tab's description.
+    expect(tooltip).toHaveAttribute('aria-hidden', 'true')
+    expect(tab).toHaveAccessibleDescription('The first view')
     expect(screen.getByRole('tab', { name: 'Second' })).not.toHaveAttribute('aria-describedby')
 
     tab.focus()

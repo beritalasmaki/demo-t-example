@@ -236,10 +236,14 @@ function PillTrigger({
       onMouseLeave={() => setDismissed(false)}
     >
       {trigger}
+      {/* aria-hidden: a tab list may only contain tabs, and this sits inside one. The tab
+          still announces the text, because aria-describedby reads hidden content it points
+          to (docs/DECISIONS.md, 0059). */}
       <span
         ref={tooltipRef}
         id={tooltipId}
         role="tooltip"
+        aria-hidden
         className="t-tt text-caption font-normal font-body text-text-primary"
       >
         {tooltip}

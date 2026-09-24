@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../lib/utils'
 
@@ -26,6 +26,15 @@ export function Modal({ title, onClose, children, className }: ModalProps) {
 
   // Read inside the native `close` listener, never during render — see useRun.ts for why this
   // project's lint rules require a ref's value to be set from an effect, not the render body.
+  // What had focus before the dialog opened gets it back when the dialog goes (WCAG 2.4.3).
+  // The browser does this itself only on a real `close()`; unmounting — how every caller
+  // closes a Modal — skips it, and focus fell to <body> (docs/DECISIONS.md, 0059). Read on the
+  // first render, before the dialog exists: read in the effect instead, it proved unreliable
+  // in a real browser — focus was sometimes already inside the dialog (`showModal()` moves it
+  // there), and focus was never given back.
+  const [opener] = useState(() =>
+    document.activeElement instanceof HTMLElement ? document.activeElement : null,
+  )
   const onCloseRef = useRef(onClose)
   useEffect(() => {
     onCloseRef.current = onClose
@@ -57,8 +66,15 @@ export function Modal({ title, onClose, children, className }: ModalProps) {
       // that event; a genuine close (Escape, or a real unmount removing the node outright)
       // never goes through this path.
       dialog.open = false
+
+      // Only if focus is still in the dialog, or lost on <body>: never over a deliberate move,
+      // such as the undo box's heading taking focus after a decision.
+      const active = document.activeElement
+      if (opener?.isConnected && (active === document.body || dialog.contains(active))) {
+        opener.focus({ preventScroll: true })
+      }
     }
-  }, [])
+  }, [opener])
 
   return (
     <dialog

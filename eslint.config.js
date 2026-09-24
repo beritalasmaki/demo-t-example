@@ -153,7 +153,7 @@ export default tseslint.config(
   {
     // Test files are exempt from the strict type-checked ruleset's stricter
     // assertions (e.g. no-non-null-assertion shows up a lot in test setup).
-    files: ['**/*.test.{ts,tsx}', 'vitest.setup.ts'],
+    files: ['**/*.test.{ts,tsx}', 'vitest.setup.ts', 'e2e/**/*.ts'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
     },

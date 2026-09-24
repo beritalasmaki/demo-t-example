@@ -39,6 +39,65 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · End-to-end spec, a time-boxed accessibility pass, docs to match
+
+**Goal**
+- Turn the approve flow, checked by hand many times this project, into a committed
+  Playwright spec.
+- Run a lighter, time-boxed accessibility review (automated contrast in both themes, one
+  keyboard-only pass), record the scope honestly, and make AGENTS.md and the README match.
+- The user also has a new My reviews design in Claude Design, to be built once its files
+  arrive.
+
+**What changed**
+- `@playwright/test` and `@axe-core/playwright` added (dev only, approved by the user).
+  `playwright.config.ts` starts Vite on port 5188. `tsconfig.e2e.json` added, and ESLint
+  treats `e2e/` like test files.
+- Three specs in `e2e/`, 18 tests. `npm run check` now runs them last (`test:e2e`):
+  - `approve-flow.spec.ts`: load, follow an open item's link, tick all, give a reason,
+    approve, undo.
+  - `accessibility.spec.ts`: axe WCAG 2.2 A/AA with contrast, 8 states × light and dark.
+  - `keyboard.spec.ts`: the whole review, keyboard only, focus visible at every stop.
+- Three fixes the pass found:
+  - the tab tooltips were `aria-hidden` inside the tab list (`Tabs.tsx`);
+  - "Jump to the open items" now moves focus (`OpenItemsNotice.tsx`);
+  - dialogs give focus back when they close (`Modal.tsx`).
+  Each one has a unit test.
+- DECISIONS 0059. AGENTS.md's non-negotiable 4, Stack and definition of done updated. README
+  stack, commands and status updated.
+
+**Steps, in order**
+1. `npm install -D @playwright/test@1.63.0 @axe-core/playwright` (the runner pinned to the
+   installed `playwright`).
+2. Wrote the approve spec from the earlier ad hoc scripts. It first failed: the native tick
+   box is visually hidden, so the spec clicks the label, as a person does.
+3. A throwaway axe spec over 8 states × 2 themes. Contrast was clean. It found
+   `aria-required-children` on every run page.
+4. Fixed the tooltip, then wrote the committed accessibility spec. Checked that it bites:
+   `--color-text-secondary: #d0d0d0` gave 43 contrast failures (token restored).
+5. Recorded the tab order once, then wrote the keyboard spec. It found the jump link and
+   the dialog focus loss. Fixed both.
+6. `npm run check` after each commit; merged only when it exited 0.
+
+**Why it was done this way**
+See DECISIONS 0059. The checks are specs rather than a one-off run, so the covered states
+stay checked. `Modal` records the opener on its first render because reading it in the effect
+failed in the real browser.
+
+**How to do this by hand**
+`npm run test:e2e` runs the three specs. To see one fail, break a colour token in
+`src/styles/tokens.css` and run `npx playwright test e2e/accessibility.spec.ts`. For the
+keyboard pass: open the app, put the mouse away, and review and approve a run with Tab,
+Space, Enter, the arrow keys and Escape.
+
+**Verification**
+`npm run check` exit code 0:
+- typecheck, lint and Prettier clean;
+- theme bridge ok (46 colours across 3 themes);
+- format-locale ok;
+- 42 test files, 225 unit tests;
+- 18 Playwright tests passed.
+
 ### 2026-09-24 · README rewritten for the project as it stands
 
 **Goal**

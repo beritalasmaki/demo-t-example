@@ -14,11 +14,12 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "check:theme-bridge": "node scripts/check-theme-bridge.mjs",
     "check:format-locale": "node scripts/check-format-locale.mjs",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:theme-bridge && npm run check:format-locale && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:theme-bridge && npm run check:format-locale && npm run test && npm run test:e2e"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -30,7 +31,9 @@
     "thinking-orbs": "0.3.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.63.0",
     "@storybook/addon-a11y": "^10.6.0",
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/react-vite": "^10.6.0",

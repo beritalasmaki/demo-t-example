@@ -5,7 +5,7 @@ import type { Run } from '../../lib/types'
 /**
  * How many things are open before a decision, at the right end of the page's top bar: a
  * yellow dot, "3 things to solve" and a link to the tick list in the decision panel
- * (docs/DECISIONS.md, 0053). The link scrolls to the list and spotlights it (0056); the `href`
+ * (docs/DECISIONS.md, 0053). The link scrolls to the list, spotlights it (0056) and focuses its first unticked item (0059); the `href`
  * still works without script. Nothing when nothing is open — the decision panel says so itself.
  * After a decision the page does not show it.
  */
@@ -33,6 +33,11 @@ export function OpenItemsNotice({ run, href = '#open-items' }: OpenItemsNoticePr
           event.preventDefault()
           target.scrollIntoView({ block: 'start' })
           spotlight(target)
+          // The spotlight is only seen. Focus goes to the first item still to tick, so a
+          // keyboard or screen reader user lands where the work is (docs/DECISIONS.md, 0059).
+          const boxes = target.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
+          const next = [...boxes].find((box) => !box.checked) ?? boxes[0]
+          next?.focus({ preventScroll: true })
         }}
         className="font-medium whitespace-nowrap text-primary no-underline underline-offset-2 hover:underline"
       >

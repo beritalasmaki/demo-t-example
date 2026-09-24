@@ -6,6 +6,34 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0066 · No decision on a run that is still running
+
+**Context.** Runs the agent or the checks are still working on are kept out of the My reviews
+table (0061), but their own page, reachable by URL, still offered Approve, Request changes
+and Reject. The page also asked for a decision in the overview, and called checks that had
+not finished "not run".
+
+**Options.** (a) Keep the decision panel, disabled, with a note. (b) Show a notice in its place
+and refuse the decision in the api too. A disabled panel full of ticks and a reason field
+suggests there is something to prepare, and there isn't until the checks finish.
+
+**Choice.** (b):
+- `isStillRunning(run)` in `lib/decision.ts`: no decision, and status `running` or
+  `checks_running`.
+- `InProgressBox` takes the decision's place: "Not ready for review yet", why (the same words
+  as My reviews' Decision details), and a link back to My reviews.
+- `submitDecision` refuses such a run with a `ValidationError`.
+- Nothing to solve yet: no notice in the top bar, and no dot on the favicon.
+- Wording: a check with no result is "not started" while the agent works and "still running"
+  while the checks run (`noResultLabel`, `lib/gates.ts`). The overview of a checks-running run
+  says the checks are still running, not "Read the run below, then decide". The Checks
+  running badge got the grey dot the Running one has.
+
+**Consequence.** A run can only be decided once it has stopped running. When a real backend
+comes, it has to hold to the same rule, since the page no longer offers the choice.
+
+---
+
 ## 0065 · The mustache heart favicon
 
 **Context.** The user asked for a favicon in the "Mustache heart" style from their icon sheet

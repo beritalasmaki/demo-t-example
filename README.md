@@ -35,6 +35,8 @@ not affiliated with any company, and every run in it is fictional.
   - A reason is required to approve when a check failed or did not run.
   - Then _Approve and release_, _Request changes_ or _Reject run_, each confirmed in a
     dialog.
+  - A run the agent or the checks are still working on offers no decision yet, only a note
+    on what happens next.
   - A decision can be undone for 10 minutes. The page then shows what the approval accepted
     as unverified.
 - **My reviews:** every run assigned to the reviewer, in tabs by run type:
@@ -79,7 +81,7 @@ every run over.
 - Tailwind CSS 4, with every colour, space, size and motion value from design tokens in
   `src/styles/tokens.css`
 - Radix UI (tabs), lucide-react (icons), `thinking-orbs` (the loading orb)
-- Vitest and React Testing Library: 47 test files, 269 tests
+- Vitest and React Testing Library: 47 test files, 273 tests
 - Storybook 10, with the accessibility add-on, for components and tokens
 - Playwright: three end-to-end specs in `e2e/` (the approve flow and a decline after an
   undo, keyboard-only runs of the review and of My reviews, and axe WCAG A/AA and contrast
@@ -116,7 +118,7 @@ npm run build-storybook   # static Storybook build
 - **What is being built:** [`docs/spec-review-screen.md`](./docs/spec-review-screen.md)
 - **The rules the repository is built to** (stack, structure, dependency direction, design
   system, definition of done): [`AGENTS.md`](./AGENTS.md)
-- **Every choice with a trade-off**, 65 so far: [`docs/DECISIONS.md`](./docs/DECISIONS.md)
+- **Every choice with a trade-off**, 66 so far: [`docs/DECISIONS.md`](./docs/DECISIONS.md)
 - **What was done in each work session:** [`docs/WORKLOG.md`](./docs/WORKLOG.md)
 - **What belongs in each folder:** the `README.md` in each folder under `src/`
 

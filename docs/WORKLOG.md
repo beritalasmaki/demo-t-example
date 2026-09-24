@@ -39,6 +39,30 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · Browser title
+
+**Goal**
+The browser title says what the app is, then a thin divider, then who made it.
+
+**What changed**
+- `index.html`: the title is "Review agent runs | By Berit Alasmäki" (was "Ledger — demo").
+- DECISIONS 0058 updated.
+
+**Steps, in order**
+1. `git checkout -b feat/browser-title` from main.
+2. Changed the title, and checked in Chromium that it reads correctly, "ä" included.
+3. `npm run check`, then merged into main.
+
+**Why it was done this way**
+See DECISIONS 0058. Nothing in the app sets `document.title`, so `index.html` is the one place.
+
+**How to do this by hand**
+Open the app and read the browser tab.
+
+**Verification**
+`npm run check` passed. In Chromium, `document.title` read "Review agent runs | By Berit
+Alasmäki".
+
 ### 2026-09-24 · "Review agent runs" replaces "By Berit ❤︎"
 
 **Goal**

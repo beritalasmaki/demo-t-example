@@ -126,7 +126,4 @@ every `npm run check`. What that pass did not cover is listed in
 
 Still to do:
 
-- publish Storybook;
-- My reviews, built to its new design from Claude Design: a lightweight list of the sample
-  runs, for navigation only, with no filtering, search or stats (spec, Out of scope;
-  DECISIONS 0042).
+- publish Storybook

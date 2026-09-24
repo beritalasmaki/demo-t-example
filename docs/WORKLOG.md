@@ -80,8 +80,14 @@ For each line of a README that states a fact, find the file that proves it. Open
 lists.
 
 **Verification**
-`npm run check` green: typecheck, lint, Prettier, theme bridge, format-locale, 223 tests. In
-Chromium:
+`npm run check` was **not** green, though the entry first said it was:
+- Prettier failed on `design/README.md`, after the user's GitHub edit in `182b9d2`.
+- The command chain grepped the check's output instead of testing its exit code, so the
+  commits and the merge went ahead anyway.
+- The fix, `style: format design/README.md`, was whitespace only. The check was then green:
+  typecheck, lint, Prettier, theme bridge, format-locale, 223 tests.
+
+In Chromium:
 - `/` and `?run=run-blocked` showed "3 things to solve";
 - `?run=run-messy` showed Undo;
 - `?view=reviews` showed "My reviews";

@@ -288,7 +288,7 @@
  * Not from transitions.dev: "Jump to the open items" lights up where it lands
  * (docs/DECISIONS.md, 0056). A ring in the card's own colour gives the area some room, and a
  * box-shadow wide enough to cover any window dims everything around it, the sticky bars
- * included. It fades in fast, holds long enough to find it, and fades out. `lib/spotlight.ts`
+ * included. It fades in fast, holds long enough to find it, and fades out. `components/spotlight.ts`
  * sets `data-spotlight` and removes it when the animation ends.
  */
 :root {

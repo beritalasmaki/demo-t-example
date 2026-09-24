@@ -19,3 +19,7 @@ optional per-tab tooltips (`tooltip`), both from transitions.dev (docs/DECISIONS
 `LoadingState` is the loading indicator: the `thinking-orbs` "working" orb with a label under
 it, centred (docs/DECISIONS.md, 0050). It is the one component here built on a third-party
 visual. jsdom can't draw it, so the test setup stubs the canvas.
+
+`spotlight(element)` plays the `.t-spotlight` animation on any element (docs/DECISIONS.md,
+0056). It is a function, not a component, and it lives here rather than in `lib/` because it
+works on the page's elements.

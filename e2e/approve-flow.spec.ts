@@ -56,3 +56,32 @@ test('review a run, approve it, and undo inside the window', async ({ page }) =>
   await expect(page.getByRole('region', { name: 'Your decision' })).toBeVisible()
   await expect(page.getByText('3 things to solve')).toBeVisible()
 })
+
+/**
+ * DECISIONS 0064: a decline used to come back as "Approved". Undo only changed the screen,
+ * and every link is a full page load, so the api's decisions did not survive the trip to My
+ * reviews.
+ */
+test('a decline made after undoing an approval stays declined, in My reviews too', async ({
+  page,
+}) => {
+  await page.goto('/?run=run-messy')
+  await page.getByRole('button', { name: 'Undo this decision' }).click()
+
+  await page.getByRole('button', { name: 'Reject run', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('textbox').fill('The refund rounding is wrong.')
+  await dialog.getByRole('button', { name: 'Reject run' }).click()
+  await expect(page.getByRole('heading', { name: 'Rejected' })).toBeVisible()
+
+  await page.getByRole('link', { name: 'My reviews' }).click()
+  await page.getByRole('tab', { name: /Declined/ }).click()
+  await page.getByRole('button', { name: /^Decision details: Move refund processing/ }).click()
+  await expect(page.getByRole('dialog')).toContainText('The refund rounding is wrong.')
+
+  await page.reload()
+  await page.getByRole('tab', { name: /Approved/ }).click()
+  await expect(
+    page.getByRole('button', { name: /^Decision details: Move refund processing/ }),
+  ).toHaveCount(0)
+})

@@ -1,7 +1,8 @@
 # components
 
 Reusable UI parts that know nothing about runs, gates or agents: buttons, table, badges,
-empty states, timestamps. shadcn/ui components live here too.
+empty states, timestamps. shadcn/ui components go in `ui/` when one is added (none is in use
+now; the theme bridge in `src/styles/index.css` is ready for them).
 
 **The test:** would this component work, unchanged, in a completely different product? If
 yes, it belongs here. If it needs to know what a policy gate is, it belongs in `features/run/`.

@@ -42,7 +42,8 @@
  * to leave it out, same as accent and border. All bridge names below were re-audited against
  * every tokens.css name for this exact pattern; none of the remaining ones collide.
  *
- * Verified against the first three real components (Button, Checkbox, Dialog — fetched
+ * Verified against the first three real components (Button, Checkbox, Dialog — since removed
+ * as unused, but the bridge stays for the next shadcn component — fetched
  * directly from the shadcn-ui/ui GitHub source, since ui.shadcn.com itself is blocked by
  * this session's egress policy). One more thing turned up, beyond the name collisions above:
  *

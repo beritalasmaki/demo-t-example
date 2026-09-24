@@ -39,6 +39,32 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · "Review agent runs" replaces "By Berit ❤︎"
+
+**Goal**
+Remove the distracting "By Berit ❤︎" mark, and name what the app does in its place.
+
+**What changed**
+- `RunTopBar.tsx`: `Byline` becomes `AppName`, "Review agent runs", shown from md up.
+- The page test now checks the name, and that the mark is gone.
+- DECISIONS 0058 (0057 marked as replaced).
+
+**Steps, in order**
+1. `git checkout -b feat/app-name` from main.
+2. Swapped the text. A 390 px screenshot showed the run's name squeezed to one letter, so the
+   name is hidden below md.
+3. `npm run check`, then merged into main.
+
+**Why it was done this way**
+See DECISIONS 0058.
+
+**How to do this by hand**
+Open the run page on a laptop: "Review agent runs | ‹ My reviews › …" at the top left. On a
+phone it starts at "‹ My reviews".
+
+**Verification**
+`npm run check` passed, and there are screenshots at 1440, 768 and 390 px.
+
 ### 2026-09-23 · "By Berit ❤︎" moves to the left
 
 **Goal**

@@ -150,6 +150,22 @@ describe('DecisionPanel', () => {
       expect(approve).not.toHaveAttribute('data-popping')
     })
 
+    it('lets Reject pressed during the pop win, so a decline never opens as an approval', () => {
+      stubMotion(false)
+      vi.useFakeTimers()
+      render(<DecisionPanel run={runClean} onRunUpdated={vi.fn()} />)
+      fireEvent.click(screen.getByRole('button', { name: 'Approve and release' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Reject run' }))
+      act(() => {
+        vi.advanceTimersByTime(440)
+      })
+      const dialog = screen.getByRole('dialog')
+      expect(within(dialog).getByRole('button', { name: 'Reject run' })).toBeInTheDocument()
+      expect(
+        within(dialog).queryByRole('button', { name: 'Approve and release' }),
+      ).not.toBeInTheDocument()
+    })
+
     it('skips the pop for reduced motion and opens the confirmation at once', () => {
       stubMotion(true)
       render(<DecisionPanel run={runClean} onRunUpdated={vi.fn()} />)

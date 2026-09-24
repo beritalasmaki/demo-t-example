@@ -17,8 +17,10 @@ description of the app in its place.
   No heart and no orange.
 - It shows from md up only. On a 390 px phone it squeezed the run's name down to one letter,
   and there the breadcrumb matters more.
-- It is still not a product logo, in line with 0042. The browser tab's title ("Ledger — demo")
-  is unchanged.
+- It is still not a product logo, in line with 0042.
+- The browser tab's title, asked for next, is "Review agent runs | By Berit Alasmäki". It was
+  "Ledger — demo". The vertical bar is the thin divider the user asked for. Credit sits in the
+  title, where it names the page without taking room in the interface.
 
 **Consequence.** Replaces 0057. Checked in Chromium at 1440, 768 and 390 px. The bar is one row
 at 1440 px, and at 390 px it shows the breadcrumb with the full "Move refund processing …".

@@ -78,18 +78,6 @@ export function formatDecisionOutcomeLabel(outcome: Decision['outcome']): string
 }
 
 /**
- * Content rules, "Time": "Show the time zone once, in the run header." A short abbreviation
- * (e.g. "UTC"), not the full IANA name — that's shown in the header's own hidden detail
- * instead, since it's not needed at a glance every time a clock time is shown.
- */
-export function formatTimeZoneLabel(now: Date = new Date()): string {
-  const part = new Intl.DateTimeFormat(LOCALE, { timeZoneName: 'short' })
-    .formatToParts(now)
-    .find((p) => p.type === 'timeZoneName')
-  return part?.value ?? ''
-}
-
-/**
  * Content rules, "Time": "Clock time first, relative time in brackets: '14:32 today (8
  * minutes ago)'." `now` is a parameter (not always `Date.now()`) so this stays deterministic
  * in tests and stories.

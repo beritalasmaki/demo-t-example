@@ -39,6 +39,54 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · README rewritten for the project as it stands
+
+**Goal**
+The public README still described the scaffolding stage. Rewrite it to match today: what the
+app does, the real stack, real running instructions, and an honest status.
+
+**What changed**
+- `README.md` rewritten:
+  - what the screen does;
+  - a table of URLs for each run state;
+  - the stack with today's test count (42 files, 223 tests);
+  - running instructions, with the Node version Vite 8 needs;
+  - where each kind of doc lives;
+  - a status with what is left: publishing Storybook, the planned Playwright end-to-end
+    test, and the accessibility and contrast review.
+- The Vercel link, the design folder and the Storybook note stay at the top.
+
+**Steps, in order**
+1. `git checkout -b docs/readme-refresh` from main.
+2. Took the facts from the repository, not from memory:
+   - `package.json` for scripts and versions;
+   - `node_modules/vite/package.json` for the Node range;
+   - `src/app/App.tsx` for the URL parameters;
+   - `src/fixtures/` for what each run shows;
+   - `eslint.config.js` for the dependency rule;
+   - `grep` in DECISIONS and WORKLOG, which found no accessibility review and no
+     end-to-end test done yet.
+3. Wrote the README, then loaded each URL in the table in Chromium and checked the page
+   matched the description.
+4. `npm run check`.
+
+**Why it was done this way**
+The request described the suite as "262 tests" and the page as "six built regions". Both were
+true earlier: the cleanup brought the suite to 223, and the story layout replaced the regions.
+The README gives today's numbers.
+
+**How to do this by hand**
+For each line of a README that states a fact, find the file that proves it. Open each URL it
+lists.
+
+**Verification**
+`npm run check` green: typecheck, lint, Prettier, theme bridge, format-locale, 223 tests. In
+Chromium:
+- `/` and `?run=run-blocked` showed "3 things to solve";
+- `?run=run-messy` showed Undo;
+- `?view=reviews` showed "My reviews";
+- `?delay=3000` showed "Loading run…" first.
+
 ### 2026-09-24 · Cleanups: orphaned code, unused packages, settings, format gate, AGENTS.md
 
 **Goal**

@@ -1,44 +1,95 @@
 👀 View the screen: https://demo-t-example.vercel.app/
 
-☝️ Please check [`Design-folder to see the design mockups.`](./design). Iterations done after the third design was made.
+☝️ See the [design folder](./design) for the mockups and how the page got here.
 
-☝️ ALSO Storybook view page coming soon!
+☝️ A published Storybook is coming soon.
 
-# What is demo-t-example?
+# Review agent runs
 
-A single, production-quality screen.
+An AI agent has made a change to a customer's software. Before that change is released, a
+person has to understand what the agent did, see which checks passed or failed, judge how sure
+the agent was and why, and then approve, ask for changes, or reject. This repository
+(`demo-t-example`) is that one review screen.
 
-An AI agent has produced a change to a customer's software. Before that change ships, a human reviewer needs to
-understand what the agent did, see which policy gates passed or failed, judge how confident
-the model was and why, and then approve, request changes, or reject.
+It is a portfolio piece built to the standard of a real product surface, not a mockup. It is
+not affiliated with any company, and every run in it is fictional.
 
-This is a portfolio piece built to the standard of a real product surface, not a mockup. It
-is not affiliated with any company, and every run in it is fictional.
+## What the screen does
 
-- **Why this exists:** [`STORY.md`](./STORY.md)
-- **What is being built, region by region:** [`docs/spec-review-screen.md`](./docs/spec-review-screen.md)
-- **The rules this repository is built to** (stack, folder structure, dependency direction,
-  design-system rules, definition of done): [`AGENTS.md`](./AGENTS.md)
+- **Top bar:** "Review agent runs", a breadcrumb back to _My reviews_, and, before a decision,
+  how many things are left to solve, with a link that jumps to them and briefly spotlights
+  them. The browser tab's icon gets an amber dot while there are things to solve.
+- **Three columns:**
+  - **Run details** on the left: where the change would go, what would be released, who
+    asked, which agent, when, the check results and the lowest score. Every id has a plain
+    line under it.
+  - **The run itself** in the middle, under an overview card. It has three views:
+    - **Story:** what the agent did, in order, in plain sentences, with the checks and
+      scores where they happened.
+    - **Evidence:** every file, test and check the page's claims rest on.
+    - **All steps:** the full record, one row per step.
+  - **The decision** on the right.
+- **The decision:**
+  - Tick each open item to say you have seen it. Each one links to where it is shown in
+    full.
+  - A reason is required to approve when a check failed or did not run.
+  - Then _Approve and release_, _Request changes_ or _Reject run_, each confirmed in a
+    dialog.
+  - A decision can be undone for 10 minutes. The page then shows what the approval accepted
+    as unverified.
+- **Around it:** a short welcome intro once per visit (skipped for reduced motion, or on any
+  key or click), a loading state, and "not found" and error states.
+
+Nothing on the page is decided by the interface. Every number and status comes from the run's
+data and links to its evidence, and anything unknown says "unknown". The rules behind this are
+in [`AGENTS.md`](./AGENTS.md).
+
+Light and dark themes both work, the whole page works from the keyboard, status is never shown
+by colour alone, and motion respects `prefers-reduced-motion`.
+
+## Try it
+
+The app opens on a run awaiting review. Other states are one URL away:
+
+| URL                 | What it shows                                                           |
+| ------------------- | ----------------------------------------------------------------------- |
+| `/`                 | `run-messy-pending`: checks that did not run, a low score, an open note |
+| `/?run=run-clean`   | everything passed; nothing to solve                                     |
+| `/?run=run-blocked` | a failed check, an exception, and an error and retry in the steps       |
+| `/?run=run-messy`   | the same run as `/`, already approved, inside its undo window           |
+| `/?view=reviews`    | _My reviews_, where the breadcrumb leads                                |
+| `/?delay=3000`      | any of the above, with the load slowed down to show the loading state   |
+
+There is no backend. Runs are typed fixtures in `src/fixtures/`, served through `getRun()` in
+`src/lib/api.ts`, so a real API can replace them without touching the interface. Decisions are
+held in memory: a reload starts the run over.
 
 ## Stack
 
-React 19 + TypeScript (strict) on Vite, Tailwind CSS with tokens exposed through its theme,
-shadcn/ui, lucide-react. Vitest + React Testing Library for unit tests, Storybook for
-components and tokens, Playwright planned for one end-to-end path. No backend — data comes
-from typed fixtures behind a `getRun()` function, so a real API can replace it later without
-touching the interface. See `AGENTS.md` for the full picture, including the folder structure
-and why dependencies only point one way.
+- React 19 and TypeScript (strict), built with Vite
+- Tailwind CSS 4, with every colour, space, size and motion value from design tokens in
+  `src/styles/tokens.css`
+- Radix UI (tabs), lucide-react (icons), `thinking-orbs` (the loading orb)
+- Vitest and React Testing Library: 42 test files, 223 tests
+- Storybook 10, with the accessibility add-on, for components and tokens
+- Playwright's Chromium, used by `npm run check` to verify theme colours in a real browser
+
+Dependencies point one way, `fixtures → lib → components → features → app`, and a lint rule
+(`import/no-restricted-paths`) enforces it. `components/` and `styles/` are the design system
+and know nothing about agent runs.
 
 ## Running it
 
+Needs Node.js 20.19 or newer (22.12 or newer on the 22 line).
+
 ```bash
 npm install
-npx playwright install chromium   # once — needed by npm run check's theme-bridge verification
+npx playwright install chromium   # once: npm run check uses it for the theme check
 
 npm run dev              # start the app
 npm run storybook        # start Storybook, on components and design tokens
 
-npm run check            # typecheck + lint + format + test — the gate for any change
+npm run check            # the gate for any change: typecheck, lint, format, theme and locale checks, tests
 npm run test:watch       # tests, watching
 npm run lint:fix         # eslint --fix
 npm run format           # prettier --write
@@ -47,9 +98,26 @@ npm run build             # production build of the app
 npm run build-storybook   # static Storybook build
 ```
 
+## Where things are written down
+
+- **Why this exists:** [`STORY.md`](./STORY.md)
+- **What is being built:** [`docs/spec-review-screen.md`](./docs/spec-review-screen.md)
+- **The rules the repository is built to** (stack, structure, dependency direction, design
+  system, definition of done): [`AGENTS.md`](./AGENTS.md)
+- **Every choice with a trade-off**, 58 so far: [`docs/DECISIONS.md`](./docs/DECISIONS.md)
+- **What was done in each work session:** [`docs/WORKLOG.md`](./docs/WORKLOG.md)
+- **What belongs in each folder:** the `README.md` in each folder under `src/`
+
 ## Status
 
-Scaffolding stage: the toolchain, design tokens and dependency-direction lint rule are in
-place.
+The review screen is built. It follows the redesign from Claude Design, with its later
+iterations: the three-column layout, the Story, Evidence and All steps views, the decision
+panel with undo, the welcome intro and the loading state. A polish pass and a cleanup have
+removed the code the redesign left behind, and `npm run check` now covers formatting too.
 
-Design is still in process. Iteration going on currently. Storybook view page in planning too.
+Still to do:
+
+- publish Storybook;
+- the one Playwright end-to-end test `AGENTS.md` plans for;
+- the dedicated accessibility and contrast review `AGENTS.md` reserves for the end of the
+  project.

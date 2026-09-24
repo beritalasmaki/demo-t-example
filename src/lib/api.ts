@@ -80,27 +80,12 @@ export async function getRun(id: string, options: GetRunOptions = {}): Promise<R
   return structuredClone(run)
 }
 
-/** One line of the "My reviews" list — enough to recognise a run and its state, nothing more
- * (docs/spec-review-screen.md, Out of scope: "a minimal list of sample runs, for navigation
- * only"). */
-export interface RunListItem {
-  id: string
-  initiative: string
-  status: Run['status']
-  target: Run['target']
-  requestedBy: string
-}
-
-export async function listRuns(options: GetRunOptions = {}): Promise<RunListItem[]> {
+/** Every run assigned to the reviewer, in full, for "My reviews": its tabs, open-item counts,
+ * decision details and reports all read the run's own data (docs/DECISIONS.md, 0060). */
+export async function listRuns(options: GetRunOptions = {}): Promise<Run[]> {
   await delay(options.delayMs ?? DEFAULT_DELAY_MS)
   if (options.simulateNetworkError) throw new NetworkError()
-  return Object.values(store).map((run) => ({
-    id: run.id,
-    initiative: run.initiative,
-    status: run.status,
-    target: { ...run.target },
-    requestedBy: run.requestedBy,
-  }))
+  return Object.values(store).map((run) => structuredClone(run))
 }
 
 export interface SubmitDecisionOptions {

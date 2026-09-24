@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { LoadingState } from '../../components/LoadingState'
 import { listRuns } from '../../lib/api'
-import type { GetRunOptions, RunListItem } from '../../lib/api'
+import type { GetRunOptions } from '../../lib/api'
+import type { Run } from '../../lib/types'
 import { formatRunStatusLabel } from '../../lib/format'
 
 /**
@@ -16,9 +17,7 @@ export interface ReviewListProps {
 }
 
 type State =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'success'; runs: RunListItem[] }
+  { status: 'loading' } | { status: 'error'; message: string } | { status: 'success'; runs: Run[] }
 
 export function ReviewList({ runHref, options }: ReviewListProps) {
   const [state, setState] = useState<State>({ status: 'loading' })

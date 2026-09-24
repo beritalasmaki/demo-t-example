@@ -1,8 +1,8 @@
 # Design Explorations & Layout Drafts
 
-This folder holds the design work for **Ledger**, a portfolio project. Ledger is a review page. An AI agent changes a company's software. Before the change goes live, a person must look at what the agent did and decide: approve it, ask for changes, or reject it.
+This folder holds the design work for **Review agent runs**, a portfolio project.  **Review agent runs** is a review page. An AI agent changes a company's software. Before the change goes live, a person must look at what the agent did and decide: approve it, ask for changes, or reject it.
 
-Ledger is not linked to any company. All people, runs and events are made up.
+ **Review agent runs** is not linked to any company. All people, runs and events are made up.
 
 ## The question
 

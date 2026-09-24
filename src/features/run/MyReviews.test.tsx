@@ -73,6 +73,13 @@ describe('MyReviews', () => {
     const user = await renderLoaded()
     await user.click(screen.getByRole('tab', { name: /Approved/ }))
     await user.click(screen.getByRole('button', { name: /^Archive “Move refund processing/ }))
+    // It asks first, and Cancel changes nothing.
+    const ask = screen.getByRole('dialog', { name: 'Move to the archive?' })
+    expect(ask).toHaveTextContent(/restore it from the archive for 7 days/)
+    await user.click(within(ask).getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('5')
+    await user.click(screen.getByRole('button', { name: /^Archive “Move refund processing/ }))
+    await user.click(screen.getByRole('button', { name: 'Move to the archive' }))
     expect(screen.getByRole('status')).toHaveTextContent(
       /Archived “Move refund processing.*restore it for 7 days/,
     )
@@ -82,6 +89,10 @@ describe('MyReviews', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Archive' })).toHaveFocus()
     expect(screen.getByText('By you')).toBeVisible()
     await user.click(screen.getByRole('button', { name: /^Restore “Move refund processing/ }))
+    expect(screen.getByRole('dialog', { name: 'Restore to My reviews?' })).toHaveTextContent(
+      /7 days left to restore it/,
+    )
+    await user.click(screen.getByRole('button', { name: 'Restore' }))
     expect(screen.queryByText('By you')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'My reviews' }))
     expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('5')
@@ -95,6 +106,7 @@ describe('MyReviews', () => {
     expect(screen.getAllByRole('img', { name: 'Restore locked' })).toHaveLength(3)
 
     await user.click(screen.getByRole('button', { name: /^Restore “Add Klarna/ }))
+    await user.click(screen.getByRole('button', { name: 'Restore' }))
     await user.click(screen.getByRole('button', { name: 'My reviews' }))
     expect(screen.getByRole('button', { name: 'Archive, 3 archived runs' })).toBeVisible()
   })

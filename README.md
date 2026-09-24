@@ -80,7 +80,7 @@ held in memory: a reload starts the run over.
 - Vitest and React Testing Library: 46 test files, 260 tests
 - Storybook 10, with the accessibility add-on, for components and tokens
 - Playwright: three end-to-end specs in `e2e/` (the approve flow, keyboard-only runs of the
-  review and of My reviews, and axe WCAG A/AA and contrast checks in both themes; 31 tests in
+  review and of My reviews, and axe WCAG A/AA and contrast checks in both themes; 33 tests in
   all), and the theme-colour check
 
 Dependencies point one way, `fixtures → lib → components → features → app`, and a lint rule

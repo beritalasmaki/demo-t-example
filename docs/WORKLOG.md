@@ -39,6 +39,40 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · Archive and restore ask first
+
+**Goal**
+Ask before moving runs to the archive and before restoring one.
+
+**What changed**
+- `ReviewDialogs.tsx`: `ArchiveConfirmDialog` (one run or several) and
+  `RestoreConfirmDialog`.
+- `MyReviews.tsx`: the row Archive button, the bulk Archive button and Restore open them.
+  Focus moves after the dialog closes.
+- Tests: Cancel changes nothing, and confirming works, in the unit tests. The keyboard pass
+  goes through both dialogs. The accessibility spec covers the archive one.
+- DECISIONS 0062.
+
+**Steps, in order**
+1. `git checkout -b feat/confirm-archive-restore` from main.
+2. Added the dialogs and wired them in. The keyboard spec then failed: focus went to
+   `<body>` after confirming, because the table cannot take focus while the modal is still
+   open. Focus now moves in an effect once the dialog has closed.
+3. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0062.
+
+**How to do this by hand**
+In My reviews, Approved: press Archive on a row, then Cancel. Nothing changes. Press it again
+and confirm. In the Archive, press Restore on the run that has one.
+
+**Verification**
+`npm run check`, exit code 0:
+- typecheck, lint and Prettier clean;
+- 46 test files, 260 unit tests;
+- 33 Playwright tests.
+
 ### 2026-09-24 · My reviews: more sample runs, work in progress, archive, no scrollbars
 
 **Goal**

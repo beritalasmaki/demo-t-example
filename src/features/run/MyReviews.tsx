@@ -49,7 +49,13 @@ import type { Run } from '../../lib/types'
 import { cn } from '../../lib/utils'
 import { ActorName } from './ActorName'
 import { ArchiveTable } from './ArchiveTable'
-import { DecisionDetailsDialog, NewRunDialog, ReportDialog } from './ReviewDialogs'
+import {
+  ArchiveConfirmDialog,
+  DecisionDetailsDialog,
+  NewRunDialog,
+  ReportDialog,
+  RestoreConfirmDialog,
+} from './ReviewDialogs'
 import type { ReportFormat } from './ReviewDialogs'
 import { StageSteps } from './ReviewParts'
 import { ReviewsTable } from './ReviewsTable'
@@ -179,7 +185,11 @@ const ARCHIVE_TIMES = MAIN_TIMES.filter((t) =>
   ['all', 'thisMonth', 'thisYear', 'custom'].includes(t.value),
 )
 
-type Dialog = { type: 'details' | 'newrun'; id: string } | { type: 'report' } | null
+type Dialog =
+  | { type: 'details' | 'newrun' | 'restore'; id: string }
+  | { type: 'archive'; ids: string[] }
+  | { type: 'report' }
+  | null
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
@@ -232,6 +242,17 @@ function ReviewsBoard({
     focusHeading.current = false
     headingRef.current?.focus()
   }, [view])
+
+  // Where focus goes once a confirmation dialog has closed. It cannot move while the dialog is
+  // open (a modal makes the page behind it inert), and the button that opened it has gone with
+  // its row, so the dialog has nothing to hand focus back to.
+  const focusAfterDialog = useRef<'table' | 'heading' | null>(null)
+  useEffect(() => {
+    if (dialog || !focusAfterDialog.current) return
+    const target = focusAfterDialog.current === 'table' ? tableRef.current : headingRef.current
+    focusAfterDialog.current = null
+    target?.focus()
+  }, [dialog])
 
   const isArchived = (run: Run) => !restored.has(run.id) && archiveState(run, manual, now).archived
   const matches = (run: Run) =>
@@ -308,7 +329,7 @@ function ReviewsBoard({
       } for ${RESTORE_DAYS} days.`,
     )
     // The row is gone: focus goes to the table it left, not to <body>.
-    tableRef.current?.focus()
+    focusAfterDialog.current = 'table'
   }
   function restore(id: string) {
     setManual((current) =>
@@ -317,7 +338,7 @@ function ReviewsBoard({
     setRestored((current) => new Set(current).add(id))
     const run = byId(id)
     setToast(`Restored “${run?.initiative ?? id}” to My reviews.`)
-    headingRef.current?.focus()
+    focusAfterDialog.current = 'heading'
   }
   function createReport(report: {
     name: string
@@ -363,7 +384,7 @@ function ReviewsBoard({
         {withArchive && (
           <button
             type="button"
-            onClick={() => archive(archivable)}
+            onClick={() => setDialog({ type: 'archive', ids: archivable })}
             disabled={archivable.length === 0}
             className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           >
@@ -398,7 +419,7 @@ function ReviewsBoard({
         requestedRuns={requested}
         onDetails={(id) => setDialog({ type: 'details', id })}
         onNewRun={(id) => setDialog({ type: 'newrun', id })}
-        onRestore={restore}
+        onRestore={(id) => setDialog({ type: 'restore', id })}
       />
       {archivedRuns.length === 0 && (
         <p className="px-[var(--space-5)] py-[var(--space-6)] text-center text-body text-text-secondary">
@@ -535,7 +556,7 @@ function ReviewsBoard({
                   now={now}
                   onDetails={(id) => setDialog({ type: 'details', id })}
                   onNewRun={(id) => setDialog({ type: 'newrun', id })}
-                  onArchive={(id) => archive([id])}
+                  onArchive={(id) => setDialog({ type: 'archive', ids: [id] })}
                 />
               </div>
               {tableRuns.length === 0 && (
@@ -661,6 +682,27 @@ function ReviewsBoard({
             setToast(
               `Request sent to ${newRunRun.requestedBy}. You will get a message when they answer.`,
             )
+          }}
+        />
+      )}
+      {dialog?.type === 'archive' && (
+        <ArchiveConfirmDialog
+          runs={dialog.ids.map(byId).filter((run): run is Run => !!run)}
+          onClose={() => setDialog(null)}
+          onConfirm={() => {
+            setDialog(null)
+            archive(dialog.ids)
+          }}
+        />
+      )}
+      {dialog?.type === 'restore' && byId(dialog.id) && (
+        <RestoreConfirmDialog
+          run={byId(dialog.id)!}
+          daysLeft={archiveState(byId(dialog.id)!, manual, now).restoreDaysLeft}
+          onClose={() => setDialog(null)}
+          onConfirm={() => {
+            setDialog(null)
+            restore(dialog.id)
           }}
         />
       )}

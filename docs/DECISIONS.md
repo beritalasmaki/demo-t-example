@@ -6,6 +6,30 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0062 · Archiving and restoring ask first
+
+**Context.** The user asked for a warning dialog before a run is moved to the archive and
+before one is restored.
+
+**Choice.**
+- "Move to the archive?" names the run (or lists the runs, for several) and says the
+  consequence that isn't obvious: a run can be restored for seven days, then it locks, and a
+  mistake can only be fixed with a new run.
+- "Restore to My reviews?" says the decision and record stay exactly as they are, and how many
+  days are left to restore.
+- Cancel and Escape change nothing. Both dialogs use the shared `Modal`, like every other
+  dialog.
+- Focus moves after the dialog has closed: to the table after archiving, and to the Archive
+  heading after restoring. While a modal is open the page behind it is inert, and the button
+  that opened the dialog has gone with its row, so the dialog has nothing to hand focus back
+  to.
+
+**Consequence.** One more click for each archive or restore, in exchange for no surprise
+lock-in. Both dialogs are in the unit tests and the keyboard pass; the archive one is in the
+accessibility check in both themes.
+
+---
+
 ## 0061 · My reviews gets 21 more sample runs, work in progress in two tabs, and a real archive
 
 **Context.** With only four runs, most of My reviews was empty: no runs in progress, nothing

@@ -1,5 +1,6 @@
 import { Undo2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { undoDecision, type SubmitDecisionOptions } from '../../lib/api'
 import { undoWindow } from '../../lib/decision'
 import { formatDecisionOutcomeLabel, formatDuration } from '../../lib/format'
 import type { Run } from '../../lib/types'
@@ -7,8 +8,9 @@ import type { Run } from '../../lib/types'
 /**
  * The undo window after a decision, in the header where it can't be missed: a large countdown
  * and one filled button, kept apart from every other action (docs/DECISIONS.md, 0033 and 0039).
- * Undo is real but local only — it puts `run.decision` back to `undefined` on screen, with
- * nothing on a backend to reverse (0017).
+ * Undo goes through the api (`undoDecision`), like the decision did, so the run is awaiting
+ * review there too and a new decision on it is recorded, not refused as a conflict with the
+ * undone one (0064).
  *
  * The box opens with the decision itself: "Approved" beside a check. When the decision has
  * just been made on this page (`celebrate`), the check plays transitions.dev's "Success check"
@@ -23,6 +25,8 @@ export interface UndoBoxProps {
   now?: Date
   /** The decision was just made on this page: play the check's appear and take focus. */
   celebrate?: boolean
+  /** Mainly for stories and tests: passed to `undoDecision`. */
+  undoOptions?: SubmitDecisionOptions
 }
 
 function SuccessCheck({ animate }: { animate: boolean }) {
@@ -43,8 +47,16 @@ function SuccessCheck({ animate }: { animate: boolean }) {
   )
 }
 
-export function UndoBox({ run, onRunUpdated, now: fixedNow, celebrate = false }: UndoBoxProps) {
+export function UndoBox({
+  run,
+  onRunUpdated,
+  now: fixedNow,
+  celebrate = false,
+  undoOptions,
+}: UndoBoxProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const [undoing, setUndoing] = useState(false)
+  const [undoError, setUndoError] = useState<string | null>(null)
   const [tickNow, setTickNow] = useState(() => new Date())
   const now = fixedNow ?? tickNow
   const decision = run.decision
@@ -64,6 +76,17 @@ export function UndoBox({ run, onRunUpdated, now: fixedNow, celebrate = false }:
 
   if (!decision) return null
   const approved = decision.outcome === 'approved'
+
+  async function takeBack() {
+    setUndoing(true)
+    setUndoError(null)
+    try {
+      onRunUpdated(await undoDecision(run.id, undoOptions))
+    } catch (error) {
+      setUndoing(false)
+      setUndoError(error instanceof Error ? error.message : 'Could not undo the decision.')
+    }
+  }
 
   return (
     <div className="flex w-full flex-col gap-[var(--space-3)] rounded-lg border border-border bg-surface p-[var(--space-4)]">
@@ -95,12 +118,21 @@ export function UndoBox({ run, onRunUpdated, now: fixedNow, celebrate = false }:
           </span>
           <button
             type="button"
-            onClick={() => onRunUpdated({ ...run, decision: undefined, status: 'awaiting_review' })}
-            className="inline-flex cursor-pointer items-center justify-center gap-[var(--space-3)] rounded-md border border-text-primary bg-text-primary px-[var(--space-4)] py-[var(--space-3)] text-body font-semibold font-heading leading-none whitespace-nowrap text-surface hover:opacity-90"
+            onClick={() => void takeBack()}
+            disabled={undoing}
+            className="inline-flex cursor-pointer items-center justify-center gap-[var(--space-3)] rounded-md border border-text-primary bg-text-primary px-[var(--space-4)] py-[var(--space-3)] text-body font-semibold font-heading leading-none whitespace-nowrap text-surface hover:opacity-90 disabled:cursor-wait disabled:opacity-70"
           >
             <Undo2 aria-hidden className="h-4 w-4" />
-            Undo this decision
+            {undoing ? 'Undoing…' : 'Undo this decision'}
           </button>
+          {undoError && (
+            <span
+              role="alert"
+              className="text-caption font-normal font-body leading-relaxed text-status-fail-tint-fg"
+            >
+              Could not undo. {undoError}
+            </span>
+          )}
           <span className="text-caption font-normal font-body leading-relaxed text-text-secondary">
             {decision.outcome === 'approved'
               ? 'After that, the release can only be reversed by a new run.'

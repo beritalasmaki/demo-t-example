@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { runMessy } from '../../fixtures'
@@ -18,14 +18,42 @@ describe('UndoBox', () => {
     expect(screen.getByRole('timer')).toHaveTextContent('6 min 54 s')
   })
 
-  it('undo puts the run back to awaiting review', async () => {
+  it('undo puts the run back to awaiting review, through the api', async () => {
     const user = userEvent.setup()
     const onRunUpdated = vi.fn()
-    render(<UndoBox run={runMessy} onRunUpdated={onRunUpdated} now={new Date(decidedAt)} />)
-    await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
-    expect(onRunUpdated).toHaveBeenCalledWith(
-      expect.objectContaining({ decision: undefined, status: 'awaiting_review' }),
+    render(
+      <UndoBox
+        run={runMessy}
+        onRunUpdated={onRunUpdated}
+        now={new Date(decidedAt)}
+        undoOptions={{ delayMs: 0 }}
+      />,
     )
+    await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
+    await waitFor(() =>
+      expect(onRunUpdated).toHaveBeenCalledWith(
+        expect.objectContaining({ decision: undefined, status: 'awaiting_review' }),
+      ),
+    )
+  })
+
+  it('says so, and keeps the decision, when the undo fails', async () => {
+    const user = userEvent.setup()
+    const onRunUpdated = vi.fn()
+    render(
+      <UndoBox
+        run={runMessy}
+        onRunUpdated={onRunUpdated}
+        now={new Date(decidedAt)}
+        undoOptions={{ delayMs: 0, simulateNetworkError: true }}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not undo. The connection timed out.',
+    )
+    expect(onRunUpdated).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Undo this decision' })).toBeEnabled()
   })
 
   it('says when the window has closed, with no button', () => {

@@ -1,4 +1,5 @@
 import { runs as seedRuns } from '../fixtures'
+import { undoWindow } from './decision'
 import { approvalNeedsReason } from './openItems'
 import type { Decision, DecisionInput, Run } from './types'
 
@@ -14,10 +15,45 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-// A mutable copy, so a decision persists across calls within one session without mutating the
-// fixtures themselves. Resets whenever the module is reloaded — fine for a fixture-backed
-// dev/test environment with no real backend.
+// A mutable copy, so a decision persists across calls without mutating the fixtures themselves.
+// Every link in the app is a full page load (there is no router), so the decisions made here are
+// also kept in sessionStorage and laid back over the fixtures on load: a run declined on its page
+// is still declined in My reviews, and until the tab is closed (docs/DECISIONS.md, 0064).
 const store: Record<string, Run> = { ...seedRuns }
+
+/** runId → the decision made in this tab, or `null` for a fixture's decision that was undone. */
+export const DECISIONS_STORAGE_KEY = 'ledger:decisions'
+type DecisionLog = Record<string, Decision | null>
+
+function readDecisionLog(): DecisionLog {
+  try {
+    const raw = window.sessionStorage.getItem(DECISIONS_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as DecisionLog) : {}
+  } catch {
+    return {}
+  }
+}
+
+function logDecision(runId: string, decision: Decision | null) {
+  try {
+    const log = readDecisionLog()
+    log[runId] = decision
+    window.sessionStorage.setItem(DECISIONS_STORAGE_KEY, JSON.stringify(log))
+  } catch {
+    // No storage (a private window, blocked site data): decisions last until the next load.
+  }
+}
+
+function withDecision(run: Run, decision: Decision | null): Run {
+  return decision
+    ? { ...run, status: decision.outcome, decision }
+    : { ...run, status: 'awaiting_review', decision: undefined }
+}
+
+for (const [runId, decision] of Object.entries(readDecisionLog())) {
+  const run = store[runId]
+  if (run) store[runId] = withDecision(run, decision)
+}
 
 /** Any id not in the fixtures triggers this — see `NOT_FOUND_RUN_ID` below for a named one. */
 export class NotFoundError extends Error {
@@ -127,22 +163,52 @@ export async function submitDecision(
     )
   }
 
-  const updated: Run = {
-    ...run,
-    status: decision.outcome,
-    decision: {
-      outcome: decision.outcome,
-      by: decision.by,
-      // Set here, not taken from the input — a client should not get to say when its own
-      // request happened. See docs/DECISIONS.md, 0004.
-      at: new Date().toISOString(),
-      reason: decision.reason,
-      acknowledgedItemIds: decision.acknowledgedItemIds,
-      revision: decision.revision,
-    },
+  const recorded: Decision = {
+    outcome: decision.outcome,
+    by: decision.by,
+    // Set here, not taken from the input — a client should not get to say when its own
+    // request happened. See docs/DECISIONS.md, 0004.
+    at: new Date().toISOString(),
+    reason: decision.reason,
+    acknowledgedItemIds: decision.acknowledgedItemIds,
+    revision: decision.revision,
   }
+  const updated = withDecision(run, recorded)
 
   store[runId] = updated
+  logDecision(runId, recorded)
+  return structuredClone(updated)
+}
+
+/** Thrown by `undoDecision` when there is nothing to undo, or the 10-minute window has closed. */
+export class UndoClosedError extends Error {
+  constructor(runId: string) {
+    super(`The decision on run "${runId}" can no longer be undone.`)
+    this.name = 'UndoClosedError'
+  }
+}
+
+/**
+ * Takes a decision back inside its undo window (docs/DECISIONS.md, 0003), here as well as on
+ * screen: the run is awaiting review again, so the next decision on it is recorded rather than
+ * refused as a conflict with the one that was undone (0064).
+ */
+export async function undoDecision(
+  runId: string,
+  options: SubmitDecisionOptions = {},
+): Promise<Run> {
+  await delay(options.delayMs ?? DEFAULT_DELAY_MS)
+
+  const run = store[runId]
+  if (!run) throw new NotFoundError(runId)
+
+  if (options.simulateNetworkError) throw new NetworkError()
+
+  if (!run.decision || !undoWindow(run.decision).active) throw new UndoClosedError(runId)
+
+  const updated = withDecision(run, null)
+  store[runId] = updated
+  logDecision(runId, null)
   return structuredClone(updated)
 }
 

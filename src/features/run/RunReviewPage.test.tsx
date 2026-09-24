@@ -134,7 +134,28 @@ describe('RunReviewPage', () => {
     expect(outcome).toHaveFocus()
 
     await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
-    expect(screen.getByRole('region', { name: 'Your decision' })).toBeVisible()
+    expect(await screen.findByRole('region', { name: 'Your decision' })).toBeVisible()
+  })
+
+  it('records a rejection made after undoing an approval, not the undone approval', async () => {
+    const user = userEvent.setup()
+    render(
+      <RunReviewPage
+        runId={runMessy.id}
+        getRunOptions={{ delayMs: 0 }}
+        submitDecisionOptions={{ delayMs: 0 }}
+      />,
+    )
+    await screen.findByRole('heading', { level: 1 })
+
+    await user.click(screen.getByRole('button', { name: 'Undo this decision' }))
+    await user.click(await screen.findByRole('button', { name: 'Reject run' }))
+    const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox'), 'The refund rounding is wrong.')
+    await user.click(within(dialog).getByRole('button', { name: 'Reject run' }))
+
+    expect(await screen.findByRole('heading', { name: 'Rejected' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Approved' })).not.toBeInTheDocument()
   })
 
   it('shows a plain not-found message for an id with no matching run', async () => {

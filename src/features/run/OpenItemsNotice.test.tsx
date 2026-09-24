@@ -14,9 +14,10 @@ describe('OpenItemsNotice', () => {
     )
   })
 
-  it('scrolls to the tick list and spotlights it', async () => {
+  it('scrolls to the tick list, spotlights it, and focuses the first item left to tick', async () => {
     const list = document.createElement('fieldset')
     list.id = 'open-items'
+    list.innerHTML = '<input type="checkbox" checked /><input type="checkbox" id="next" />'
     const scrollIntoView = vi.fn()
     list.scrollIntoView = scrollIntoView
     document.body.append(list)
@@ -24,6 +25,7 @@ describe('OpenItemsNotice', () => {
     await userEvent.click(screen.getByRole('link', { name: 'Jump to the open items →' }))
     expect(scrollIntoView).toHaveBeenCalled()
     expect(list).toHaveAttribute('data-spotlight')
+    expect(document.getElementById('next')).toHaveFocus()
     list.remove()
   })
 

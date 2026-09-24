@@ -1,5 +1,5 @@
 import { resolveEvidenceIds } from './timeline'
-import type { PolicyGate, TimelineEvent } from './types'
+import type { PolicyGate, RunStatus, TimelineEvent } from './types'
 
 /**
  * Small domain helpers for policy gates — not UI. See src/lib/README.md.
@@ -30,4 +30,14 @@ export function explanationFor(gate: PolicyGate, timeline: TimelineEvent[]): str
   // licensing gate explained itself with its first evidence event — a file's description.
   const evaluation = evidence.find((event) => event.type === 'gate_eval' && event.detail)
   return (evaluation ?? evidence.find((event) => event.detail))?.detail
+}
+
+/**
+ * What a check with no result is called: on a finished run it did not run, but while the run is
+ * still going it just hasn't finished yet (docs/DECISIONS.md, 0066).
+ */
+export function noResultLabel(status: RunStatus): string {
+  if (status === 'running') return 'not started'
+  if (status === 'checks_running') return 'still running'
+  return 'not run'
 }

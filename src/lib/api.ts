@@ -1,5 +1,5 @@
 import { runs as seedRuns } from '../fixtures'
-import { undoWindow } from './decision'
+import { isStillRunning, undoWindow } from './decision'
 import { approvalNeedsReason } from './openItems'
 import type { Decision, DecisionInput, Run } from './types'
 
@@ -150,6 +150,11 @@ export async function submitDecision(
     throw new DecisionConflictError(runId, fabricateConflictingDecision())
   }
 
+  if (isStillRunning(run)) {
+    throw new ValidationError(
+      'This run is still running. It can be decided once its checks have finished.',
+    )
+  }
   if (
     (decision.outcome === 'changes_requested' || decision.outcome === 'rejected') &&
     !decision.reason?.trim()

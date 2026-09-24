@@ -11,6 +11,7 @@ import {
   formatElapsed,
   formatUtcOffset,
 } from '../../lib/format'
+import { noResultLabel } from '../../lib/gates'
 import type { Run } from '../../lib/types'
 import { cn } from '../../lib/utils'
 import { ActorName } from './ActorName'
@@ -151,7 +152,12 @@ export function RunDetails({ run, className, tabIndex, ref }: RunDetailsProps) {
           <span className={VALUE}>
             {passed} passed
             {failed > 0 && <span className="text-status-fail-tint-fg"> · {failed} failed</span>}
-            {notRun > 0 && <span className="text-status-waived-tint-fg"> · {notRun} not run</span>}
+            {notRun > 0 && (
+              <span className="text-status-waived-tint-fg">
+                {' '}
+                · {notRun} {noResultLabel(run.status)}
+              </span>
+            )}
           </span>
           {(waived > 0 || notApplicable > 0) && (
             <span className={HELP}>

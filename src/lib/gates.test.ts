@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PolicyGate, TimelineEvent } from './types'
-import { explanationFor, resolveEvidence } from './gates'
+import { explanationFor, noResultLabel, resolveEvidence } from './gates'
 
 function gate(overrides: Partial<PolicyGate> & Pick<PolicyGate, 'id' | 'result'>): PolicyGate {
   return {
@@ -74,5 +74,13 @@ describe('explanationFor, with a file change listed before the evaluation', () =
     const { runMessy } = await import('../fixtures')
     const licensing = runMessy.gates.find((g) => g.id === 'licensing')!
     expect(explanationFor(licensing, runMessy.timeline)).toMatch(/timed out after 10 minutes/)
+  })
+})
+
+describe('noResultLabel', () => {
+  it('says a check did not run only once the run has stopped', () => {
+    expect(noResultLabel('running')).toBe('not started')
+    expect(noResultLabel('checks_running')).toBe('still running')
+    expect(noResultLabel('awaiting_review')).toBe('not run')
   })
 })

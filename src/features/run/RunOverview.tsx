@@ -20,6 +20,7 @@ export interface RunOverviewProps {
  * `StatusBadge` instead (docs/DECISIONS.md, 0029). */
 const STATUS_DOT: Partial<Record<RunStatus, string>> = {
   running: 'bg-status-not-applicable',
+  checks_running: 'bg-status-not-applicable',
   blocked: 'bg-status-fail',
   awaiting_review: 'bg-status-waived',
   rejected: 'bg-status-fail',

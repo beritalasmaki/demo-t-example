@@ -158,6 +158,21 @@ describe('RunReviewPage', () => {
     expect(screen.queryByRole('heading', { name: 'Approved' })).not.toBeInTheDocument()
   })
 
+  it('offers no decision on a run that is still running, and says why', async () => {
+    render(<RunReviewPage runId="run-webhook-retries" getRunOptions={{ delayMs: 0 }} />)
+    await screen.findByRole('heading', { level: 1 })
+
+    const aside = screen.getByRole('complementary', { name: 'Your decision, not ready yet' })
+    expect(within(aside).getByRole('heading', { name: 'Not ready for review yet' })).toBeVisible()
+    expect(aside).toHaveTextContent('The automatic checks are still running.')
+    expect(within(aside).getByRole('link', { name: 'Back to my reviews' })).toBeVisible()
+    for (const name of ['Approve and release', 'Request changes', 'Reject run']) {
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+    }
+    // Nothing to solve yet, so no notice in the top bar either.
+    expect(screen.queryByText(/things? to solve/)).not.toBeInTheDocument()
+  })
+
   it('shows a plain not-found message for an id with no matching run', async () => {
     render(<RunReviewPage runId={NOT_FOUND_RUN_ID} getRunOptions={{ delayMs: 0 }} />)
     expect(

@@ -3,11 +3,13 @@ import type { CSSProperties } from 'react'
 import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent } from '../../components/Tabs'
 import type { GetRunOptions, SubmitDecisionOptions } from '../../lib/api'
+import { isStillRunning } from '../../lib/decision'
 import { buildOpenItems } from '../../lib/openItems'
 import type { OpenItemTarget } from '../../lib/openItems'
 import type { Run } from '../../lib/types'
 import { DecisionPanel } from './DecisionPanel'
 import { EvidenceTab } from './EvidenceTab'
+import { InProgressBox } from './InProgressBox'
 import { OpenItemsNotice } from './OpenItemsNotice'
 import { checkCardId, scoreCardId } from './openItemTargets'
 import { RunDetails } from './RunDetails'
@@ -147,10 +149,13 @@ export function RunReviewPage({
 
   // An amber dot on the tab's icon while the run has things to solve (0054).
   const shownRun = changedRun ?? (state.status === 'success' ? state.run : null)
-  // Things to solve: an undecided run with open items. The favicon's dot and the top bar's
-  // notice both follow it.
+  // Things to solve: an undecided run with open items, once it has stopped running. The
+  // favicon's dot and the top bar's notice both follow it.
   const toSolve =
-    shownRun != null && shownRun.decision == null && buildOpenItems(shownRun).length > 0
+    shownRun != null &&
+    shownRun.decision == null &&
+    !isStillRunning(shownRun) &&
+    buildOpenItems(shownRun).length > 0
   useAttentionFavicon(toSolve)
 
   if (state.status === 'loading') {
@@ -243,10 +248,18 @@ export function RunReviewPage({
           </div>
 
           <aside
-            aria-label={decided ? 'The decision record' : 'Your decision'}
+            aria-label={
+              isStillRunning(run)
+                ? 'Your decision, not ready yet'
+                : decided
+                  ? 'The decision record'
+                  : 'Your decision'
+            }
             className="flex min-w-0 flex-col gap-[var(--space-4)] md:col-start-2 md:row-span-3 md:row-start-1 xl:col-start-3 xl:row-span-2"
           >
-            {decided ? (
+            {isStillRunning(run) ? (
+              <InProgressBox run={run} reviewsHref={reviewsHref} />
+            ) : decided ? (
               <>
                 <UndoBox
                   run={run}

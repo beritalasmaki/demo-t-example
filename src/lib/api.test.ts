@@ -156,6 +156,24 @@ describe('submitDecision', () => {
   // depend on running before it.
 })
 
+describe('submitDecision on a run that is still running', () => {
+  it('refuses: there is nothing final to decide on yet', async () => {
+    const error = await submitDecision(
+      'run-sms-provider',
+      {
+        outcome: 'rejected',
+        by: 'A reviewer',
+        reason: 'No.',
+        acknowledgedItemIds: [],
+        revision: 'r',
+      },
+      { delayMs: 0 },
+    ).catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(ValidationError)
+    expect((error as ValidationError).message).toMatch(/still running/)
+  })
+})
+
 describe('undoDecision', () => {
   const reject: DecisionInput = {
     outcome: 'rejected',

@@ -48,6 +48,12 @@ describe('resolveStory', () => {
 })
 
 describe('describePendingRun', () => {
+  it('does not ask for a decision while the checks are still running', () => {
+    const text = describePendingRun({ ...runMessyPending, status: 'checks_running' })
+    expect(text).toMatch(/The checks are still running\.$/)
+    expect(text).not.toMatch(/decide|without a result/)
+  })
+
   it('says nothing is released, how long it took, and what is missing', () => {
     expect(describePendingRun(runMessyPending)).toBe(
       'Nothing has been released. The agent worked for 1 h 49 min, changed 6 files, and left 2 checks without a result. Read the run below, then decide.',

@@ -5,7 +5,7 @@ import { DecisionDialog } from './DecisionDialog'
 /*
  * Every state from docs/spec-review-screen.md, Region 6 and Content rules, except the plain
  * success path — that's a real round trip through lib/api's `submitDecision`, already covered
- * end to end by DecisionDialog.test.tsx and DecisionBar.test.tsx (and verified once more
+ * end to end by DecisionDialog.test.tsx and DecisionPanel.test.tsx (and verified once more
  * against the real dev server — see docs/WORKLOG.md). A story that actually completed
  * "Approve and release" here would mutate the shared in-memory fixture store for the rest of
  * this Storybook session, which isn't worth it just to look at a state that renders

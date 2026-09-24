@@ -127,6 +127,8 @@ function PillTabsList({
       const previous = pill.style.transition
       pill.style.transition = 'none'
       apply()
+      // Reading layout makes the browser commit the new position with no transition before
+      // the transition comes back; without it both changes land together and the pill slides.
       void pill.offsetWidth
       pill.style.transition = previous
     }

@@ -157,7 +157,9 @@ async function checkColorUtilities(css, colorNames) {
     const results = {}
     for (const variant of themeVariants) {
       const page = await browser.newPage({ colorScheme: variant.colorScheme })
-      await page.setContent(`<!doctype html><html><head><style>${css}</style></head><body></body></html>`)
+      await page.setContent(
+        `<!doctype html><html><head><style>${css}</style></head><body></body></html>`,
+      )
       if (variant.dataTheme) {
         await page.evaluate((value) => {
           document.documentElement.setAttribute('data-theme', value)
@@ -269,8 +271,10 @@ async function main() {
   const broken = []
   for (const [themeLabel, values] of Object.entries(resultsByTheme)) {
     for (const [name, result] of Object.entries(values)) {
-      if (!result.bgOk) broken.push({ themeLabel, name, utility: `bg-${name}`, got: result.bgColor })
-      if (!result.textOk) broken.push({ themeLabel, name, utility: `text-${name}`, got: result.textColor })
+      if (!result.bgOk)
+        broken.push({ themeLabel, name, utility: `bg-${name}`, got: result.bgColor })
+      if (!result.textOk)
+        broken.push({ themeLabel, name, utility: `text-${name}`, got: result.textColor })
     }
   }
 

@@ -78,18 +78,6 @@ export function formatDecisionOutcomeLabel(outcome: Decision['outcome']): string
 }
 
 /**
- * Content rules, "Time": "Show the time zone once, in the run header." A short abbreviation
- * (e.g. "UTC"), not the full IANA name — that's shown in the header's own hidden detail
- * instead, since it's not needed at a glance every time a clock time is shown.
- */
-export function formatTimeZoneLabel(now: Date = new Date()): string {
-  const part = new Intl.DateTimeFormat(LOCALE, { timeZoneName: 'short' })
-    .formatToParts(now)
-    .find((p) => p.type === 'timeZoneName')
-  return part?.value ?? ''
-}
-
-/**
  * Content rules, "Time": "Clock time first, relative time in brackets: '14:32 today (8
  * minutes ago)'." `now` is a parameter (not always `Date.now()`) so this stays deterministic
  * in tests and stories.
@@ -152,7 +140,7 @@ export function formatDuration(ms: number): string {
 /**
  * Content rules, "Numbers": "No decimals: they would suggest a precision we do not have."
  * `ConfidenceArea.value` is 0..1; this is the whole-percentage form every confidence value is
- * shown as, always paired with its basis (`ConfidencePanel`), never shown alone.
+ * shown as, always paired with its basis (`ScoreCard`), never shown alone.
  */
 export function formatConfidencePercent(value: number): string {
   return `${Math.round(value * 100)}%`

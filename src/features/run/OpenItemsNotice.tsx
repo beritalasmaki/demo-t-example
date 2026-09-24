@@ -1,5 +1,5 @@
 import { buildOpenItems } from '../../lib/openItems'
-import { spotlight } from '../../lib/spotlight'
+import { spotlight } from '../../components/spotlight'
 import type { Run } from '../../lib/types'
 
 /**

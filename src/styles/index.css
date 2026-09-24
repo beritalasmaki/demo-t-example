@@ -92,16 +92,12 @@
   }
 
   /*
-   * AnchorNav's jump links (#run-header-heading etc.) rely on this for smooth scrolling — a
-   * pure-CSS opt-in, no scrollIntoView/JS needed, since the browser's own anchor navigation
-   * already honours scroll-behavior on the scrolling box (html; nothing in this app scrolls
-   * its own overflow container). Scoped to `no-preference` rather than set unconditionally
-   * plus overridden under `reduce`, so a reduced-motion visitor gets the browser's ordinary
-   * instant jump with no motion code running at all, not an animation that's merely shortened.
-   *
-   * No scroll-margin-top added on the region headings: AnchorNav is sticky, but it's a side
-   * rail (`flex items-start` in RunReviewPage.tsx) next to the content column, not a bar
-   * stacked above it — scrolling never tucks a heading underneath it.
+   * In-page jumps (a `#` link, or `scrollIntoView` when a tab or an open item's link moves the
+   * reader) scroll smoothly — the browser applies scroll-behavior on the scrolling box (html)
+   * to both. Scoped to `no-preference` rather than set unconditionally plus overridden under
+   * `reduce`, so a reduced-motion visitor gets the browser's ordinary instant jump with no
+   * motion code running at all, not an animation that's merely shortened. Targets keep clear
+   * of the sticky top bar and view tabs with their own `scroll-margin-top`.
    */
   @media (prefers-reduced-motion: no-preference) {
     html {

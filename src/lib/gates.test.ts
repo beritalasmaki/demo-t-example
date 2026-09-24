@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PolicyGate, TimelineEvent } from './types'
-import { explanationFor, resolveEvidence, sortGates } from './gates'
+import { explanationFor, resolveEvidence } from './gates'
 
 function gate(overrides: Partial<PolicyGate> & Pick<PolicyGate, 'id' | 'result'>): PolicyGate {
   return {
@@ -12,43 +12,6 @@ function gate(overrides: Partial<PolicyGate> & Pick<PolicyGate, 'id' | 'result'>
     ...overrides,
   }
 }
-
-describe('sortGates', () => {
-  it('sorts failed and waived first, then unknown, then not_applicable, then pass', () => {
-    const gates = [
-      gate({ id: 'a', result: 'pass' }),
-      gate({ id: 'b', result: 'not_applicable' }),
-      gate({ id: 'c', result: 'unknown' }),
-      gate({ id: 'd', result: 'waived' }),
-      gate({ id: 'e', result: 'fail' }),
-    ]
-
-    expect(sortGates(gates).map((g) => g.result)).toEqual([
-      'waived',
-      'fail',
-      'unknown',
-      'not_applicable',
-      'pass',
-    ])
-  })
-
-  it('keeps the original order for gates in the same tier (stable sort)', () => {
-    const gates = [
-      gate({ id: 'fail-1', result: 'fail' }),
-      gate({ id: 'waived-1', result: 'waived' }),
-      gate({ id: 'fail-2', result: 'fail' }),
-    ]
-
-    expect(sortGates(gates).map((g) => g.id)).toEqual(['fail-1', 'waived-1', 'fail-2'])
-  })
-
-  it('does not mutate the input array', () => {
-    const gates = [gate({ id: 'a', result: 'pass' }), gate({ id: 'b', result: 'fail' })]
-    const original = [...gates]
-    sortGates(gates)
-    expect(gates).toEqual(original)
-  })
-})
 
 describe('resolveEvidence', () => {
   const timeline: TimelineEvent[] = [

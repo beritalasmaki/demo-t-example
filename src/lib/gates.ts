@@ -1,28 +1,9 @@
 import { resolveEvidenceIds } from './timeline'
-import type { GateResult, PolicyGate, TimelineEvent } from './types'
+import type { PolicyGate, TimelineEvent } from './types'
 
 /**
  * Small domain helpers for policy gates — not UI. See src/lib/README.md.
  */
-
-/**
- * Region 3 / Acceptance criteria: "Failed and waived sort above passed; order stays stable
- * when data updates." The full order, per docs/spec-review-screen.md: failed and exceptions
- * first (tied — the spec does not rank one above the other), then unknown, then not
- * applicable, then passed. `Array.prototype.sort` is stable (guaranteed since ES2019), so
- * gates within the same tier keep their original relative order.
- */
-const SORT_RANK: Record<GateResult, number> = {
-  fail: 0,
-  waived: 0,
-  unknown: 1,
-  not_applicable: 2,
-  pass: 3,
-}
-
-export function sortGates(gates: PolicyGate[]): PolicyGate[] {
-  return [...gates].sort((a, b) => SORT_RANK[a.result] - SORT_RANK[b.result])
-}
 
 /**
  * A gate's `evidenceIds` point into the timeline (docs/spec-review-screen.md, Data model:

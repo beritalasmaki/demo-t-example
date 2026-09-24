@@ -69,8 +69,8 @@ function toneFor(
 
 /**
  * `run.story` with each step's evidence resolved. A step whose evidence resolves to nothing is
- * dropped — the same "a sentence with no evidence does not render" rule `lib/summary.ts`
- * applies. Times come from the evidence: the first and last event's `at`.
+ * dropped: a sentence with no evidence does not render (AGENTS.md, non-negotiable 3). Times
+ * come from the evidence: the first and last event's `at`.
  */
 export function resolveStory(run: Run): ResolvedStoryStep[] {
   const areas = resolveConfidenceAreas(run.confidence)

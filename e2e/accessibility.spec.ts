@@ -37,11 +37,22 @@ const STATES: { name: string; url: string; open?: (page: Page) => Promise<void> 
     },
   },
   {
+    name: 'My reviews, requested for change, runs in progress open',
+    url: '/?view=reviews',
+    open: async (page) => {
+      await page.getByRole('tab', { name: /Requested for change/ }).click()
+      await page.getByRole('button', { name: /still in progress/ }).click()
+    },
+  },
+  {
     name: 'My reviews, decision details',
     url: '/?view=reviews',
     open: async (page) => {
       await page.getByRole('tab', { name: /Approved/ }).click()
-      await page.getByRole('button', { name: /^Decision details/ }).click()
+      await page
+        .getByRole('button', { name: /^Decision details/ })
+        .first()
+        .click()
       await expect(page.getByRole('dialog')).toBeVisible()
     },
   },
@@ -50,7 +61,10 @@ const STATES: { name: string; url: string; open?: (page: Page) => Promise<void> 
     url: '/?view=reviews',
     open: async (page) => {
       await page.getByRole('tab', { name: /Approved/ }).click()
-      await page.getByRole('button', { name: /^Request a new run/ }).click()
+      await page
+        .getByRole('button', { name: /^Request a new run/ })
+        .first()
+        .click()
       await expect(page.getByRole('dialog')).toBeVisible()
     },
   },
@@ -72,7 +86,10 @@ const STATES: { name: string; url: string; open?: (page: Page) => Promise<void> 
     url: '/?view=reviews',
     open: async (page) => {
       await page.getByRole('tab', { name: /Approved/ }).click()
-      await page.getByRole('button', { name: /^Archive “/ }).click()
+      await page
+        .getByRole('button', { name: /^Archive “/ })
+        .first()
+        .click()
       await page.getByRole('button', { name: /^Archive, / }).click()
       await expect(page.getByRole('heading', { level: 1, name: 'Archive' })).toBeVisible()
     },

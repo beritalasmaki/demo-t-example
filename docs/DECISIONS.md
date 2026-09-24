@@ -6,6 +6,43 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0061 · My reviews gets 21 more sample runs, work in progress in two tabs, and a real archive
+
+**Context.** With only four runs, most of My reviews was empty: no runs in progress, nothing
+in Requested for change or Declined, and nothing in the archive. The user asked for more sample
+runs, for the "still in progress" view in both Pending and Requested for change, and for
+archived runs, some locked and one still restorable. They also asked for the page's visible
+scrollbars to go.
+
+**Choice.**
+- The new runs are complete `Run` objects (`fixtures/sample-runs.ts`), not list-only rows.
+  Every number in the list still comes from a run's own data (non-negotiable 3), and every row
+  opens a real review. A small builder, `sampleRun`, makes each run from a short description,
+  so the 21 stay consistent. Approvals accept exactly the open items the run's data produces,
+  which a fixture test checks. Dates count back from when the app loads, so ages and archive
+  states stay true.
+- A new run status, `checks_running`: the agent has finished and the policy checks are still
+  running. Nothing in the model could express that stage before, and the design shows it. It
+  is the one addition to the spec's status list ("Running · Blocked · Awaiting review ·
+  Approved · Changes requested · Rejected").
+- Runs sent back for changes count as in progress: the agent is making the changes, and
+  nothing waits on the reviewer. They sit in the "still in progress" fold of Requested for
+  change, as "Agent is making changes". When a tab's table is empty only because everything is
+  still in progress, it says "Nothing here needs you yet", not "No active runs match these
+  filters".
+- The archive holds four runs, archived automatically by the six-month rule: three past the
+  seven-day restore window (locked) and one archived three days ago (restorable).
+- Scrollbars: the tab list and the tables scroll with no visible bar (`scrollbar-none`), like
+  Run details (0054). The Updated column's info tip now opens leftwards; opening rightwards it
+  ran past the table and gave it 48 px of blank scroll.
+
+**Consequence.** My reviews shows 21 active runs and 4 archived, in every tab. The page for a
+run still in progress is only reachable by its URL, because in-progress rows are not links, and
+it still offers a decision. The run page predates unfinished runs. Making it hold back
+the decision until the run finishes is a follow-up.
+
+---
+
 ## 0060 · My reviews is built to the Claude Design handoff, search, archive and reports included
 
 **Context.** "My reviews" was a navigation-only list: the spec left out filtering, search and

@@ -50,6 +50,9 @@ export interface ColumnHeaderProps<K extends string> {
   current?: { key: K; dir: SortDirection }
   onSort?: (key: K, dir: SortDirection) => void
   align?: 'start' | 'end'
+  /** Which way the info tip opens; defaults to `align`. A column near the right edge opens
+   * it leftwards, or it runs past the table and makes it scrollable. */
+  tipAlign?: 'start' | 'end'
   className?: string
 }
 
@@ -61,6 +64,7 @@ export function ColumnHeader<K extends string>({
   current,
   onSort,
   align = 'start',
+  tipAlign = align,
   className,
 }: ColumnHeaderProps<K>) {
   const active = sort && current?.key === sort.key
@@ -94,7 +98,7 @@ export function ColumnHeader<K extends string>({
             {label}
           </span>
           {info && (
-            <InfoTip label={label} align={align}>
+            <InfoTip label={label} align={tipAlign}>
               {info}
             </InfoTip>
           )}
@@ -336,6 +340,7 @@ export function ReviewsTable({
           <ColumnHeader
             label="Updated"
             info={INFO.updated}
+            tipAlign="end"
             sort={{
               key: 'updated',
               first: 'desc',

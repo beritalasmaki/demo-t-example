@@ -77,10 +77,10 @@ held in memory: a reload starts the run over.
 - Tailwind CSS 4, with every colour, space, size and motion value from design tokens in
   `src/styles/tokens.css`
 - Radix UI (tabs), lucide-react (icons), `thinking-orbs` (the loading orb)
-- Vitest and React Testing Library: 45 test files, 253 tests
+- Vitest and React Testing Library: 46 test files, 260 tests
 - Storybook 10, with the accessibility add-on, for components and tokens
 - Playwright: three end-to-end specs in `e2e/` (the approve flow, keyboard-only runs of the
-  review and of My reviews, and axe WCAG A/AA and contrast checks in both themes; 29 tests in
+  review and of My reviews, and axe WCAG A/AA and contrast checks in both themes; 31 tests in
   all), and the theme-colour check
 
 Dependencies point one way, `fixtures → lib → components → features → app`, and a lint rule

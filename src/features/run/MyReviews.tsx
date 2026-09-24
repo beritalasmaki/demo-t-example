@@ -33,14 +33,13 @@ import {
   RESTORE_DAYS,
   archiveState,
   countByTab,
-  formatReviewStage,
   inTimeRange,
   isFinished,
   isInProgress,
   matchesQuery,
   needsReview,
+  progressOf,
   requesters,
-  reviewStage,
   reviewStatus,
   sortArchivedRuns,
   sortRuns,
@@ -384,7 +383,7 @@ function ReviewsBoard({
     )
 
   const archiveTable = (selectable: boolean) => (
-    <div className="overflow-x-auto">
+    <div className="scrollbar-none overflow-x-auto">
       <ArchiveTable
         runs={archivedRuns}
         caption="Archived runs"
@@ -522,7 +521,7 @@ function ReviewsBoard({
                 'You can select approved and declined runs, to make a report or to archive them.',
                 true,
               )}
-              <div className="overflow-x-auto">
+              <div className="scrollbar-none overflow-x-auto">
                 <ReviewsTable
                   ref={tableRef}
                   runs={tableRuns}
@@ -541,11 +540,17 @@ function ReviewsBoard({
               </div>
               {tableRuns.length === 0 && (
                 <div className="flex flex-col items-center gap-[var(--space-2)] px-[var(--space-5)] py-[var(--space-7)] text-center">
+                  {/* Nothing to decide here, but work is under way below: say that, not "no
+                      match", which would read as if the tab were empty. */}
                   <p className="text-item-title font-semibold font-heading text-text-primary">
-                    No active runs match these filters
+                    {inProgress.length > 0 && !hasFilters
+                      ? 'Nothing here needs you yet'
+                      : 'No active runs match these filters'}
                   </p>
                   <p className="text-body text-text-secondary">
-                    Try another tab, time range or requester.
+                    {inProgress.length > 0 && !hasFilters
+                      ? 'The runs below are still in progress. They move up when they are ready for you.'
+                      : 'Try another tab, time range or requester.'}
                   </p>
                   {hasFilters && (
                     <button
@@ -720,7 +725,8 @@ function InProgress({
       {open && (
         <ul className="flex flex-col rounded-b-lg border-t border-border-subtle bg-bg">
           {runs.map((run) => {
-            const stage = reviewStage(run)
+            const progress = progressOf(run)
+            const sentBack = reviewStatus(run) === 'requested' && run.decision
             return (
               <li
                 key={run.id}
@@ -738,11 +744,11 @@ function InProgress({
                     {run.target.environment}
                   </span>
                 </span>
-                {stage && (
+                {progress && (
                   <span className="flex items-center gap-[var(--space-3)]">
-                    <StageSteps stage={stage} className="w-[4.5rem] shrink-0" />
+                    <StageSteps stage={progress.stage} className="w-[4.5rem] shrink-0" />
                     <span className="text-meta font-medium whitespace-nowrap text-text-primary">
-                      {formatReviewStage(stage)}
+                      {progress.label}
                     </span>
                   </span>
                 )}
@@ -752,10 +758,11 @@ function InProgress({
                 />
                 <span className="flex flex-col gap-[var(--space-1)] whitespace-nowrap">
                   <span className="text-meta font-medium text-text-primary">
-                    {formatCalendarDate(run.startedAt)}
+                    {formatCalendarDate(sentBack ? sentBack.at : run.startedAt)}
                   </span>
                   <span className="text-caption text-text-secondary">
-                    Started {formatRelativeTime(run.startedAt, now)}
+                    {sentBack ? 'Sent back' : 'Started'}{' '}
+                    {formatRelativeTime(sentBack ? sentBack.at : run.startedAt, now)}
                   </span>
                 </span>
               </li>

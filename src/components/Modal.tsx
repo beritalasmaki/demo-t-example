@@ -81,7 +81,9 @@ export function Modal({ title, onClose, children, className }: ModalProps) {
       ref={dialogRef}
       aria-labelledby={titleId}
       className={cn(
-        'w-full max-w-md rounded-md border border-border-subtle bg-surface p-[var(--space-5)] text-text-primary',
+        // m-auto: Tailwind's reset zeroes every margin, and a modal <dialog> is centred by
+        // its auto margins — without it, every dialog opened in the top-left corner.
+        'm-auto w-full max-w-md rounded-md border border-border-subtle bg-surface p-[var(--space-5)] text-text-primary',
         'backdrop:bg-text-primary/40',
         className,
       )}

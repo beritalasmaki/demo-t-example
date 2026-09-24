@@ -7,7 +7,7 @@ import { formatDateTime, formatRelativeTime, formatRunStatusLabel } from '../../
 import type { Decision, DecisionInput, Run } from '../../lib/types'
 
 /**
- * The confirm-or-reason modal behind each of `DecisionBar`'s three actions. See
+ * The confirm-or-reason modal behind each of `DecisionPanel`'s three actions. See
  * docs/spec-review-screen.md, Region 6 and Content rules ("Buttons", "Empty and error
  * states") and Scenario S5.
  */
@@ -51,7 +51,7 @@ export interface DecisionDialogProps {
   onClose: () => void
   onDecided: (updatedRun: Run) => void
   /** Called as soon as a conflict is detected, independent of whether the dialog itself is
-   * still open — so `DecisionBar` can already show the recorded decision underneath. */
+   * still open — so the page can already show the recorded decision underneath. */
   onConflict: (currentDecision: Decision) => void
   submitDecisionOptions?: SubmitDecisionOptions
   /** Mainly for stories and tests that need to render the error or conflict state directly,

@@ -10,9 +10,9 @@ import { cn } from '../../lib/utils'
  * `ActorIcon` next to it. A system's name-and-version stays plain icon + text: the pill is
  * specifically what marks "a person did this," so a system never gets one — same
  * icon-choosing heuristic (`isSystemActor`, `lib/actors.ts`) either way, just different chrome
- * for the two outcomes. Every place an actor's name appears (`PolicyGateRow.tsx`'s
- * `evaluatedBy`/`waiver.by`, `DecisionBar.tsx` and `DecisionStatusBanner.tsx`'s
- * `decision.by`) uses this one component, rather than each repeating the same two branches.
+ * for the two outcomes. Every place an actor's name appears (a check's
+ * `evaluatedBy` and `waiver.by`, a decision's `by`, the requester, the reviewer) uses this one
+ * component, rather than each repeating the same two branches.
  */
 export interface ActorNameProps {
   name: string

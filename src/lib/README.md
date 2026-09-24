@@ -52,8 +52,8 @@ and `lib` can be tested on its own with no UI at all.
   fixed, always-complete list, so a missing area renders as "Not checked" instead of silently
   disappearing.
 - **`openItems.ts`** — what is still open on a run and what approving it takes: the
-  tick-each-item list, whether a reason is required, the header's one-sentence summary, and
-  the "What is not checked" list (docs/DECISIONS.md, 0040). Replaced `attention.ts`.
+  tick-each-item list, whether a reason is required, and the "What is not checked" list
+  (docs/DECISIONS.md, 0040). Replaced `attention.ts`.
 - **`story.ts`** — resolves `Run.story` against the timeline (a step with no resolvable
   evidence is dropped; times come from the evidence), and writes the "Where the run is now"
   sentences.

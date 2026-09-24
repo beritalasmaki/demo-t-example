@@ -39,6 +39,42 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · Light and dark theme switch
+
+**Goal**
+A switch between dark and light mode at the top of the page.
+
+**What changed**
+- `components/ThemeToggle.tsx` (+ test and story) and `components/theme.ts`.
+- `index.html`: applies a remembered choice before the first paint.
+- The switch in `RunTopBar.tsx` and in `MyReviews.tsx`'s main and Archive headers.
+- A keyboard spec test for the switch and its memory.
+- DECISIONS 0063, `components/README.md`, README.
+
+**Steps, in order**
+1. `git checkout -b feat/theme-toggle` from main.
+2. Wrote the component, the pre-paint script, and placed the switch.
+3. In Chromium:
+   - Space turned the page dark (body background `rgb(26, 26, 26)`);
+   - reloading had `data-theme="dark"` before React loaded;
+   - zoomed screenshots showed the knob too faint in dark, so it got a border and a violet
+     active icon.
+4. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0063. The tokens already supported an explicit theme, so the switch only sets
+it and remembers it.
+
+**How to do this by hand**
+Click the sun and moon switch at the top right, then reload: the theme you chose stays. Clear
+the site's storage to go back to the system setting.
+
+**Verification**
+`npm run check`, exit code 0:
+- typecheck, lint and Prettier clean;
+- 47 test files, 262 unit tests;
+- 34 Playwright tests.
+
 ### 2026-09-24 · Archive and restore ask first
 
 **Goal**

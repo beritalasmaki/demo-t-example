@@ -150,3 +150,21 @@ test('My reviews, keyboard only', async ({ page }) => {
   await expect(page.getByRole('dialog')).toBeHidden()
   await expect(page.getByRole('button', { name: /^Decision details: Move refund/ })).toBeFocused()
 })
+
+test('the theme switch works from the keyboard and is remembered', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.goto('/')
+  await tabTo(page, /^Dark theme$/)
+  await page.keyboard.press('Space')
+  await expect(page.getByRole('switch', { name: 'Dark theme' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(page.getByRole('switch', { name: 'Dark theme' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
+})

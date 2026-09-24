@@ -126,11 +126,15 @@ function backgroundLightness(page: Page) {
 }
 
 /** The contrast of an element's text against the nearest background actually painted
- * behind it, for text inside an open modal dialog only (the dialog's own surfaces). */
+ * behind it, for text in a floating layer only: an open modal dialog or a fixed element. */
 function ownContrast(page: Page, selector: string) {
   return page.evaluate((sel) => {
     const element = document.querySelector(sel)
-    if (!element?.closest('dialog[open]')) return 0
+    // Only for text in a layer that floats above the page: an open modal dialog, or a
+    // fixed-position element such as the toast. Anything else stays undecided and fails.
+    const floating = (el: Element | null): boolean =>
+      !!el && (getComputedStyle(el).position === 'fixed' || floating(el.parentElement))
+    if (!element || !(element.closest('dialog[open]') || floating(element))) return 0
     const rgb = (value: string) => value.match(/[\d.]+/g)!.map(Number)
     const luminance = ([r, g, b]: number[]) => {
       const channel = (c: number) => {
@@ -170,9 +174,9 @@ for (const scheme of ['light', 'dark'] as const) {
           .analyze()
         expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([])
         // Contrast axe could not decide would slip past `violations`. One kind is measured here
-        // instead: text in an open modal dialog that axe calls "partially obscured". Axe does
-        // not model the browser's top layer, so a card on the page behind the dialog counts as
-        // overlapping its text, though nothing does (checked with elementsFromPoint; setting
+        // instead: text in a floating layer — an open modal dialog, or a fixed toast — that axe
+        // calls "partially obscured". Axe does not order such layers against the page, so a
+        // card behind one counts as overlapping its text, though nothing does (checked with elementsFromPoint; setting
         // `inert` or moving the dialog to <body> does not change axe's answer — 0060). Any
         // other undecided result fails and should be looked at by eye.
         const undecided = results.incomplete

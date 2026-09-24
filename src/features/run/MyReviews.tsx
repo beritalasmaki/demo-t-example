@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs'
+import { ThemeToggle } from '../../components/ThemeToggle'
 import { Toast } from '../../components/Toast'
 import { listRuns } from '../../lib/api'
 import type { GetRunOptions } from '../../lib/api'
@@ -458,18 +459,22 @@ function ReviewsBoard({
                 {archived.length}
               </span>
             </button>
+            <ThemeToggle />
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-[var(--space-3)]">
-          <button
-            type="button"
-            onClick={() => openView('main')}
-            className="inline-flex cursor-pointer items-center gap-[var(--space-1)] self-start text-meta font-medium text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
-            <ChevronLeft aria-hidden className="h-4 w-4" />
-            My reviews
-          </button>
+          <div className="flex items-center justify-between gap-[var(--space-4)]">
+            <button
+              type="button"
+              onClick={() => openView('main')}
+              className="inline-flex cursor-pointer items-center gap-[var(--space-1)] self-start text-meta font-medium text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            >
+              <ChevronLeft aria-hidden className="h-4 w-4" />
+              My reviews
+            </button>
+            <ThemeToggle />
+          </div>
           <PageTitle icon={Archive} headingRef={headingRef}>
             Archive
           </PageTitle>

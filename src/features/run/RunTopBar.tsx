@@ -1,6 +1,8 @@
 import { ChevronLeft } from 'lucide-react'
 import type { ReactNode, Ref } from 'react'
+import { ThemeToggle } from '../../components/ThemeToggle'
 import type { Run } from '../../lib/types'
+import { cn } from '../../lib/utils'
 
 /**
  * The page's own bar, directly under the host platform's navigation: a breadcrumb back to the
@@ -65,6 +67,9 @@ export function RunTopBar({ run, reviewsHref, end, ref }: RunTopBarProps) {
             </li>
           </ol>
         </nav>
+        {/* Light or dark (0063). Beside the breadcrumb on narrow screens, at the far right
+            from md. */}
+        <ThemeToggle className={cn('md:order-last', end == null && 'md:ml-auto')} />
         {/* App name | breadcrumb on the first row; what is open at the right end from md, and on a
             row of its own under them on narrow screens. */}
         {end != null && <div className="w-full md:ml-auto md:w-auto">{end}</div>}

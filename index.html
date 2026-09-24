@@ -6,6 +6,16 @@
     <title>Review agent runs | By Berit Alasmäki</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!--
+      A theme the viewer chose (components/ThemeToggle.tsx) is applied before the first paint,
+      so the page never flashes the other theme. No choice: the system setting decides.
+    -->
+    <script>
+      try {
+        var theme = localStorage.getItem('ledger:theme')
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme
+      } catch (e) {}
+    </script>
+    <!--
       Raleway (headings, buttons, wordmark) and Montserrat (body, table/data text) —
       see --font-heading / --font-body in src/styles/tokens.css. Only the weights
       actually used are requested.

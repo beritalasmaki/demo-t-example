@@ -89,7 +89,15 @@ the run, and a right column that stays in place.
 - `UnverifiedList.tsx` — "What is not checked" before a decision, "What is still unverified"
   after, with "Copy this list for the record".
 - `RunShape.tsx` — the run in five counted numbers, shown after a decision.
-- `ReviewList.tsx` — "My reviews", a minimal list for navigation only.
+- `MyReviews.tsx` — "My reviews" (docs/DECISIONS.md, 0060): tabs by run type, search, filters,
+  sort, runs in progress, selection, the Archive view and the toast. It holds the list's state;
+  the pieces below only render it.
+  - `ReviewsTable.tsx`, `ArchiveTable.tsx` — the two tables, real `<table>`s with sortable
+    headers (`aria-sort`) and info tips.
+  - `ReviewsToolbar.tsx` — search, the Filters button and panel, "Showing N of M".
+  - `ReviewParts.tsx` — the run-type pill, environment chip, stage steps and run cell.
+  - `ReviewDialogs.tsx` — Decision details, Request a new run, Create a report.
+  - `reportExport.ts` — the report as a CSV download or a print-ready page for PDF.
 - `ActorName.tsx` — the shared "who did this" display: a person gets a pill, a system stays
   plain icon + text (0023).
 - `SectionHeading.tsx` — the region heading with its scanning icon.

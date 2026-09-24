@@ -39,6 +39,63 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · My reviews, built from its Claude Design handoff
+
+**Goal**
+Build the user's new My reviews design ("My Reviews.dc.html", from the Claude Design handoff
+zip). The user chose the whole design (search, filters, archive, reports, new-run requests)
+and the four real fixture runs as its data.
+
+**What changed**
+- `lib/reviews.ts` (+ tests): run type and stage, open-item counts, search, calendar time
+  ranges, sort, the archive rule, report records and CSV. `listRuns` returns full runs.
+- Tokens: a blue status tint, a violet tint for selection, tab marks and toast colours, in
+  light and both dark forms.
+- Components: the `line` Tabs variant, InfoTip, Toast, and `tooltipPlacement.ts` (shared with
+  Tabs). `Modal` gains an `eyebrow` line.
+- `features/run/`: `MyReviews.tsx` (replaces `ReviewList.tsx`), `ReviewsTable`,
+  `ArchiveTable`, `ReviewsToolbar`, `ReviewParts`, `ReviewDialogs`, `reportExport`, with tests
+  and a story.
+- Fixes found on the way, each in its own commit or noted in one:
+  - every dialog opened in the top-left corner (a Tailwind reset; the run page too);
+  - invisible tooltips still covered content;
+  - the restore window was one day too long;
+  - the row tick boxes had no visible keyboard focus.
+- The accessibility spec covers six new states in both themes; the keyboard spec gains a
+  My reviews pass.
+- DECISIONS 0060. The spec's Out of scope line, the folder READMEs and the README are updated.
+
+**Steps, in order**
+1. Unzipped the handoff and read `My Reviews.dc.html` in full, script included. Asked two
+   questions, scope and data, because the design contradicted the spec's out-of-scope line.
+2. `git checkout -b feat/my-reviews`. Wrote the domain model and its tests first, then the
+   tokens and components, then the page.
+3. Screenshots at 1440 px (light and dark) and 390 px. They showed the off-centre dialogs, a
+   too-narrow Run column and a wrapped dialog sentence.
+4. axe over the new states. That found the separator contrast, and a "partially obscured"
+   result that turned out to be axe not modelling a modal's top layer. It was narrowed down by
+   hiding parts of the page one at a time; see 0060.
+5. The keyboard pass found the tick boxes' missing focus outline.
+6. `npm run check` after each commit, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0060. Rules in `lib` with a `now` parameter keep the archive and time filters
+testable. Reports are made in the browser because there is no server, and a PDF library would
+have been a new dependency.
+
+**How to do this by hand**
+Open `/?view=reviews`. Try the tabs, search "refund", open Filters, tick the approved run,
+then Create report (CSV) or archive it. Open Archive and restore it. Use the keyboard alone
+for the same path.
+
+**Verification**
+`npm run check`, exit code 0:
+- typecheck, lint and Prettier clean;
+- theme bridge ok (59 colours across 3 themes);
+- format-locale ok;
+- 45 test files, 253 unit tests;
+- 29 Playwright tests.
+
 ### 2026-09-24 · End-to-end spec, a time-boxed accessibility pass, docs to match
 
 **Goal**

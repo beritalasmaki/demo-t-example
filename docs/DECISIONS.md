@@ -6,6 +6,62 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0059 · The final accessibility review is a lighter, time-boxed pass, not the full audit
+
+**Context.** AGENTS.md (non-negotiable 4) planned one full accessibility and contrast review
+near the end of the project. The timeline does not allow the full audit, so the user chose a
+lighter, time-boxed version instead of skipping it. This entry records what that covers and
+what it does not, so nobody reads "reviewed" as "audited".
+
+**Options.** (a) The full audit as planned. (b) Skip it. (c) An automated check across the
+composed page in both themes, plus one full keyboard-only pass, both kept as end-to-end specs
+so they run on every `npm run check`.
+
+**Choice.** (c), in Chromium at 1440 × 900.
+
+What was checked:
+- `e2e/accessibility.spec.ts`: axe-core 4.13 (`@axe-core/playwright`) with the WCAG 2.0,
+  2.1 and 2.2 A and AA rules, colour contrast included. It ran on eight states: the pending
+  run in Story, Evidence and All steps; the clean run; the blocked run; the decided run with
+  the undo window open; My reviews; and the decision dialog. Each ran in light and in dark
+  (16 cases), and the spec asserts the theme really switched. The contrast rule checked 108
+  to 205 text elements per run page. It fails on any violation, and on any contrast result
+  axe could not decide. A deliberately broken token turned up 43 failures, so the check
+  bites.
+- `e2e/keyboard.spec.ts`: the whole review with the keyboard alone, from the top bar to an
+  undone approval. Tab, Space, Enter, the arrow keys and Escape; every stop on the way must
+  show a focus outline. The full tab order was also recorded once by hand.
+
+Found and fixed:
+- The view tabs' tooltips sat inside the tab list as `role="tooltip"`, where only tabs
+  belong (axe, `aria-required-children`, every run page). The tooltip is now `aria-hidden`;
+  the tab still announces it through `aria-describedby`.
+- "Jump to the open items" scrolled and spotlighted the list but left focus on the link.
+  Focus now goes to the first item left to tick.
+- Closing a dialog (Escape or Cancel) dropped focus to `<body>`. `Modal` now gives it back
+  to what opened it.
+
+Seen and left as it is: the tab order runs top bar, decision, then the view, while wide
+screens show the view before the decision. That is the page order chosen so phones get the
+decision before the long story (0046).
+
+Not checked:
+- screen readers (VoiceOver, NVDA, JAWS) by hand;
+- zoom to 200% and 400%, reflow and text spacing (WCAG 1.4.4, 1.4.10, 1.4.12);
+- browsers other than Chromium, and phone widths and touch;
+- forced colours / Windows High Contrast;
+- non-text contrast (WCAG 1.4.11): focus rings, status dots, borders and the tick boxes'
+  outlines, which axe does not measure;
+- states axe cannot see: hover-only tooltips, mid-animation frames (the approve pop, the
+  spotlight), the welcome intro, and the loading, not-found and error states;
+- a plain-language content review against non-negotiable 1.
+
+**Consequence.** The automated checks now run on every `npm run check`, so contrast and ARIA
+regressions in the covered states are caught from here on, not once. The items under "Not
+checked" stay open: if the project goes further, they are the audit.
+
+---
+
 ## 0058 · The top bar names the app, "Review agent runs", instead of "By Berit ❤︎"
 
 **Context.** The user found the "By Berit ❤︎" mark (0057) distracting, and asked for a short

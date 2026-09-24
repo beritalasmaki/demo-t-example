@@ -27,9 +27,10 @@ Content spec: `docs/spec-review-screen.md`. Domain vocabulary: `src/features/run
    come from data in the model, and must link to the evidence it came from. If a value is
    unknown, the UI says "unknown" — it never guesses or hides it.
 4. **Accessibility is a baseline, not a per-task audit.** Every screen needs a working
-   keyboard path and must never carry status by colour alone (icon + text). Full contrast
-   verification and a detailed accessibility pass happen once, as a dedicated review near
-   the end of the project — not repeated in full on every individual task.
+   keyboard path and must never carry status by colour alone (icon + text). The end-of-project
+   review was done as a lighter, time-boxed pass, not a full audit (docs/DECISIONS.md, 0059):
+   automated WCAG A/AA and contrast checks in both themes, and a keyboard-only pass, both now
+   run by `npm run check`. What it did not cover is listed in 0059.
 5. **No invented product facts.** Do not put real company names, customers, logos or
    claims into the UI. Sample data is clearly fictional.
 
@@ -37,7 +38,8 @@ Content spec: `docs/spec-review-screen.md`. Domain vocabulary: `src/features/run
 
 - React 19 + TypeScript (strict), Vite
 - Tailwind CSS, shadcn/ui, lucide-react icons
-- Vitest + React Testing Library, Playwright for one end-to-end path
+- Vitest + React Testing Library; Playwright for the end-to-end specs in `e2e/`: the approve
+  path, plus the accessibility (axe) and keyboard-only checks (docs/DECISIONS.md, 0059)
 - Storybook for components and tokens
 - No backend. Data comes from typed fixtures in `src/fixtures/`, behind a `getRun()` function
   in `src/lib/api.ts` so a real API can replace it later.
@@ -102,7 +104,8 @@ extractable into their own packages later, so they must not import from `feature
 ## Definition of done for any UI work
 
 - Typechecks, lints, tests pass (`npm run check`)
-- Keyboard-only path works
+- Keyboard-only path works, and a new page state is added to `e2e/accessibility.spec.ts` so
+  its WCAG A/AA and contrast check runs in both themes
 - Light and dark theme both correct
 - Empty, loading, error and "data is missing" states exist
 - Storybook story added for new components

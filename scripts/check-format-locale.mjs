@@ -52,8 +52,8 @@ function main() {
   if (offenders.length > 0) {
     console.error(
       `check-format-locale: ${FORMAT_PATH} has a locale-sensitive call with no explicit ` +
-        'locale — it will silently follow the runtime\'s default locale instead of this ' +
-        'app\'s own English content. Pass the LOCALE constant instead of leaving the ' +
+        "locale — it will silently follow the runtime's default locale instead of this " +
+        "app's own English content. Pass the LOCALE constant instead of leaving the " +
         'argument out or passing undefined.\n',
     )
     for (const { callee, arg } of offenders) {
@@ -62,7 +62,9 @@ function main() {
     process.exit(1)
   }
 
-  console.log('check-format-locale: ok (no locale-sensitive call in format.ts defaults to the runtime locale).')
+  console.log(
+    'check-format-locale: ok (no locale-sensitive call in format.ts defaults to the runtime locale).',
+  )
 }
 
 main()

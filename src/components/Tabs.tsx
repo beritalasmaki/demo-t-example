@@ -281,9 +281,12 @@ export function TabsTrigger({
       <TabsPrimitive.Trigger
         value={value}
         className={cn(
-          '-mb-px inline-flex cursor-pointer items-center gap-[var(--space-3)] border-b-2 border-transparent whitespace-nowrap',
+          // No -mb-px onto the list's rule: the list scrolls sideways, which clips anything
+          // below its edge, and that clipped the selected tab's underline to nothing.
+          'inline-flex cursor-pointer items-center gap-[var(--space-3)] border-b-2 border-transparent whitespace-nowrap',
           'px-[var(--space-5)] py-[var(--space-4)] text-body font-semibold font-heading leading-none text-text-secondary',
-          'hover:text-text-primary data-[state=active]:border-primary data-[state=active]:text-text-primary',
+          'hover:border-border hover:text-text-primary',
+          'data-[state=active]:border-primary data-[state=active]:text-text-primary',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring',
           className,
         )}

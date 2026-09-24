@@ -1,12 +1,11 @@
-
-
-👀 View the screen: https://demo-t-example.vercel.app/ 
+👀 View the screen: https://demo-t-example.vercel.app/
 
 ☝️ Please check [`Design-folder to see the design mockups.`](./design). Iterations done after the third design was made.
 
 ☝️ ALSO Storybook view page coming soon!
 
 # What is demo-t-example?
+
 A single, production-quality screen.
 
 An AI agent has produced a change to a customer's software. Before that change ships, a human reviewer needs to
@@ -39,7 +38,7 @@ npx playwright install chromium   # once — needed by npm run check's theme-bri
 npm run dev              # start the app
 npm run storybook        # start Storybook, on components and design tokens
 
-npm run check            # typecheck + lint + test — the gate for any change
+npm run check            # typecheck + lint + format + test — the gate for any change
 npm run test:watch       # tests, watching
 npm run lint:fix         # eslint --fix
 npm run format           # prettier --write
@@ -51,8 +50,6 @@ npm run build-storybook   # static Storybook build
 ## Status
 
 Scaffolding stage: the toolchain, design tokens and dependency-direction lint rule are in
-place. 
+place.
 
 Design is still in process. Iteration going on currently. Storybook view page in planning too.
-
-

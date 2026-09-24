@@ -172,6 +172,25 @@
   transition-delay: var(--tt-delay);
 }
 
+/* The wrapping form, for a sentence or two (components/InfoTip.tsx). `data-align="end"`
+ * opens it leftwards from its trigger, for a column at the right edge. */
+.t-tt-wide {
+  left: 0;
+  width: 16rem;
+  white-space: normal;
+  transform: translate(var(--tt-shift, 0px), 0) scale(var(--tt-scale));
+  transform-origin: 0 0;
+}
+.t-tt-wide[data-align='end'] {
+  left: auto;
+  right: 0;
+  transform-origin: 100% 0;
+}
+.t-tt-wrap:not([data-dismissed]):hover .t-tt-wide,
+.t-tt-wrap:not([data-dismissed]) .t-tt-trigger:focus-visible + .t-tt-wide {
+  transform: translate(var(--tt-shift, 0px), 0) scale(1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .t-tt {
     transition: none !important;

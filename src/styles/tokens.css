@@ -89,6 +89,22 @@
    * 0041). Both reuse the existing red as foreground: 5.67:1 light, 6.57:1 dark. */
   --status-red-tint-bg-light: #fcebea;
   --status-red-tint-bg-dark: #3b1714;
+  /* Blue tint for "Requested for change" in My reviews (docs/DECISIONS.md, 0060). */
+  --status-blue-tint-bg-light: #e3ecfb;
+  --status-blue-tint-fg-light: #1f5fbf; /* 5.02:1 on the tint above */
+  --status-blue-tint-bg-dark: #152338; /* paired with --status-blue-dark */
+
+  /* A light wash of the brand violet: selected rows, the active tab's count. */
+  --violet-tint-light: #eeecfa;
+  --violet-tint-border-light: #d9d5f3;
+  --violet-tint-dark: #26223f;
+  --violet-tint-border-dark: #3a3466;
+
+  /* The coloured circles behind the My reviews tab icons: decorative, beside a text label. */
+  --mark-amber: #f0a04b;
+  --mark-blue: #6f9be0;
+  --mark-red: #e27a73;
+  --mark-green: #5fb07e;
 
   /*
    * The signature's drawing stroke in the one-time welcome intro (src/app/WelcomeIntro.tsx,
@@ -157,6 +173,22 @@
   --color-status-waived-tint-fg: var(--status-amber-light);
   --color-status-fail-tint-bg: var(--status-red-tint-bg-light);
   --color-status-fail-tint-fg: var(--status-red-light);
+
+  /* My reviews (docs/DECISIONS.md, 0060). */
+  --color-status-info-tint-bg: var(--status-blue-tint-bg-light);
+  --color-status-info-tint-fg: var(--status-blue-tint-fg-light);
+  --color-primary-tint: var(--violet-tint-light);
+  --color-primary-tint-border: var(--violet-tint-border-light);
+  --color-mark-pending: var(--mark-amber);
+  --color-mark-requested: var(--mark-blue);
+  --color-mark-declined: var(--mark-red);
+  --color-mark-approved: var(--mark-green);
+  --color-mark-glyph: var(--neutral-0);
+  /* A toast is the inverse of the page: dark on light, light on dark. */
+  --color-toast-bg: var(--neutral-12);
+  --color-toast-fg: var(--neutral-1);
+  --color-toast-link: var(--violet-dark);
+  --color-toast-icon: var(--status-green-dark);
 
   /*
    * The welcome intro's overlay, the same in both themes on purpose: the signature is black
@@ -258,6 +290,14 @@
     --color-status-waived-tint-fg: var(--status-amber-dark);
     --color-status-fail-tint-bg: var(--status-red-tint-bg-dark);
     --color-status-fail-tint-fg: var(--status-red-dark);
+    --color-status-info-tint-bg: var(--status-blue-tint-bg-dark);
+    --color-status-info-tint-fg: var(--status-blue-dark);
+    --color-primary-tint: var(--violet-tint-dark);
+    --color-primary-tint-border: var(--violet-tint-border-dark);
+    --color-toast-bg: var(--neutral-2);
+    --color-toast-fg: var(--neutral-12);
+    --color-toast-link: var(--violet-light);
+    --color-toast-icon: var(--status-green-light);
   }
 }
 
@@ -292,6 +332,14 @@
   --color-status-waived-tint-fg: var(--status-amber-dark);
   --color-status-fail-tint-bg: var(--status-red-tint-bg-dark);
   --color-status-fail-tint-fg: var(--status-red-dark);
+  --color-status-info-tint-bg: var(--status-blue-tint-bg-dark);
+  --color-status-info-tint-fg: var(--status-blue-dark);
+  --color-primary-tint: var(--violet-tint-dark);
+  --color-primary-tint-border: var(--violet-tint-border-dark);
+  --color-toast-bg: var(--neutral-2);
+  --color-toast-fg: var(--neutral-12);
+  --color-toast-link: var(--violet-light);
+  --color-toast-icon: var(--status-green-light);
 }
 
 /*

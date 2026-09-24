@@ -2,6 +2,7 @@ import { Tabs as TabsPrimitive } from 'radix-ui'
 import { useId, useLayoutEffect, useRef, useState } from 'react'
 import type { ComponentType, ReactNode } from 'react'
 import { cn } from '../lib/utils'
+import { keepTooltipInView } from './tooltipPlacement'
 
 /**
  * A real ARIA tabs widget (`role="tablist"`/`"tab"`/`"tabpanel"`, arrow-key navigation between
@@ -42,8 +43,10 @@ export function Tabs({
 
 /** `segmented`: the full-width bar described below. `pill`: a compact rounded track whose
  * selected tab is a raised white pill — for a small set of views in a toolbar, where a
- * full-width bar would dominate. */
-export type TabsVariant = 'segmented' | 'pill'
+ * full-width bar would dominate. `line`: text tabs on a rule, the selected one underlined in
+ * the brand colour — for tabs that filter one list, each carrying its own icon and count
+ * (docs/DECISIONS.md, 0060). */
+export type TabsVariant = 'segmented' | 'pill' | 'line'
 
 export interface TabsListProps {
   children: ReactNode
@@ -66,6 +69,19 @@ export function TabsList({ children, className, variant = 'segmented', label }: 
       <PillTabsList className={className} label={label}>
         {children}
       </PillTabsList>
+    )
+  }
+  if (variant === 'line') {
+    return (
+      <TabsPrimitive.List
+        aria-label={label}
+        className={cn(
+          'flex gap-[var(--space-2)] overflow-x-auto border-b border-border-subtle px-[var(--space-5)] pt-[var(--space-3)]',
+          className,
+        )}
+      >
+        {children}
+      </TabsPrimitive.List>
     )
   }
   return (
@@ -195,23 +211,9 @@ function PillTrigger({
   const [dismissed, setDismissed] = useState(false)
   const tooltipRef = useRef<HTMLSpanElement>(null)
 
-  // Centred under its tab, a tooltip can run past the edge of the window — the tab bar sits
-  // at the right of the page. Measured when it is about to show, and nudged back inside with
-  // `--tt-shift`, which the transition's own transform already includes.
-  function keepInView() {
-    const tip = tooltipRef.current
-    if (!tip) return
-    tip.style.setProperty('--tt-shift', '0px')
-    const box = tip.getBoundingClientRect()
-    const margin = 8
-    const shift =
-      box.right > window.innerWidth - margin
-        ? window.innerWidth - margin - box.right
-        : box.left < margin
-          ? margin - box.left
-          : 0
-    tip.style.setProperty('--tt-shift', `${Math.round(shift)}px`)
-  }
+  // Centred under its tab, the tooltip can run past the window's edge: the tab bar can sit
+  // at the right of the page.
+  const keepInView = () => keepTooltipInView(tooltipRef.current)
   const trigger = (
     <TabsPrimitive.Trigger
       value={value}
@@ -272,6 +274,23 @@ export function TabsTrigger({
       >
         {children}
       </PillTrigger>
+    )
+  }
+  if (variant === 'line') {
+    return (
+      <TabsPrimitive.Trigger
+        value={value}
+        className={cn(
+          '-mb-px inline-flex cursor-pointer items-center gap-[var(--space-3)] border-b-2 border-transparent whitespace-nowrap',
+          'px-[var(--space-5)] py-[var(--space-4)] text-body font-semibold font-heading leading-none text-text-secondary',
+          'hover:text-text-primary data-[state=active]:border-primary data-[state=active]:text-text-primary',
+          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring',
+          className,
+        )}
+      >
+        {Icon && <Icon aria-hidden className={cn('h-4 w-4 shrink-0', iconClassName)} />}
+        {children}
+      </TabsPrimitive.Trigger>
     )
   }
   return (

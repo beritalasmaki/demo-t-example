@@ -47,4 +47,26 @@ describe('Tabs, pill variant', () => {
     await user.keyboard('{Escape}')
     expect(tooltip.parentElement).toHaveAttribute('data-dismissed')
   })
+
+  it('line variant: a real tab list whose selected tab is marked', async () => {
+    function Line() {
+      const [value, setValue] = useState('a')
+      return (
+        <Tabs value={value} onValueChange={setValue}>
+          <TabsList variant="line" label="Run types">
+            <TabsTrigger variant="line" value="a">
+              Pending
+            </TabsTrigger>
+            <TabsTrigger variant="line" value="b">
+              Approved
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )
+    }
+    render(<Line />)
+    expect(screen.getByRole('tablist', { name: 'Run types' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: 'Approved' }))
+    expect(screen.getByRole('tab', { name: 'Approved' })).toHaveAttribute('aria-selected', 'true')
+  })
 })

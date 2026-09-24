@@ -4,10 +4,13 @@ import {
   NetworkError,
   NOT_FOUND_RUN_ID,
   NotFoundError,
+  UndoClosedError,
   ValidationError,
   getRun,
   listRuns,
+  DECISIONS_STORAGE_KEY,
   submitDecision,
+  undoDecision,
 } from './api'
 import type { DecisionInput } from './types'
 
@@ -151,4 +154,72 @@ describe('submitDecision', () => {
   // "records who and when..." above — a separate test here would be the only other test in
   // this file to actually leave `run-clean` decided, which would make the two tests above
   // depend on running before it.
+})
+
+describe('undoDecision', () => {
+  const reject: DecisionInput = {
+    outcome: 'rejected',
+    by: 'A reviewer',
+    reason: 'Wrong rates.',
+    acknowledgedItemIds: [],
+    revision: 'r1',
+  }
+
+  it('takes the decision back, so the next one is recorded instead of a conflict', async () => {
+    await submitDecision('run-vat-estonia', reject, { delayMs: 0 })
+    const undone = await undoDecision('run-vat-estonia', { delayMs: 0 })
+    expect(undone.status).toBe('awaiting_review')
+    expect(undone.decision).toBeUndefined()
+
+    const redecided = await submitDecision(
+      'run-vat-estonia',
+      { ...reject, outcome: 'changes_requested', reason: 'Use the new rate table.' },
+      { delayMs: 0 },
+    )
+    expect(redecided.status).toBe('changes_requested')
+    expect((await getRun('run-vat-estonia', { delayMs: 0 })).decision?.outcome).toBe(
+      'changes_requested',
+    )
+  })
+
+  it('refuses when there is no decision, or its 10-minute window has closed', async () => {
+    await expect(undoDecision('run-clean', { delayMs: 0 })).rejects.toBeInstanceOf(UndoClosedError)
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(Date.now() + 11 * 60_000)
+    await expect(undoDecision('run-messy', { delayMs: 0 })).rejects.toBeInstanceOf(UndoClosedError)
+  })
+})
+
+describe('decisions across page loads', () => {
+  it('keeps a decision for the tab, and lays it back over the fixtures on the next load', async () => {
+    await submitDecision(
+      'run-session-timeout',
+      {
+        outcome: 'rejected',
+        by: 'A reviewer',
+        reason: 'No.',
+        acknowledgedItemIds: [],
+        revision: 'r',
+      },
+      { delayMs: 0 },
+    )
+    expect(JSON.parse(window.sessionStorage.getItem(DECISIONS_STORAGE_KEY) ?? '{}')).toMatchObject({
+      'run-session-timeout': { outcome: 'rejected' },
+    })
+
+    vi.resetModules()
+    const reloaded = await import('./api')
+    const run = await reloaded.getRun('run-session-timeout', { delayMs: 0 })
+    expect(run.status).toBe('rejected')
+    expect(run.decision?.reason).toBe('No.')
+  })
+
+  it('reads a fixture decision that was undone as awaiting review', async () => {
+    window.sessionStorage.setItem(DECISIONS_STORAGE_KEY, JSON.stringify({ 'run-messy': null }))
+    vi.resetModules()
+    const reloaded = await import('./api')
+    const run = await reloaded.getRun('run-messy', { delayMs: 0 })
+    expect(run.status).toBe('awaiting_review')
+    expect(run.decision).toBeUndefined()
+  })
 })

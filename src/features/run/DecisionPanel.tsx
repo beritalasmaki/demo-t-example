@@ -123,6 +123,14 @@ export function DecisionPanel({
     }, 440)
   }
 
+  // Request changes or Reject pressed during the pop wins: the pending approve must not open
+  // over it and turn a decline into an approval.
+  function openOther(action: Exclude<DecisionAction, 'approved'>) {
+    window.clearTimeout(popTimer.current)
+    setPopping(false)
+    setOpenAction(action)
+  }
+
   function applyConflict(decision: Decision) {
     onRunUpdated({ ...run, decision, status: decision.outcome })
   }
@@ -294,7 +302,7 @@ export function DecisionPanel({
         <div className="flex flex-col gap-[var(--space-2)]">
           <button
             type="button"
-            onClick={() => setOpenAction('changes_requested')}
+            onClick={() => openOther('changes_requested')}
             className={cn(
               OUTLINE_BUTTON,
               'border-border text-text-primary hover:border-text-secondary hover:bg-bg active:bg-surface-raised',
@@ -312,7 +320,7 @@ export function DecisionPanel({
         <div className="flex flex-col gap-[var(--space-2)]">
           <button
             type="button"
-            onClick={() => setOpenAction('rejected')}
+            onClick={() => openOther('rejected')}
             className={cn(
               OUTLINE_BUTTON,
               'border-status-fail text-status-fail-tint-fg hover:bg-status-fail-tint-bg active:bg-status-fail-tint-bg',

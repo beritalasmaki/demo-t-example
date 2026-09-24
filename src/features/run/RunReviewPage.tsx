@@ -248,7 +248,12 @@ export function RunReviewPage({
           >
             {decided ? (
               <>
-                <UndoBox run={run} onRunUpdated={applyRun} celebrate={decidedHere} />
+                <UndoBox
+                  run={run}
+                  onRunUpdated={applyRun}
+                  celebrate={decidedHere}
+                  undoOptions={submitDecisionOptions}
+                />
                 <UnverifiedList run={run} />
                 <RunShape run={run} />
               </>

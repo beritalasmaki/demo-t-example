@@ -70,9 +70,11 @@ held in memory: a reload starts the run over.
 - Tailwind CSS 4, with every colour, space, size and motion value from design tokens in
   `src/styles/tokens.css`
 - Radix UI (tabs), lucide-react (icons), `thinking-orbs` (the loading orb)
-- Vitest and React Testing Library: 42 test files, 223 tests
+- Vitest and React Testing Library: 42 test files, 225 tests
 - Storybook 10, with the accessibility add-on, for components and tokens
-- Playwright's Chromium, used by `npm run check` to verify theme colours in a real browser
+- Playwright: three end-to-end specs in `e2e/` (the approve flow, a keyboard-only run of the
+  whole review, and axe WCAG A/AA and contrast checks in both themes, 18 tests in all), and
+  the theme-colour check
 
 Dependencies point one way, `fixtures → lib → components → features → app`, and a lint rule
 (`import/no-restricted-paths`) enforces it. `components/` and `styles/` are the design system
@@ -84,12 +86,13 @@ Needs Node.js 20.19 or newer (22.12 or newer on the 22 line).
 
 ```bash
 npm install
-npx playwright install chromium   # once: npm run check uses it for the theme check
+npx playwright install chromium   # once: npm run check uses it for the end-to-end and theme checks
 
 npm run dev              # start the app
 npm run storybook        # start Storybook, on components and design tokens
 
-npm run check            # the gate for any change: typecheck, lint, format, theme and locale checks, tests
+npm run check            # the gate for any change: typecheck, lint, format, theme and locale checks, tests, end-to-end
+npm run test:e2e         # the Playwright specs alone (starts the app itself)
 npm run test:watch       # tests, watching
 npm run lint:fix         # eslint --fix
 npm run format           # prettier --write
@@ -113,11 +116,17 @@ npm run build-storybook   # static Storybook build
 The review screen is built. It follows the redesign from Claude Design, with its later
 iterations: the three-column layout, the Story, Evidence and All steps views, the decision
 panel with undo, the welcome intro and the loading state. A polish pass and a cleanup have
-removed the code the redesign left behind, and `npm run check` now covers formatting too.
+removed the code the redesign left behind.
+
+The end-to-end approve flow is a committed Playwright spec. The end-of-project accessibility
+review was done as a lighter, time-boxed pass, not a full audit: automated WCAG A/AA and
+contrast checks in both themes, and a keyboard-only pass of the whole review. Both now run on
+every `npm run check`. What that pass did not cover is listed in
+[DECISIONS 0059](./docs/DECISIONS.md).
 
 Still to do:
 
 - publish Storybook;
-- the one Playwright end-to-end test `AGENTS.md` plans for;
-- the dedicated accessibility and contrast review `AGENTS.md` reserves for the end of the
-  project.
+- My reviews, built to its new design from Claude Design: a lightweight list of the sample
+  runs, for navigation only, with no filtering, search or stats (spec, Out of scope;
+  DECISIONS 0042).

@@ -109,7 +109,7 @@ export function DecisionDetailsDialog({
 
   const accepted = new Set(decision?.acknowledgedItemIds ?? [])
   const items =
-    run.status === 'running'
+    run.status === 'running' || run.status === 'checks_running'
       ? null
       : buildOpenItems(run).filter((item) => status !== 'approved' || accepted.has(item.id))
 
@@ -157,7 +157,7 @@ export function DecisionDetailsDialog({
         </h3>
         {items === null ? (
           <p className="text-body text-text-secondary">
-            Not known yet. The agent is still working.
+            Not known yet. The run is still in progress.
           </p>
         ) : items.length === 0 ? (
           <p className="text-body text-text-secondary">None. Everything was checked.</p>

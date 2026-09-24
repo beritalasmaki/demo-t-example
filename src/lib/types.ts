@@ -17,7 +17,14 @@
  * Running · Blocked · Awaiting review · Approved · Changes requested · Rejected.
  */
 export type RunStatus =
-  'running' | 'blocked' | 'awaiting_review' | 'approved' | 'changes_requested' | 'rejected'
+  | 'running'
+  /** The agent has finished; the policy checks are still running (docs/DECISIONS.md, 0061). */
+  | 'checks_running'
+  | 'blocked'
+  | 'awaiting_review'
+  | 'approved'
+  | 'changes_requested'
+  | 'rejected'
 
 /**
  * Region 3 (Policy gates). Content rules' exact labels:

@@ -33,22 +33,31 @@ export function reviewStatus(run: Run): ReviewStatus {
   }
 }
 
-/** Where a pending run is: the agent works, the checks run, then a person reviews. The model
- * has no separate "checks running" status yet, so `checks` is never produced from today's
- * data; it stays so the three-step display matches the design. */
+/** Where a pending run is: the agent works, the checks run, then a person reviews. */
 export type ReviewStage = 'agent' | 'checks' | 'review'
 
 export const STAGE_STEP: Record<ReviewStage, number> = { agent: 1, checks: 2, review: 3 }
 
 export function reviewStage(run: Run): ReviewStage | null {
   if (reviewStatus(run) !== 'pending') return null
-  return run.status === 'running' ? 'agent' : 'review'
+  if (run.status === 'running') return 'agent'
+  if (run.status === 'checks_running') return 'checks'
+  return 'review'
 }
 
-/** Pending runs not yet ready for a person. They are listed apart, below the table. */
+/** Runs the agent or the checks are still working on, listed apart below the table
+ * (docs/DECISIONS.md, 0061): pending runs not ready for a person yet, and runs sent back for
+ * changes, which the agent is making. */
 export function isInProgress(run: Run): boolean {
   const stage = reviewStage(run)
-  return stage === 'agent' || stage === 'checks'
+  return stage === 'agent' || stage === 'checks' || reviewStatus(run) === 'requested'
+}
+
+/** Where an in-progress run is, as the list says it, and its step of three. */
+export function progressOf(run: Run): { stage: ReviewStage; label: string } | null {
+  if (reviewStatus(run) === 'requested') return { stage: 'agent', label: 'Agent is making changes' }
+  const stage = reviewStage(run)
+  return stage ? { stage, label: formatReviewStage(stage) } : null
 }
 
 export function needsReview(run: Run): boolean {
@@ -56,9 +65,9 @@ export function needsReview(run: Run): boolean {
 }
 
 /** Open items: what is still open, or for an approved run, how many the reviewer accepted.
- * Null while the agent is still working — not known yet, never guessed. */
+ * Null while the agent or the checks are still working — not known yet, never guessed. */
 export function openItemCount(run: Run): number | null {
-  if (run.status === 'running') return null
+  if (run.status === 'running' || run.status === 'checks_running') return null
   if (run.status === 'approved' && run.decision) return run.decision.acknowledgedItemIds.length
   return buildOpenItems(run).length
 }

@@ -39,6 +39,50 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · My reviews: more sample runs, work in progress, archive, no scrollbars
+
+**Goal**
+Fill My reviews: more sample runs, the "still in progress" view in Pending and Requested for
+change, archived runs (locked, and one restorable), and no visible scrollbars.
+
+**What changed**
+- `fixtures/sample-runs.ts` (+ test): 21 complete runs from `sampleRun`, registered in
+  `fixtures/index.ts`.
+- `lib/types.ts`: the `checks_running` status (label "Checks running").
+- `lib/reviews.ts`: `reviewStage` knows the checks stage. `isInProgress` includes runs sent
+  back for changes, and `progressOf` gives the fold its label.
+- `MyReviews.tsx`: the fold in both tabs, "Sent back …" dates, the "Nothing here needs you
+  yet" empty state, and hidden scrollbars on the tables.
+- `Tabs.tsx`: the line variant hides its scrollbar.
+- `ReviewsTable.tsx`: the Updated tip opens leftwards.
+- Tests: page counts updated, and new tests for the in-progress views and the locked archive.
+  The accessibility spec adds the Requested tab with its fold open.
+- DECISIONS 0061, `fixtures/README.md`.
+
+**Steps, in order**
+1. `git checkout -b feat/more-sample-runs` from main.
+2. Wrote the run builder and the 21 runs, then the model changes, then the page.
+3. `npx vitest run`, then updated the tests that counted the old four runs.
+4. `npx playwright test`, after fixing selectors that assumed a single approved run.
+5. In Chromium, measured `scrollWidth` against `clientWidth` on each scrollbar-free box; that
+   found the Updated tip's overflow. Also opened two of the new runs' review pages.
+6. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0061. Complete runs, not list rows, keep non-negotiable 3 true and make every
+row open.
+
+**How to do this by hand**
+Open `/?view=reviews`: Pending shows 7 to review and "4 runs still in progress". Requested for
+change shows its 3 in the fold. The Archive has one run with a Restore button and three with a
+lock.
+
+**Verification**
+`npm run check`, exit code 0:
+- typecheck, lint and Prettier clean;
+- 46 test files, 260 unit tests;
+- 31 Playwright tests.
+
 ### 2026-09-24 · My reviews, built from its Claude Design handoff
 
 **Goal**

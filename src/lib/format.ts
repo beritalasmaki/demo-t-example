@@ -43,6 +43,7 @@ export function formatGateResultLabel(gate: PolicyGate): string {
  * Awaiting review · Approved · Changes requested · Rejected." These exact labels, everywhere. */
 const RUN_STATUS_LABEL: Record<RunStatus, string> = {
   running: 'Running',
+  checks_running: 'Checks running',
   blocked: 'Blocked',
   awaiting_review: 'Awaiting review',
   approved: 'Approved',

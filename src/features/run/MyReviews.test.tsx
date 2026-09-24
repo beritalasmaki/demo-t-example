@@ -22,11 +22,15 @@ describe('MyReviews', () => {
 
   it('opens on pending runs, with a count on every tab and a link to each review', async () => {
     await renderLoaded()
-    expect(screen.getByRole('tab', { name: /Pending/, selected: true })).toHaveTextContent('3')
-    expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('1')
-    expect(screen.getByRole('tab', { name: /All runs/ })).toHaveTextContent('4')
-    expect(rows()).toHaveLength(3)
-    expect(screen.getByText('3 need your review')).toBeVisible()
+    expect(screen.getByRole('tab', { name: /Pending/, selected: true })).toHaveTextContent('11')
+    expect(screen.getByRole('tab', { name: /Requested for change/ })).toHaveTextContent('3')
+    expect(screen.getByRole('tab', { name: /Declined/ })).toHaveTextContent('2')
+    expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('5')
+    expect(screen.getByRole('tab', { name: /All runs/ })).toHaveTextContent('21')
+    // Seven are ready for review; four are still in progress, folded below the table.
+    expect(rows()).toHaveLength(7)
+    expect(screen.getByText('7 need your review')).toBeVisible()
+    expect(screen.getByRole('button', { name: /4 runs still in progress/ })).toBeVisible()
     expect(
       screen.getByRole('link', {
         name: 'Review “Add a CSV export to the appointment history page”',
@@ -34,16 +38,28 @@ describe('MyReviews', () => {
     ).toHaveAttribute('href', '?run=run-clean')
   })
 
+  it('shows runs the agent is still working on, in Pending and in Requested for change', async () => {
+    const user = await renderLoaded()
+    await user.click(screen.getByRole('button', { name: /4 runs still in progress/ }))
+    expect(screen.getAllByText('Agent is working')).toHaveLength(2)
+    expect(screen.getAllByText('Checks are running')).toHaveLength(2)
+
+    await user.click(screen.getByRole('tab', { name: /Requested for change/ }))
+    expect(rows()).toHaveLength(0)
+    expect(screen.getByText('Nothing here needs you yet')).toBeVisible()
+    expect(screen.getAllByText('Agent is making changes')).toHaveLength(3)
+  })
+
   it('searches, says how many it shows, and offers to clear when nothing matches', async () => {
     const user = await renderLoaded()
     await user.type(screen.getByRole('searchbox', { name: 'Search runs' }), 'booking')
     expect(rows()).toHaveLength(1)
-    expect(screen.getByText('Showing 1 of 4 active runs')).toBeVisible()
+    expect(screen.getByText('Showing 1 of 21 active runs')).toBeVisible()
 
     await user.type(screen.getByRole('searchbox', { name: 'Search runs' }), 'zzz')
     expect(screen.getByText('No active runs match these filters')).toBeVisible()
     await user.click(screen.getAllByRole('button', { name: /Clear filters/ })[0])
-    expect(rows()).toHaveLength(3)
+    expect(rows()).toHaveLength(7)
   })
 
   it('orders by a column and says so on its header', async () => {
@@ -60,15 +76,27 @@ describe('MyReviews', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       /Archived “Move refund processing.*restore it for 7 days/,
     )
-    expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('0')
+    expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('4')
 
-    await user.click(screen.getByRole('button', { name: 'Archive, 1 archived run' }))
+    await user.click(screen.getByRole('button', { name: 'Archive, 5 archived runs' }))
     expect(screen.getByRole('heading', { level: 1, name: 'Archive' })).toHaveFocus()
     expect(screen.getByText('By you')).toBeVisible()
     await user.click(screen.getByRole('button', { name: /^Restore “Move refund processing/ }))
-    expect(screen.getByText('No archived runs match these filters.')).toBeVisible()
+    expect(screen.queryByText('By you')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'My reviews' }))
-    expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('1')
+    expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('5')
+  })
+
+  it('keeps old runs in the archive: one can still be restored, the rest are locked', async () => {
+    const user = await renderLoaded()
+    await user.click(screen.getByRole('button', { name: 'Archive, 4 archived runs' }))
+    expect(screen.getAllByText('Automatically, after 6 months')).toHaveLength(4)
+    expect(screen.getByRole('button', { name: /^Restore “Add Klarna/ })).toBeVisible()
+    expect(screen.getAllByRole('img', { name: 'Restore locked' })).toHaveLength(3)
+
+    await user.click(screen.getByRole('button', { name: /^Restore “Add Klarna/ }))
+    await user.click(screen.getByRole('button', { name: 'My reviews' }))
+    expect(screen.getByRole('button', { name: 'Archive, 3 archived runs' })).toBeVisible()
   })
 
   it("shows a run's decision details from its own data", async () => {

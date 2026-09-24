@@ -126,12 +126,12 @@ test('My reviews, keyboard only', async ({ page }) => {
 
   // The archive, then restore, all from the keyboard.
   await keys.press('Shift+Tab')
-  await tabTo(page, /^Archive, 1 archived run$/)
+  await tabTo(page, /^Archive, \d+ archived runs?$/)
   await keys.press('Enter')
   await expect(page.getByRole('heading', { level: 1, name: 'Archive' })).toBeFocused()
   await tabTo(page, /^Restore “Move refund/)
   await keys.press('Enter')
-  await expect(page.getByText('No archived runs match these filters.')).toBeVisible()
+  await expect(page.getByText('By you')).toBeHidden()
 
   // A dialog opens with Enter and closes with Escape, giving focus back.
   await tabTo(page, /^My reviews$/, 60)

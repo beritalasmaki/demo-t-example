@@ -39,6 +39,65 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-24 · Cleanups: orphaned code, unused packages, settings, format gate, AGENTS.md
+
+**Goal**
+The five cleanups held back from the polish pass, each in its own commit with `npm run check`
+green after it. The sixth point was to keep the commit convention.
+
+**What changed**
+1. `refactor:` removed `ActionLink`, `AnchorNav`, `Checkbox`, `Disclosure`, `RegionCard`,
+   `Tag` and `ToggleChip` (with tests and stories), `lib/summary.ts`, and `sortGates` and
+   `filterTimeline`. `isError` and `resolveEvidence` were **kept**: the polish pass called
+   them unused, but live code calls them (`timelineShape` and `explanationFor`). Comments
+   and READMEs that named the removed code were updated.
+2. `chore:` removed `components/ui/{button,checkbox,dialog}.tsx`, `class-variance-authority`
+   and `eslint-config-prettier`. The lockfile lost only those two packages. The lint warning
+   in `ui/button.tsx` is gone, and `npm run lint` is now clean.
+3. `fix:` `.claude/settings.json` is valid JSON with the three allowed domains. Prettier puts
+   the array on one line.
+4. `chore:` `format:check` is part of `npm run check`. `README.md` and `design/README.md` are
+   reformatted: whitespace and table padding, plus `*emphasis*` → `_emphasis_` in
+   `design/README.md`, which renders the same.
+5. `docs:` AGENTS.md no longer mentions `docs/notes.md`. There were two mentions, not three:
+   "How to work" never named it. That section now says to ask the end-of-session question
+   in the conversation.
+6. Every commit in this batch uses a conventional prefix (`refactor:`, `chore:`, `fix:`,
+   `docs:`), as AGENTS.md asks.
+
+**Steps, in order**
+1. `git checkout -b chore/cleanups` from main.
+2. Checked references first:
+   - `grep -rlw <name> src .storybook docs README.md design` for each component;
+   - `grep -rlw` for each function;
+   - read each hit before deleting.
+3. `git rm` the files, then `npm uninstall class-variance-authority eslint-config-prettier`.
+4. `npx prettier --write README.md design/README.md`, then `format:check` added to `check` in
+   `package.json`.
+5. `npm run check` after every commit.
+
+**Why it was done this way**
+- Checking references first caught `isError` and `resolveEvidence`. Removing them would have
+  meant inlining them into live, tested code, the "riskier than expected" case, so they stay.
+- Four motion tokens in `tokens.css` (`--motion-duration-open`, `--motion-duration-close`,
+  `--motion-ease-spring`, `--motion-ease-in`) were used only by `Disclosure`. They are now
+  unused, and are left for the user to decide on rather than widening this batch.
+
+**How to do this by hand**
+Before deleting a file, run `grep -rlw Name src` and read every hit. After `npm uninstall`,
+run `git diff package-lock.json | grep '"node_modules/'` to confirm only the packages you
+meant to remove went.
+
+**Verification**
+`npm run check` after each commit:
+- typecheck clean;
+- lint clean (the earlier warning is gone);
+- Prettier "All matched files use Prettier code style!";
+- theme bridge ok (46 colours across 3 themes);
+- format-locale ok;
+- 42 test files, 223 tests passed. That is 39 fewer tests than before, every one of them a
+  test of deleted code.
+
 ### 2026-09-24 · Final polish pass: audit, comments, small cleanups
 
 **Goal**

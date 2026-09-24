@@ -45,6 +45,18 @@ const STATES: { name: string; url: string; open?: (page: Page) => Promise<void> 
     },
   },
   {
+    name: 'My reviews, asking before archiving',
+    url: '/?view=reviews',
+    open: async (page) => {
+      await page.getByRole('tab', { name: /Approved/ }).click()
+      await page
+        .getByRole('button', { name: /^Archive “/ })
+        .first()
+        .click()
+      await expect(page.getByRole('dialog')).toBeVisible()
+    },
+  },
+  {
     name: 'My reviews, decision details',
     url: '/?view=reviews',
     open: async (page) => {
@@ -90,6 +102,7 @@ const STATES: { name: string; url: string; open?: (page: Page) => Promise<void> 
         .getByRole('button', { name: /^Archive “/ })
         .first()
         .click()
+      await page.getByRole('button', { name: 'Move to the archive' }).click()
       await page.getByRole('button', { name: /^Archive, / }).click()
       await expect(page.getByRole('heading', { level: 1, name: 'Archive' })).toBeVisible()
     },

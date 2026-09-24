@@ -120,6 +120,10 @@ test('My reviews, keyboard only', async ({ page }) => {
   await expect(page.getByText('1 run selected')).toBeVisible()
   await tabTo(page, /^Archive “Move refund/)
   await keys.press('Enter')
+  // It asks first; the confirm button is reached by Tab inside the dialog.
+  await expect(page.getByRole('dialog', { name: 'Move to the archive?' })).toBeVisible()
+  await tabTo(page, /^Move to the archive$/)
+  await keys.press('Enter')
   await expect(page.getByRole('status')).toContainText('Archived')
   // The row is gone; focus went to its table, not to <body>.
   await expect(page.getByRole('table', { name: /runs$/ })).toBeFocused()
@@ -130,6 +134,9 @@ test('My reviews, keyboard only', async ({ page }) => {
   await keys.press('Enter')
   await expect(page.getByRole('heading', { level: 1, name: 'Archive' })).toBeFocused()
   await tabTo(page, /^Restore “Move refund/)
+  await keys.press('Enter')
+  await expect(page.getByRole('dialog', { name: 'Restore to My reviews?' })).toBeVisible()
+  await tabTo(page, /^Restore$/)
   await keys.press('Enter')
   await expect(page.getByText('By you')).toBeHidden()
 

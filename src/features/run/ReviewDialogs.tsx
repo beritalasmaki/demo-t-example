@@ -1,4 +1,4 @@
-import { ArrowRight, Download, FileBarChart, RotateCw } from 'lucide-react'
+import { Archive, ArrowRight, Download, FileBarChart, RotateCcw, RotateCw } from 'lucide-react'
 import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Modal } from '../../components/Modal'
@@ -7,6 +7,7 @@ import { formatCalendarDate, formatClock, formatDuration, formatUtcOffset } from
 import { buildOpenItems } from '../../lib/openItems'
 import type { ReportInclude, ReviewStatus } from '../../lib/reviews'
 import {
+  RESTORE_DAYS,
   formatReviewStage,
   formatReviewStatus,
   isFinished,
@@ -440,6 +441,85 @@ export function ReportDialog({
         >
           <Download aria-hidden className="h-4 w-4" />
           Create report
+        </button>
+      </Footer>
+    </Modal>
+  )
+}
+
+// ---- Archive and restore ---------------------------------------------------------------
+
+export interface ArchiveConfirmDialogProps {
+  runs: Run[]
+  onClose: () => void
+  onConfirm: () => void
+}
+
+/** Asks before runs leave My reviews: the reviewer should know they lock after seven days. */
+export function ArchiveConfirmDialog({ runs, onClose, onConfirm }: ArchiveConfirmDialogProps) {
+  const one = runs.length === 1 ? runs[0] : undefined
+  return (
+    <Modal
+      title={one ? 'Move to the archive?' : `Move ${runs.length} runs to the archive?`}
+      onClose={onClose}
+      className="max-w-[32rem]"
+    >
+      <p className="text-body leading-relaxed text-text-primary">
+        {one ? <>“{one.initiative}” leaves My reviews.</> : 'They leave My reviews.'} You can
+        restore {one ? 'it' : 'them'} from the archive for {RESTORE_DAYS} days. After that{' '}
+        {one ? 'it is' : 'they are'} locked, and a mistake can only be fixed with a new run.
+      </p>
+      {!one && (
+        <ul className="flex flex-col gap-[var(--space-1)] text-body text-text-primary">
+          {runs.map((run) => (
+            <li key={run.id} className="truncate">
+              {run.initiative}
+            </li>
+          ))}
+        </ul>
+      )}
+      <Footer>
+        <span className="flex-1" />
+        <button type="button" onClick={onClose} className={SECONDARY}>
+          Cancel
+        </button>
+        <button type="button" onClick={onConfirm} className={PRIMARY}>
+          <Archive aria-hidden className="h-4 w-4" />
+          Move to the archive
+        </button>
+      </Footer>
+    </Modal>
+  )
+}
+
+export interface RestoreConfirmDialogProps {
+  run: Run
+  daysLeft: number
+  onClose: () => void
+  onConfirm: () => void
+}
+
+/** Asks before a run comes back from the archive. */
+export function RestoreConfirmDialog({
+  run,
+  daysLeft,
+  onClose,
+  onConfirm,
+}: RestoreConfirmDialogProps) {
+  return (
+    <Modal title="Restore to My reviews?" onClose={onClose} className="max-w-[32rem]">
+      <p className="text-body leading-relaxed text-text-primary">
+        “{run.initiative}” moves back to My reviews. Its decision and record stay exactly as they
+        are. You have {daysLeft} day{daysLeft === 1 ? '' : 's'} left to restore it.
+      </p>
+      <Footer>
+        <span className="flex-1" />
+        <button type="button" onClick={onClose} className={SECONDARY}>
+          Cancel
+        </button>
+        <button type="button" onClick={onConfirm} className={PRIMARY}>
+          <RotateCcw aria-hidden className="h-4 w-4" />
+          Restore
         </button>
       </Footer>
     </Modal>

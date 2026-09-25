@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils'
 
 /**
  * The page's region heading: `--text-section-heading` with a leading icon for quick scanning.
- * The icon is violet by default; a heading about things left open ("What is not checked") passes
+ * The icon is in the brand colour by default; a heading about things left open ("What is not checked") passes
  * the warning colour instead. `id` is what the region's `aria-labelledby` points at.
  */
 export interface SectionHeadingProps {

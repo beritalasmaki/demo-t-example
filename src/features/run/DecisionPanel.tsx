@@ -138,7 +138,7 @@ export function DecisionPanel({
   return (
     <section
       aria-labelledby="decision-heading"
-      className="flex flex-col gap-[var(--space-4)] rounded-lg border border-border bg-surface p-[var(--space-4)]"
+      className="flex flex-col gap-[var(--space-4)] rounded-lg border border-border bg-surface shadow-card p-[var(--space-4)]"
     >
       <div className="flex flex-col gap-[var(--space-1)]">
         <SectionHeading id="decision-heading" icon={ShieldCheck}>

@@ -39,6 +39,31 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-25 · Deeper, brighter accents in dark mode
+
+**Goal**
+Make the dark-mode indigo, amber and tab-icon colours deeper and brighter.
+
+**What changed**
+- `styles/tokens.css`: dark indigo, amber and disc colours, and `--color-primary-strong`.
+- `ReviewParts.tsx` (progress bars) and `components/Tabs.tsx` (the selected underline) use
+  `primary-strong`.
+- DECISIONS 0069.
+
+**Steps, in order**
+1. `git checkout -b style/vivid-dark-accents` from main.
+2. Computed the contrast of candidate colours on every dark surface and over the circles.
+3. Set the tokens and took dark screenshots. The bars were still pale, because text-safe
+   indigo must stay light, so fills got the deeper `primary-strong`.
+4. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0069.
+
+**How to do this by hand**
+Switch to dark and open My reviews: bright orange, blue, red and green tab icons, deep indigo
+progress bars and underline, and a bright amber "Needs your review".
+
 ### 2026-09-25 · A cool lavender-blue look across the app
 
 **Goal**

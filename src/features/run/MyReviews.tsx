@@ -488,7 +488,10 @@ function ReviewsBoard({
       )}
 
       {!onArchivePage && (
-        <section aria-label="Runs" className="rounded-lg border border-border-subtle bg-surface">
+        <section
+          aria-label="Runs"
+          className="rounded-lg border border-border-subtle bg-surface shadow-card"
+        >
           <Tabs value={tab} onValueChange={(value) => chooseTab(value as ReviewTab)}>
             <TabsList variant="line" label="Run types">
               {TABS.map(({ value, label, mark, icon: Icon }) => (
@@ -630,7 +633,7 @@ function ReviewsBoard({
       {inlineArchive && (
         <section
           aria-label="Also found in the archive"
-          className="rounded-lg border border-border-subtle bg-surface"
+          className="rounded-lg border border-border-subtle bg-surface shadow-card"
         >
           {archiveTable(false)}
         </section>
@@ -639,7 +642,7 @@ function ReviewsBoard({
       {onArchivePage && (
         <section
           aria-label="Archived runs"
-          className="rounded-lg border border-border-subtle bg-surface"
+          className="rounded-lg border border-border-subtle bg-surface shadow-card"
         >
           <ReviewsToolbar
             searchLabel="Search the archive"

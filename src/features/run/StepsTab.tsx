@@ -123,7 +123,7 @@ export function StepsTab({ run, focusEventId }: StepsTabProps) {
           No steps yet. This run started at {formatClock(run.startedAt)}.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface">
+        <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface shadow-card">
           <table className="w-full min-w-[40rem] table-fixed border-collapse text-left">
             <colgroup>
               <col className="w-[5.5rem]" />

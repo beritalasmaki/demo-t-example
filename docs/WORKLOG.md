@@ -39,6 +39,40 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-25 · A cool lavender-blue look across the app
+
+**Goal**
+Change the colour tokens, and the site's look overall, to the style of the user's mockup.
+
+**What changed**
+- `styles/tokens.css`: a cool neutral ramp, the page colours, indigo brand, radius, card
+  shadow and decor tokens, in both themes.
+- `styles/index.css`: the `page-decor` utility; `App.tsx` and `RunTopBar.tsx` use it.
+- `shadow-card` on the twelve card surfaces.
+- `e2e/accessibility.spec.ts`: text over the circles is measured, not skipped.
+- DECISIONS 0068, `styles/README.md` contrast figures.
+
+**Steps, in order**
+1. `git checkout -b feat/soft-blue-style` from main.
+2. Read colours off the mockup, and computed the contrast of every text colour on every new
+   surface before writing any token.
+3. Wrote the tokens, then took screenshots of the run page and My reviews in both themes.
+4. The axe spec failed: the SVG circles hid every background from it. The circles were redrawn
+   as gradients, and the spec was taught to measure text over them.
+5. That measurement found secondary text over the thin ring at 4.39:1, so the circles were
+   lightened.
+6. The see-through top bar let scrolled text show behind its own. It got the same fixed
+   background as the page instead.
+7. `npm run check`, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0068. Through the tokens, every screen changes at once, and the components stay
+as they were.
+
+**How to do this by hand**
+Open `/` and `/?view=reviews` in light and dark: a lavender or navy page, soft white or navy
+cards, indigo accents, and circles at the top right that continue behind the top bar.
+
 ### 2026-09-24 · Only the run's reference under each title in My reviews
 
 **Goal**

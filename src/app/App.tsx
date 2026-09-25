@@ -34,7 +34,7 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(shouldShowIntro)
   return (
     <>
-      <main className="min-h-screen bg-bg">
+      <main className="page-decor min-h-screen bg-bg">
         {view === 'reviews' ? (
           <MyReviews runHref={runHref} />
         ) : (

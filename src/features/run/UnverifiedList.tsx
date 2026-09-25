@@ -37,7 +37,7 @@ export function UnverifiedList({ run }: UnverifiedListProps) {
   return (
     <section
       aria-labelledby="unverified-heading"
-      className="flex flex-col gap-[var(--space-3)] rounded-lg border border-border-subtle bg-surface p-[var(--space-4)]"
+      className="flex flex-col gap-[var(--space-3)] rounded-lg border border-border-subtle bg-surface shadow-card p-[var(--space-4)]"
     >
       <SectionHeading
         id="unverified-heading"

@@ -6,6 +6,29 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0069 · Deeper, brighter accents in dark mode
+
+**Context.** In dark mode, the progress bars, the selected tab's underline, "Needs your
+review" and the tab-icon discs looked washed out. The user asked for them deeper and brighter.
+
+**Options.** (a) One more saturated indigo for everything. It would have to stay light enough
+for text, so the bars would stay pale. (b) A brighter amber and brighter discs, plus a second,
+deeper indigo only for fills and underlines, which need 3:1, not 4.5:1.
+
+**Choice.** (b), dark theme only:
+- `--indigo-dark` is `#8a9dff` (text and links: 4.9:1 or more on every dark surface, over the
+  circles too).
+- `--color-primary-strong` is new: the same as primary in light, `#6b7fff` in dark (4.1–5.3:1).
+  It's used for the progress bars and the selected tab's underline.
+- `--status-amber-dark` is `#ffb224` (6.9:1 or more, and 7.5:1 on its own tint).
+- The tab discs get their own dark values: `#ff9a1f`, `#4f8cff`, `#ff5a5f`, `#2ec46b`.
+
+**Consequence.** Light mode is unchanged, except the amber dot next to "things to solve",
+which shares the dark amber in both themes (0053). The discs' white icons are decoration next
+to their label, as before.
+
+---
+
 ## 0068 · A cool lavender-blue look across the app
 
 **Context.** The user shared a mockup and asked for its colours and style across the whole

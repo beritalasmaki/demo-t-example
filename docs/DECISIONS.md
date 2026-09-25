@@ -6,6 +6,48 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0068 · A cool lavender-blue look across the app
+
+**Context.** The user shared a mockup and asked for its colours and style across the whole
+site. The mockup has:
+- a lavender-blue page;
+- white cards with soft corners and hardly any shadow;
+- indigo-blue icons, links, step numbers and timeline dots;
+- a blue disc, a mint disc and thin rings at the top right, behind everything.
+The fonts (Raleway and Montserrat) and the layout were already the same.
+
+**Options.** (a) Restyle components one by one. (b) Change the tokens, and add only what the
+tokens can't express: the circles, and the card shadow.
+
+**Choice.** (b):
+- **Neutrals:** tinted cool blue. The page is `--page-light` `#eef1fb` in light and
+  `--page-dark` `#111526` in dark.
+- **Brand:** violet becomes indigo-blue (`--indigo-*`: `#3d55d4` light, `#93a5f7` dark).
+- **Cards:** `--radius-lg` goes to 0.875rem and `--radius-md` to 0.5rem, and cards get
+  `shadow-card`, a faint page-tinted shadow. It's flatter in dark.
+- **Circles:** the `page-decor` utility, in `--color-decor-*` tokens, drawn as background
+  gradients on `<main>`.
+  - They're gradients, not an SVG element: with the SVG behind the cards, axe could not find
+    any text's background.
+  - They're fixed to the window, and the run page's sticky top bar repeats them. The bar then
+    lines up with the page and still covers content scrolling under it. A see-through bar was
+    tried and dropped, because scrolled card text showed through behind the bar's text.
+- **Contrast:**
+  - Every text colour clears 4.5:1 on the page, surface and raised surface, in both themes.
+  - The light circles were lightened until secondary text, links and amber text clear 4.5:1
+    over each of them. The first values left the thin ring at 4.39:1.
+  - The accessibility spec now measures text over the circles against the page and every
+    circle colour, and takes the worst case. Any other undecided result still fails.
+
+**Consequence.** Components did not change, apart from the shadow class on cards and the top
+bar. Two limits:
+- The teal accent is under 3:1 on the new page (2.94:1). No component uses it; it would need a
+  darker value first.
+- Safari on iOS ignores `background-attachment: fixed`, so there the circles scroll with the
+  page and the top bar's copy stays put. The two may not line up. It's decoration only.
+
+---
+
 ## 0067 · My reviews rows show only the run's reference under the title
 
 **Context.** Under each run's title, the table showed its id, the system and an environment

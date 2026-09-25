@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { PageDecor } from '../components/PageDecor'
 import { MyReviews } from '../features/run/MyReviews'
 import { RunReviewPage } from '../features/run/RunReviewPage'
 import { shouldShowIntro } from './intro'
@@ -35,8 +34,7 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(shouldShowIntro)
   return (
     <>
-      <main className="relative isolate min-h-screen overflow-x-clip bg-bg">
-        <PageDecor />
+      <main className="page-decor min-h-screen bg-bg">
         {view === 'reviews' ? (
           <MyReviews runHref={runHref} />
         ) : (

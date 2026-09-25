@@ -107,10 +107,11 @@
   --indigo-tint-dark: #1f2748;
   --indigo-tint-border-dark: #33407a;
 
-  /* The page's decorative circles, top right (0068). Never text, never a status. */
-  --decor-disc-light: #d5e0fd;
-  --decor-mint-light: #c9f1e4;
-  --decor-line-light: #c9d3f2;
+  /* The page's decorative circles, top right (0068). Never text, never a status. Light
+   * enough that every text colour still clears 4.5:1 over each of them. */
+  --decor-disc-light: #dde5fd;
+  --decor-mint-light: #d4f4e8;
+  --decor-line-light: #dae1f7;
   --decor-disc-dark: #1c2650;
   --decor-mint-dark: #143a35;
   --decor-line-dark: #28325c;

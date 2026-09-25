@@ -17,32 +17,39 @@
 
 :root {
   /*
-   * Neutral ramp, lightest to darkest, numbered by position rather than an evenly
-   * spaced scale — these are exactly the values the product's neutral tokens need,
+   * Neutral ramp, lightest to darkest, tinted cool blue to match the page (0068), numbered
+   * by position rather than an evenly spaced scale — these are exactly the values the product's neutral tokens need,
    * not a generated palette. Several are shared between the two themes on purpose
    * (--neutral-1 is both light bg and dark text-primary; --neutral-12 is both
    * light text-primary and dark surface).
    */
   --neutral-0: #ffffff;
-  --neutral-1: #fafafa;
-  --neutral-2: #f5f5f5;
-  --neutral-3: #e4e4e4;
-  --neutral-4: #cacaca;
-  --neutral-5: #b0b0b0;
-  --neutral-6: #9c9c9c;
-  --neutral-7: #6e6e6e;
-  --neutral-8: #5c5c5c;
-  --neutral-9: #444444;
-  --neutral-10: #333333;
-  --neutral-11: #2b2b2b;
-  --neutral-12: #222222;
-  --neutral-13: #1a1a1a;
+  --neutral-1: #f7f8fc;
+  --neutral-2: #f1f3f9;
+  --neutral-3: #e2e6f0;
+  --neutral-4: #c8cedd;
+  --neutral-5: #aab1c4;
+  --neutral-6: #959cb0;
+  --neutral-7: #6b7288;
+  --neutral-8: #565d72;
+  --neutral-9: #414759;
+  --neutral-10: #30354a;
+  --neutral-11: #262b3d;
+  --neutral-12: #1d2233;
+  --neutral-13: #141828;
 
-  /* Brand — violet (primary) */
-  --violet-light: #5b4fc7;
-  --violet-light-hover: #4a3fa8;
-  --violet-dark: #9c90e8;
-  --violet-dark-hover: #b0a6ee;
+  /*
+   * The page behind the cards (docs/DECISIONS.md, 0068): a cool lavender-blue in light, a deep
+   * navy in dark, so white or navy cards stand off it without heavy borders.
+   */
+  --page-light: #eef1fb;
+  --page-dark: #111526;
+
+  /* Brand — indigo-blue (primary) */
+  --indigo-light: #3d55d4;
+  --indigo-light-hover: #2f44b3;
+  --indigo-dark: #93a5f7;
+  --indigo-dark-hover: #adbbf9;
 
   /* Brand — teal-green (accent) */
   --teal-light: #1e9e8c;
@@ -94,11 +101,19 @@
   --status-blue-tint-fg-light: #1f5fbf; /* 5.02:1 on the tint above */
   --status-blue-tint-bg-dark: #152338; /* paired with --status-blue-dark */
 
-  /* A light wash of the brand violet: selected rows, the active tab's count. */
-  --violet-tint-light: #eeecfa;
-  --violet-tint-border-light: #d9d5f3;
-  --violet-tint-dark: #26223f;
-  --violet-tint-border-dark: #3a3466;
+  /* A light wash of the brand indigo: selected rows, the active tab's count. */
+  --indigo-tint-light: #eaeefd;
+  --indigo-tint-border-light: #d2daf8;
+  --indigo-tint-dark: #1f2748;
+  --indigo-tint-border-dark: #33407a;
+
+  /* The page's decorative circles, top right (0068). Never text, never a status. */
+  --decor-disc-light: #d5e0fd;
+  --decor-mint-light: #c9f1e4;
+  --decor-line-light: #c9d3f2;
+  --decor-disc-dark: #1c2650;
+  --decor-mint-dark: #143a35;
+  --decor-line-dark: #28325c;
 
   /* The coloured circles behind the My reviews tab icons: decorative, beside a text label. */
   --mark-amber: #f0a04b;
@@ -117,7 +132,7 @@
 
 @theme {
   /* Surfaces */
-  --color-bg: var(--neutral-1);
+  --color-bg: var(--page-light);
   --color-surface: var(--neutral-0);
   --color-surface-raised: var(--neutral-2);
 
@@ -139,8 +154,8 @@
    * light, near-black in dark), because the dark-theme brand colours are
    * lightened for their own contrast and need a dark foreground in turn.
    */
-  --color-primary: var(--violet-light);
-  --color-primary-hover: var(--violet-light-hover);
+  --color-primary: var(--indigo-light);
+  --color-primary-hover: var(--indigo-light-hover);
   --color-primary-foreground: var(--neutral-0);
   --color-accent: var(--teal-light);
   --color-accent-hover: var(--teal-light-hover);
@@ -177,8 +192,8 @@
   /* My reviews (docs/DECISIONS.md, 0060). */
   --color-status-info-tint-bg: var(--status-blue-tint-bg-light);
   --color-status-info-tint-fg: var(--status-blue-tint-fg-light);
-  --color-primary-tint: var(--violet-tint-light);
-  --color-primary-tint-border: var(--violet-tint-border-light);
+  --color-primary-tint: var(--indigo-tint-light);
+  --color-primary-tint-border: var(--indigo-tint-border-light);
   --color-mark-pending: var(--mark-amber);
   --color-mark-requested: var(--mark-blue);
   --color-mark-declined: var(--mark-red);
@@ -187,7 +202,7 @@
   /* A toast is the inverse of the page: dark on light, light on dark. */
   --color-toast-bg: var(--neutral-12);
   --color-toast-fg: var(--neutral-1);
-  --color-toast-link: var(--violet-dark);
+  --color-toast-link: var(--indigo-dark);
   --color-toast-icon: var(--status-green-dark);
 
   /*
@@ -201,10 +216,18 @@
   /* The spotlight's dimmed surroundings, the same in both themes (docs/DECISIONS.md, 0056). */
   --color-spotlight-scrim: rgb(0 0 0 / 0.5);
 
-  /* Radius */
+  /* The page's decorative circles (0068). */
+  --color-decor-disc: var(--decor-disc-light);
+  --color-decor-mint: var(--decor-mint-light);
+  --color-decor-line: var(--decor-line-light);
+
+  /* Radius. Cards are rounded-lg; buttons and fields rounded-md (0068). */
   --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
+
+  /* A card's lift off the page: faint, and tinted like the page, never grey (0068). */
+  --shadow-card: 0 1px 2px rgb(29 34 80 / 0.04), 0 6px 20px rgb(29 34 80 / 0.05);
 
   /*
    * Type. Raleway for headings, buttons and the wordmark; Montserrat for body and
@@ -260,7 +283,7 @@
  */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-bg: var(--neutral-13);
+    --color-bg: var(--page-dark);
     --color-surface: var(--neutral-12);
     --color-surface-raised: var(--neutral-11);
 
@@ -271,8 +294,8 @@
     --color-text-secondary: var(--neutral-5);
     --color-text-disabled: var(--neutral-7);
 
-    --color-primary: var(--violet-dark);
-    --color-primary-hover: var(--violet-dark-hover);
+    --color-primary: var(--indigo-dark);
+    --color-primary-hover: var(--indigo-dark-hover);
     --color-primary-foreground: var(--neutral-13);
     --color-accent: var(--teal-dark);
     --color-accent-hover: var(--teal-dark-hover);
@@ -292,17 +315,21 @@
     --color-status-fail-tint-fg: var(--status-red-dark);
     --color-status-info-tint-bg: var(--status-blue-tint-bg-dark);
     --color-status-info-tint-fg: var(--status-blue-dark);
-    --color-primary-tint: var(--violet-tint-dark);
-    --color-primary-tint-border: var(--violet-tint-border-dark);
+    --color-primary-tint: var(--indigo-tint-dark);
+    --color-primary-tint-border: var(--indigo-tint-border-dark);
     --color-toast-bg: var(--neutral-2);
     --color-toast-fg: var(--neutral-12);
-    --color-toast-link: var(--violet-light);
+    --color-toast-link: var(--indigo-light);
     --color-toast-icon: var(--status-green-light);
+    --color-decor-disc: var(--decor-disc-dark);
+    --color-decor-mint: var(--decor-mint-dark);
+    --color-decor-line: var(--decor-line-dark);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
   }
 }
 
 :root[data-theme='dark'] {
-  --color-bg: var(--neutral-13);
+  --color-bg: var(--page-dark);
   --color-surface: var(--neutral-12);
   --color-surface-raised: var(--neutral-11);
 
@@ -313,8 +340,8 @@
   --color-text-secondary: var(--neutral-5);
   --color-text-disabled: var(--neutral-7);
 
-  --color-primary: var(--violet-dark);
-  --color-primary-hover: var(--violet-dark-hover);
+  --color-primary: var(--indigo-dark);
+  --color-primary-hover: var(--indigo-dark-hover);
   --color-primary-foreground: var(--neutral-13);
   --color-accent: var(--teal-dark);
   --color-accent-hover: var(--teal-dark-hover);
@@ -334,12 +361,16 @@
   --color-status-fail-tint-fg: var(--status-red-dark);
   --color-status-info-tint-bg: var(--status-blue-tint-bg-dark);
   --color-status-info-tint-fg: var(--status-blue-dark);
-  --color-primary-tint: var(--violet-tint-dark);
-  --color-primary-tint-border: var(--violet-tint-border-dark);
+  --color-primary-tint: var(--indigo-tint-dark);
+  --color-primary-tint-border: var(--indigo-tint-border-dark);
   --color-toast-bg: var(--neutral-2);
   --color-toast-fg: var(--neutral-12);
-  --color-toast-link: var(--violet-light);
+  --color-toast-link: var(--indigo-light);
   --color-toast-icon: var(--status-green-light);
+  --color-decor-disc: var(--decor-disc-dark);
+  --color-decor-mint: var(--decor-mint-dark);
+  --color-decor-line: var(--decor-line-dark);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
 }
 
 /*

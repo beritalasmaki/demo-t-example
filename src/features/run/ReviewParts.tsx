@@ -46,11 +46,11 @@ export function StageSteps({ stage, className }: { stage: ReviewStage; className
           className={cn(
             'h-1.5 flex-1 rounded-full',
             n < step
-              ? 'bg-primary'
+              ? 'bg-primary-strong'
               : n === step
                 ? stage === 'review'
                   ? 'bg-status-waived'
-                  : 'bg-primary/50'
+                  : 'bg-primary-strong/50'
                 : 'bg-border-subtle',
           )}
         />

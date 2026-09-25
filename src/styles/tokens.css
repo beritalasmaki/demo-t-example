@@ -48,8 +48,10 @@
   /* Brand — indigo-blue (primary) */
   --indigo-light: #3d55d4;
   --indigo-light-hover: #2f44b3;
-  --indigo-dark: #93a5f7;
-  --indigo-dark-hover: #adbbf9;
+  --indigo-dark: #8a9dff;
+  --indigo-dark-hover: #a3b2ff;
+  /* Deeper, for fills and underlines only, not text: 4.1–5.3:1 on the dark surfaces (0069). */
+  --indigo-dark-strong: #6b7fff;
 
   /* Brand — teal-green (accent) */
   --teal-light: #1e9e8c;
@@ -67,7 +69,7 @@
   --status-red-light: #b3261e;
   --status-red-dark: #f2897f;
   --status-amber-light: #8a5a00;
-  --status-amber-dark: #e0a94d;
+  --status-amber-dark: #ffb224;
   --status-slate-light: #6b7280;
   --status-slate-dark: #9aa1ac;
   --status-blue-light: #3d5a80;
@@ -91,7 +93,7 @@
   --status-green-tint-fg-light: #1a7a3e; /* 4.81:1 on the tint above — new, see comment */
   --status-green-tint-bg-dark: #16301f; /* paired with --status-green-dark: 7.87:1 */
   --status-amber-tint-bg-light: #fdf3d9; /* paired with --status-amber-light: 5.36:1 */
-  --status-amber-tint-bg-dark: #3a2c0a; /* paired with --status-amber-dark: 6.44:1 */
+  --status-amber-tint-bg-dark: #3a2c0a; /* paired with --status-amber-dark: 7.54:1 */
   /* Red tint — the Low confidence chip and Reject run's hover (docs/DECISIONS.md, 0039 and
    * 0041). Both reuse the existing red as foreground: 5.67:1 light, 6.57:1 dark. */
   --status-red-tint-bg-light: #fcebea;
@@ -121,6 +123,11 @@
   --mark-blue: #6f9be0;
   --mark-red: #e27a73;
   --mark-green: #5fb07e;
+  /* Deeper and brighter on the dark page, so they don't fade into it (0069). */
+  --mark-amber-dark: #ff9a1f;
+  --mark-blue-dark: #4f8cff;
+  --mark-red-dark: #ff5a5f;
+  --mark-green-dark: #2ec46b;
 
   /*
    * The signature's drawing stroke in the one-time welcome intro (src/app/WelcomeIntro.tsx,
@@ -158,6 +165,9 @@
   --color-primary: var(--indigo-light);
   --color-primary-hover: var(--indigo-light-hover);
   --color-primary-foreground: var(--neutral-0);
+  /* The brand as a fill or an underline — progress bars, the selected tab. The same as primary
+   * in light; deeper in dark, where text-safe primary has to stay light (0069). */
+  --color-primary-strong: var(--indigo-light);
   --color-accent: var(--teal-light);
   --color-accent-hover: var(--teal-light-hover);
   --color-accent-foreground: var(--neutral-13);
@@ -297,6 +307,7 @@
 
     --color-primary: var(--indigo-dark);
     --color-primary-hover: var(--indigo-dark-hover);
+    --color-primary-strong: var(--indigo-dark-strong);
     --color-primary-foreground: var(--neutral-13);
     --color-accent: var(--teal-dark);
     --color-accent-hover: var(--teal-dark-hover);
@@ -322,6 +333,14 @@
     --color-toast-fg: var(--neutral-12);
     --color-toast-link: var(--indigo-light);
     --color-toast-icon: var(--status-green-light);
+    --color-mark-pending: var(--mark-amber-dark);
+    --color-mark-requested: var(--mark-blue-dark);
+    --color-mark-declined: var(--mark-red-dark);
+    --color-mark-approved: var(--mark-green-dark);
+    --color-mark-pending: var(--mark-amber-dark);
+    --color-mark-requested: var(--mark-blue-dark);
+    --color-mark-declined: var(--mark-red-dark);
+    --color-mark-approved: var(--mark-green-dark);
     --color-decor-disc: var(--decor-disc-dark);
     --color-decor-mint: var(--decor-mint-dark);
     --color-decor-line: var(--decor-line-dark);
@@ -343,6 +362,7 @@
 
   --color-primary: var(--indigo-dark);
   --color-primary-hover: var(--indigo-dark-hover);
+  --color-primary-strong: var(--indigo-dark-strong);
   --color-primary-foreground: var(--neutral-13);
   --color-accent: var(--teal-dark);
   --color-accent-hover: var(--teal-dark-hover);
@@ -368,6 +388,10 @@
   --color-toast-fg: var(--neutral-12);
   --color-toast-link: var(--indigo-light);
   --color-toast-icon: var(--status-green-light);
+  --color-mark-pending: var(--mark-amber-dark);
+  --color-mark-requested: var(--mark-blue-dark);
+  --color-mark-declined: var(--mark-red-dark);
+  --color-mark-approved: var(--mark-green-dark);
   --color-decor-disc: var(--decor-disc-dark);
   --color-decor-mint: var(--decor-mint-dark);
   --color-decor-line: var(--decor-line-dark);

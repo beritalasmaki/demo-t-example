@@ -1,4 +1,5 @@
 import { Activity, Info } from 'lucide-react'
+import { Badge } from '../../components/ui/badge'
 import { StatusBadge } from '../../components/StatusBadge'
 import { formatRunStatusLabel } from '../../lib/format'
 import { describeDecision, describePendingRun } from '../../lib/story'
@@ -35,10 +36,10 @@ function StatusPill({ status }: { status: RunStatus }) {
   if (status === 'changes_requested')
     return <StatusBadge tone="warning" label={formatRunStatusLabel(status)} />
   return (
-    <span className="inline-flex items-center gap-[var(--space-2)] rounded-full border border-border bg-surface-raised px-[var(--space-3)] py-[var(--space-1)] text-badge-label font-semibold font-heading whitespace-nowrap text-text-primary">
+    <Badge>
       <span aria-hidden className={cn('h-2 w-2 rounded-full', STATUS_DOT[status])} />
       {formatRunStatusLabel(status)}
-    </span>
+    </Badge>
   )
 }
 

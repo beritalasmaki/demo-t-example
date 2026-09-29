@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/button'
+import { Badge } from '../../components/ui/badge'
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useId } from 'react'
 import type { TimeRange } from '../../lib/reviews'
@@ -98,10 +99,10 @@ export function ReviewsToolbar({
           <SlidersHorizontal aria-hidden className="h-4 w-4" />
           Filters
           {filterCount > 0 && (
-            <span className="rounded-full bg-primary px-[var(--space-2)] py-px text-caption font-semibold text-primary-foreground">
+            <Badge variant="primary" size="sm" className="gap-0">
               {filterCount}
               <span className="sr-only"> on</span>
-            </span>
+            </Badge>
           )}
           {open ? (
             <ChevronUp aria-hidden className="h-3 w-3" />

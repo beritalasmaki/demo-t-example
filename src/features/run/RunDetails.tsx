@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react'
+import { Badge } from '../../components/ui/badge'
 import type { Ref } from 'react'
 import { confidenceLevel, resolveConfidenceAreas } from '../../lib/confidence'
 import {
@@ -102,10 +103,14 @@ export function RunDetails({ run, className, tabIndex, ref }: RunDetailsProps) {
       <Group title="The change">
         <Field label={released ? 'Where it went' : 'Where it would go'}>
           <span className={VALUE}>{run.target.system}</span>
-          <span className="inline-flex items-center gap-[var(--space-2)] rounded-full border border-border px-[var(--space-2)] py-[var(--space-1)] text-caption font-semibold font-heading leading-none tracking-wide whitespace-nowrap text-text-primary uppercase">
+          <Badge
+            variant="outline"
+            size="sm"
+            className="py-[var(--space-1)] leading-none font-heading tracking-wide uppercase"
+          >
             <span aria-hidden className={cn('h-1.5 w-1.5 rounded-full', env.dot)} />
             {run.target.environment}
-          </span>
+          </Badge>
           <span className={HELP}>{env.help}</span>
         </Field>
         <Field label={released ? 'What was released' : 'What would be released'}>

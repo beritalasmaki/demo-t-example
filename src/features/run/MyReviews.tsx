@@ -12,6 +12,7 @@ import {
   RefreshCw,
   X,
 } from 'lucide-react'
+import { Badge } from '../../components/ui/badge'
 import { useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import { LoadingState } from '../../components/LoadingState'
@@ -437,10 +438,13 @@ function ReviewsBoard({
             </p>
           </div>
           <div className="flex items-center gap-[var(--space-3)]">
-            <span className="inline-flex items-center gap-[var(--space-2)] rounded-full bg-status-waived-tint-bg px-[var(--space-4)] py-[var(--space-2)] text-meta leading-none font-semibold whitespace-nowrap text-status-waived-tint-fg">
+            <Badge
+              variant="warning"
+              className="px-[var(--space-4)] py-[var(--space-2)] text-meta leading-none font-body"
+            >
               <span aria-hidden className="h-2 w-2 rounded-full bg-status-waived-tint-fg" />
               {needsYou} need{needsYou === 1 ? 's' : ''} your review
-            </span>
+            </Badge>
             <Button
               variant="outline"
               onClick={() => openView('archive')}
@@ -449,9 +453,9 @@ function ReviewsBoard({
             >
               <Archive aria-hidden className="h-4 w-4" />
               Archive
-              <span className="rounded-full bg-surface-raised px-[var(--space-2)] py-px text-caption font-semibold text-text-secondary">
+              <Badge variant="muted" size="sm">
                 {archived.length}
-              </span>
+              </Badge>
             </Button>
             <ThemeToggle />
           </div>
@@ -505,16 +509,9 @@ function ReviewsBoard({
                     <Icon aria-hidden className="h-4 w-4 text-text-secondary" />
                   )}
                   {label}
-                  <span
-                    className={cn(
-                      'rounded-full px-[var(--space-2)] py-px text-caption font-semibold font-body',
-                      tab === value
-                        ? 'bg-primary-tint text-primary'
-                        : 'bg-surface-raised text-text-secondary',
-                    )}
-                  >
+                  <Badge variant={tab === value ? 'primary-tint' : 'muted'} size="sm">
                     {counts[value]}
-                  </span>
+                  </Badge>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -607,9 +604,9 @@ function ReviewsBoard({
             <h2 className="flex items-center gap-[var(--space-3)] text-section-heading font-bold font-heading text-text-primary">
               <Archive aria-hidden className="h-5 w-5 text-primary" />
               Also found in the archive
-              <span className="rounded-full bg-surface-raised px-[var(--space-2)] py-px text-caption font-semibold text-text-secondary">
+              <Badge variant="muted" size="sm">
                 {archivedRuns.length}
-              </span>
+              </Badge>
             </h2>
             <p className="text-body text-text-secondary">
               Archived runs that match “{filters.query.trim()}”. They are shown here only while you

@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/button'
+import { Badge } from '../../components/ui/badge'
 import { Checkbox } from '../../components/ui/checkbox'
 import {
   ArrowDown,
@@ -173,21 +174,21 @@ export function SelectBox({
 function OpenItemsCell({ run }: { run: Run }) {
   const count = openItemCount(run)
   const status = reviewStatus(run)
-  const chip =
-    'rounded-full px-[var(--space-3)] py-[var(--space-1)] text-caption font-semibold font-body whitespace-nowrap'
+  const chip = 'px-[var(--space-3)] py-[var(--space-1)]'
   const muted = 'text-meta whitespace-nowrap text-text-secondary'
   if (count === null) return <span className={muted}>Not known yet</span>
   if (count === 0) return <span className={muted}>None</span>
-  if (status === 'approved') {
+  if (status === 'approved' || status === 'declined') {
     return (
-      <span className={cn(chip, 'bg-surface-raised text-text-secondary')}>{count} accepted</span>
+      <Badge variant="muted" size="sm" className={chip}>
+        {status === 'approved' ? `${count} accepted` : count}
+      </Badge>
     )
   }
-  if (status === 'declined') {
-    return <span className={cn(chip, 'bg-surface-raised text-text-secondary')}>{count}</span>
-  }
   return (
-    <span className={cn(chip, 'bg-status-waived-tint-bg text-status-waived-tint-fg')}>{count}</span>
+    <Badge variant="warning" size="sm" className={chip}>
+      {count}
+    </Badge>
   )
 }
 

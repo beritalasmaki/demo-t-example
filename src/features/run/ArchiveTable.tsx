@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/button'
+import { Badge } from '../../components/ui/badge'
 import { Lock, RotateCcw, RotateCw } from 'lucide-react'
 import type { ArchiveSortKey, ManualArchive, SortDirection } from '../../lib/reviews'
 import { ARCHIVE_AFTER_MONTHS, RESTORE_DAYS, archiveState, reviewStatus } from '../../lib/reviews'
@@ -164,12 +165,14 @@ export function ArchiveTable({
               <td className={cn(CELL, 'text-right')}>
                 <span className="inline-flex items-center gap-[var(--space-2)]">
                   {sent ? (
-                    <span
+                    <Badge
+                      variant="primary-tint"
+                      size="sm"
                       title={`Waiting for ${run.requestedBy} to answer`}
-                      className="rounded-full bg-primary-tint px-[var(--space-3)] py-[var(--space-2)] text-caption leading-none font-semibold whitespace-nowrap text-primary"
+                      className="px-[var(--space-3)] py-[var(--space-2)] leading-none"
                     >
                       Request sent
-                    </span>
+                    </Badge>
                   ) : (
                     <Button
                       variant="outline"

@@ -7,19 +7,22 @@ import { expect, test } from './fixtures'
  * mouse. Every stop on the way must show a visible focus outline.
  */
 
-/** What has focus, and whether it shows: the element's own outline, or — for the tick boxes,
- * whose native input is visually hidden — the outline on its label. */
+/** What has focus, and whether it shows: the element's own outline, or — for a tick box that
+ * shows focus around its whole sentence, like the decision's open items — its label's. */
 function focused(page: Page) {
   return page.evaluate(() => {
     const element = document.activeElement as HTMLElement
-    const shown = element.matches('input[type="checkbox"]')
-      ? (element.closest('label') ?? element)
-      : element
-    const style = shown ? getComputedStyle(shown) : null
+    const hasOutline = (el: Element | null) => {
+      if (!el) return false
+      const style = getComputedStyle(el)
+      return style.outlineStyle !== 'none' && style.outlineWidth !== '0px'
+    }
+    const checkbox = element.matches('input[type="checkbox"], [role="checkbox"]')
+    const label = element.closest('label')
     return {
       name: (element.getAttribute('aria-label') ?? element.textContent ?? '').trim(),
       role: element.getAttribute('role') ?? element.tagName.toLowerCase(),
-      outlined: style != null && style.outlineStyle !== 'none' && style.outlineWidth !== '0px',
+      outlined: hasOutline(element) || (checkbox && hasOutline(label)),
     }
   })
 }
@@ -124,7 +127,7 @@ test('My reviews, keyboard only', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Move to the archive?' })).toBeVisible()
   await tabTo(page, /^Move to the archive$/)
   await keys.press('Enter')
-  await expect(page.getByRole('status')).toContainText('Archived')
+  await expect(page.getByRole('region', { name: /Notifications/ })).toContainText('Archived')
   // The row is gone; focus went to its table, not to <body>.
   await expect(page.getByRole('table', { name: /runs$/ })).toBeFocused()
 

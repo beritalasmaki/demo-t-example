@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { Clock } from 'lucide-react'
 import { isSystemActor } from '../../lib/actors'
 import { formatClock, formatClockRange, formatCount, formatGateResultLabel } from '../../lib/format'
@@ -34,8 +35,8 @@ const OUTCOME_DOT = {
   rejected: 'bg-status-fail',
 } as const
 
-const LINK =
-  'cursor-pointer font-medium font-body text-primary underline-offset-2 hover:underline focus-visible:outline-2'
+/** A link-styled button inside the story's running text: it keeps the sentence's size. */
+const LINK = 'text-[length:inherit] leading-[inherit] font-medium font-body'
 
 function Step({
   time,
@@ -89,11 +90,16 @@ function StepBody({
       <p className={PROSE}>
         {step.text}{' '}
         {step.linkToSteps && (
-          <button type="button" className={LINK} onClick={() => onShowSteps(step.events[0].id)}>
+          <Button
+            variant="link"
+            size="inline"
+            className={LINK}
+            onClick={() => onShowSteps(step.events[0].id)}
+          >
             {step.events.length >= 10
               ? `Show all ${step.events.length} steps`
               : formatCount(step.events.length, 'step')}
-          </button>
+          </Button>
         )}
       </p>
 

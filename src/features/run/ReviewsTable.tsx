@@ -1,3 +1,15 @@
+import { Button } from '../../components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table'
+import { Badge } from '../../components/ui/badge'
+import { Checkbox } from '../../components/ui/checkbox'
 import {
   ArrowDown,
   ArrowRight,
@@ -29,7 +41,7 @@ import { ReviewStatusPill, RunCell, StageSteps } from './ReviewParts'
 /**
  * The My reviews table (docs/DECISIONS.md, 0060): one row per run, with its type, where it
  * is now, its open items, who asked, when it last changed, and what the reviewer can do.
- * A real `<table>`: column headers are announced with every cell, and the sorted column says
+ * A real `<Table>`: column headers are announced with every cell, and the sorted column says
  * so through `aria-sort`.
  */
 
@@ -80,7 +92,7 @@ export function ColumnHeader<K extends string>({
   const SortIcon = dir === 'asc' ? ArrowUp : dir === 'desc' ? ArrowDown : ArrowUpDown
 
   return (
-    <th
+    <TableHead
       scope="col"
       aria-sort={dir === 'asc' ? 'ascending' : dir === 'desc' ? 'descending' : undefined}
       className={cn(
@@ -103,50 +115,43 @@ export function ColumnHeader<K extends string>({
             </InfoTip>
           )}
           {sort && next && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => onSort?.(sort.key, next)}
               aria-label={`Order by ${label.toLowerCase()}: ${nextText}`}
               title={`Order by ${label.toLowerCase()}: ${nextText}`}
               className={cn(
-                'inline-flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-sm',
-                'hover:bg-border-subtle hover:text-text-primary',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring',
+                'h-5 w-5 rounded-sm hover:bg-border-subtle hover:text-text-primary focus-visible:outline-offset-1',
                 active ? 'bg-primary-tint text-primary' : 'text-text-secondary',
               )}
             >
               <SortIcon aria-hidden className="h-3 w-3" strokeWidth={2.5} />
-            </button>
+            </Button>
           )}
         </span>
       )}
-    </th>
+    </TableHead>
   )
 }
 
 export const CELL =
   'px-[var(--space-2)] py-[var(--space-3)] align-middle first:pl-[var(--space-5)] last:pr-[var(--space-5)]'
 
-export const ICON_BUTTON =
-  'inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border bg-surface text-text-primary ' +
-  'hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
-
 /** The row's "decision details" button: first in the row, before the tick box. */
 export function DetailsButton({ run, onClick }: { run: Run; onClick: () => void }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
+      size="icon"
       onClick={onClick}
       aria-haspopup="dialog"
       aria-label={`Decision details: ${run.initiative}`}
       title="Show decision details"
-      className={cn(
-        ICON_BUTTON,
-        'h-7 w-7 border-border-subtle text-text-secondary hover:bg-primary-tint',
-      )}
+      className="h-7 w-7 border-border-subtle text-text-secondary hover:bg-primary-tint"
     >
       <FileText aria-hidden className="h-3.5 w-3.5" />
-    </button>
+    </Button>
   )
 }
 
@@ -164,14 +169,12 @@ export function SelectBox({
   onToggle: () => void
 }) {
   return (
-    <input
-      type="checkbox"
+    <Checkbox
       checked={checked}
       disabled={disabled}
-      onChange={onToggle}
+      onCheckedChange={onToggle}
       aria-label={`Select “${run.initiative}”`}
       title={disabled ? disabledReason : 'Select for a report or to archive'}
-      className="h-4 w-4 cursor-pointer accent-primary disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
     />
   )
 }
@@ -180,21 +183,21 @@ export function SelectBox({
 function OpenItemsCell({ run }: { run: Run }) {
   const count = openItemCount(run)
   const status = reviewStatus(run)
-  const chip =
-    'rounded-full px-[var(--space-3)] py-[var(--space-1)] text-caption font-semibold font-body whitespace-nowrap'
+  const chip = 'px-[var(--space-3)] py-[var(--space-1)]'
   const muted = 'text-meta whitespace-nowrap text-text-secondary'
   if (count === null) return <span className={muted}>Not known yet</span>
   if (count === 0) return <span className={muted}>None</span>
-  if (status === 'approved') {
+  if (status === 'approved' || status === 'declined') {
     return (
-      <span className={cn(chip, 'bg-surface-raised text-text-secondary')}>{count} accepted</span>
+      <Badge variant="muted" size="sm" className={chip}>
+        {status === 'approved' ? `${count} accepted` : count}
+      </Badge>
     )
   }
-  if (status === 'declined') {
-    return <span className={cn(chip, 'bg-surface-raised text-text-secondary')}>{count}</span>
-  }
   return (
-    <span className={cn(chip, 'bg-status-waived-tint-bg text-status-waived-tint-fg')}>{count}</span>
+    <Badge variant="warning" size="sm" className={chip}>
+      {count}
+    </Badge>
   )
 }
 
@@ -276,8 +279,13 @@ export function ReviewsTable({
 }: ReviewsTableProps) {
   const header = { current: sort, onSort }
   return (
-    <table ref={ref} tabIndex={-1} className="w-full min-w-[75rem] border-collapse outline-none">
-      <caption className="sr-only">{caption}</caption>
+    <Table
+      ref={ref}
+      tabIndex={-1}
+      containerClassName="scrollbar-none"
+      className="min-w-[75rem] outline-none"
+    >
+      <TableCaption className="sr-only">{caption}</TableCaption>
       <colgroup>
         <col className="w-12" />
         <col className="w-9" />
@@ -289,8 +297,8 @@ export function ReviewsTable({
         <col className="w-36" />
         <col className="w-28" />
       </colgroup>
-      <thead className="border-b border-border-subtle bg-surface-raised">
-        <tr>
+      <TableHeader className="border-b border-border-subtle bg-surface-raised">
+        <TableRow>
           <ColumnHeader label="Details" hiddenLabel="Decision details" />
           <ColumnHeader label="Select" hiddenLabel="Select" />
           <ColumnHeader
@@ -350,19 +358,19 @@ export function ReviewsTable({
             {...header}
           />
           <ColumnHeader label="Action" info={INFO.action} align="end" />
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {runs.map((run) => {
           const finished = isFinished(run)
           const archive = archiveState(run, manual, now)
           const updated = updatedAt(run)
           return (
-            <tr key={run.id} className="border-b border-border-subtle bg-surface hover:bg-bg">
-              <td className={CELL}>
+            <TableRow key={run.id} className="border-b border-border-subtle bg-surface hover:bg-bg">
+              <TableCell className={CELL}>
                 <DetailsButton run={run} onClick={() => onDetails(run.id)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <SelectBox
                   run={run}
                   checked={selected.has(run.id)}
@@ -370,26 +378,26 @@ export function ReviewsTable({
                   disabledReason="Only approved and declined runs can be selected"
                   onToggle={() => onToggle(run.id)}
                 />
-              </td>
-              <td className={cn(CELL, 'max-w-0')}>
+              </TableCell>
+              <TableCell className={cn(CELL, 'max-w-0')}>
                 <RunCell run={run} href={runHref(run.id)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <ReviewStatusPill status={reviewStatus(run)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <StageCell run={run} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <OpenItemsCell run={run} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <ActorName
                   name={run.requestedBy}
                   className="text-meta font-medium whitespace-nowrap"
                 />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <DateCell
                   date={formatCalendarDate(updated)}
                   sub={
@@ -398,37 +406,35 @@ export function ReviewsTable({
                       : formatRelativeTime(updated, now)
                   }
                 />
-              </td>
-              <td className={cn(CELL, 'text-right')}>
+              </TableCell>
+              <TableCell className={cn(CELL, 'text-right')}>
                 {reviewStage(run) === 'review' ? (
-                  <a
-                    href={runHref(run.id)}
-                    aria-label={`Review “${run.initiative}”`}
-                    className="inline-flex items-center gap-[var(--space-2)] rounded-md border border-text-primary bg-text-primary px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-surface no-underline hover:opacity-90"
-                  >
-                    Review
-                    <ArrowRight aria-hidden className="h-3.5 w-3.5" />
-                  </a>
+                  <Button asChild size="sm" className="no-underline">
+                    <a href={runHref(run.id)} aria-label={`Review “${run.initiative}”`}>
+                      Review
+                      <ArrowRight aria-hidden className="h-3.5 w-3.5" />
+                    </a>
+                  </Button>
                 ) : finished ? (
                   <span className="inline-flex gap-[var(--space-2)]">
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => onNewRun(run.id)}
                       aria-label={`Request a new run: ${run.initiative}`}
                       title="Request a new run to fix a mistake"
-                      className={ICON_BUTTON}
                     >
                       <RotateCw aria-hidden className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => onArchive(run.id)}
                       aria-label={`Archive “${run.initiative}”`}
                       title="Archive"
-                      className={ICON_BUTTON}
                     >
                       <Archive aria-hidden className="h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                   </span>
                 ) : (
                   <span className="text-meta text-text-secondary">
@@ -436,11 +442,11 @@ export function ReviewsTable({
                     <span className="sr-only">Nothing to do yet</span>
                   </span>
                 )}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )
         })}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   )
 }

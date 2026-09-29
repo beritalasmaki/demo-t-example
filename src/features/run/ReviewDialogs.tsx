@@ -1,4 +1,9 @@
 import { Archive, ArrowRight, Download, FileBarChart, RotateCcw, RotateCw } from 'lucide-react'
+import { RadioGroup, RadioGroupSegment } from '../../components/ui/radio-group'
+import { Textarea } from '../../components/ui/textarea'
+import { Input } from '../../components/ui/input'
+import { Checkbox } from '../../components/ui/checkbox'
+import { Button } from '../../components/ui/button'
 import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Modal } from '../../components/Modal'
@@ -25,20 +30,8 @@ import { ReviewStatusPill } from './ReviewParts'
  * them is read from the run itself.
  */
 
-const PRIMARY =
-  'inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-text-primary bg-text-primary px-[var(--space-4)] py-[var(--space-3)] ' +
-  'text-body leading-none font-semibold font-heading whitespace-nowrap text-surface no-underline hover:opacity-90 ' +
-  'disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-border-subtle disabled:text-text-disabled disabled:hover:opacity-100 ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
-const SECONDARY =
-  'inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-3)] ' +
-  'text-body leading-none font-semibold font-heading whitespace-nowrap text-text-primary hover:border-text-secondary ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
 const SECTION_LABEL =
   'text-caption leading-none font-semibold font-heading tracking-wider text-text-secondary uppercase'
-const TEXTAREA =
-  'w-full resize-y rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-body font-body text-text-primary ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring'
 
 function Footer({ children }: { children: ReactNode }) {
   return (
@@ -184,19 +177,21 @@ export function DecisionDetailsDialog({
 
       <Footer>
         {isFinished(run) && (
-          <button type="button" onClick={onNewRun} className={SECONDARY}>
+          <Button variant="outline" onClick={onNewRun}>
             <RotateCw aria-hidden className="h-3.5 w-3.5" />
             Request a new run
-          </button>
+          </Button>
         )}
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Close
-        </button>
-        <a href={href} className={PRIMARY}>
-          Open the full review
-          <ArrowRight aria-hidden className="h-3.5 w-3.5" />
-        </a>
+        </Button>
+        <Button asChild className="no-underline">
+          <a href={href}>
+            Open the full review
+            <ArrowRight aria-hidden className="h-3.5 w-3.5" />
+          </a>
+        </Button>
       </Footer>
     </Modal>
   )
@@ -246,27 +241,25 @@ export function NewRunDialog({ run, onClose, onSend }: NewRunDialogProps) {
         <label htmlFor={wrongId} className="text-meta font-semibold text-text-primary">
           What went wrong? <span className="font-normal text-text-secondary">(required)</span>
         </label>
-        <textarea
+        <Textarea
           id={wrongId}
           rows={3}
           required
           value={whatWentWrong}
           onChange={(event) => setWhatWentWrong(event.target.value)}
           placeholder="For example: the refund amount is rounded the wrong way for Swedish orders."
-          className={TEXTAREA}
         />
       </div>
       <div className="flex flex-col gap-[var(--space-2)]">
         <label htmlFor={doId} className="text-meta font-semibold text-text-primary">
           What should the new run do?
         </label>
-        <textarea
+        <Textarea
           id={doId}
           rows={2}
           value={whatToDo}
           onChange={(event) => setWhatToDo(event.target.value)}
           placeholder="For example: round to the nearest öre and add a test for it."
-          className={TEXTAREA}
         />
       </div>
       <div className="flex flex-col gap-[var(--space-3)] border-t border-border-subtle pt-[var(--space-4)]">
@@ -296,17 +289,15 @@ export function NewRunDialog({ run, onClose, onSend }: NewRunDialogProps) {
       </div>
       <Footer>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           disabled={!ready}
           onClick={() => onSend({ whatWentWrong: whatWentWrong.trim(), whatToDo: whatToDo.trim() })}
-          className={PRIMARY}
         >
           Send request
-        </button>
+        </Button>
       </Footer>
     </Modal>
   )
@@ -351,7 +342,7 @@ export function ReportDialog({
     steps: false,
   })
   const nameId = useId()
-  const formatName = useId()
+  const formatId = useId()
 
   return (
     <Modal title="Create a report" onClose={onClose} className="max-w-[37.5rem]">
@@ -364,45 +355,30 @@ export function ReportDialog({
         <label htmlFor={nameId} className="text-meta font-semibold text-text-primary">
           Report name
         </label>
-        <input
-          id={nameId}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          className={TEXTAREA}
-        />
+        <Input id={nameId} value={name} onChange={(event) => setName(event.target.value)} />
       </div>
-      <fieldset className="flex flex-col gap-[var(--space-2)]">
-        <legend className="mb-[var(--space-2)] text-meta font-semibold text-text-primary">
+      <div className="flex flex-col gap-[var(--space-2)]">
+        <p id={formatId} className="mb-[var(--space-2)] text-meta font-semibold text-text-primary">
           Format
-        </legend>
-        <div className="flex gap-[var(--space-1)] self-start rounded-lg bg-surface-raised p-[var(--space-1)]">
+        </p>
+        <RadioGroup
+          aria-labelledby={formatId}
+          value={format}
+          onValueChange={(value) => setFormat(value as typeof format)}
+          className="flex gap-[var(--space-1)] self-start rounded-lg bg-surface-raised p-[var(--space-1)]"
+        >
           {(
             [
               ['pdf', 'PDF, for reading and sharing'],
               ['csv', 'CSV, for spreadsheets'],
             ] as const
           ).map(([value, label]) => (
-            <label
-              key={value}
-              className={cn(
-                'cursor-pointer rounded-md px-[var(--space-4)] py-[var(--space-2)] text-meta font-semibold font-heading whitespace-nowrap',
-                'has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus-ring',
-                format === value ? 'bg-surface text-text-primary shadow-sm' : 'text-text-secondary',
-              )}
-            >
-              <input
-                type="radio"
-                name={formatName}
-                value={value}
-                checked={format === value}
-                onChange={() => setFormat(value)}
-                className="sr-only"
-              />
+            <RadioGroupSegment key={value} value={value}>
               {label}
-            </label>
+            </RadioGroupSegment>
           ))}
-        </div>
-      </fieldset>
+        </RadioGroup>
+      </div>
       <fieldset className="flex flex-col gap-[var(--space-1)]">
         <legend className="mb-[var(--space-2)] text-meta font-semibold text-text-primary">
           What to include
@@ -412,13 +388,12 @@ export function ReportDialog({
             key={option.key}
             className="flex cursor-pointer items-start gap-[var(--space-3)] py-[var(--space-2)]"
           >
-            <input
-              type="checkbox"
+            <Checkbox
               checked={include[option.key]}
-              onChange={() =>
+              onCheckedChange={() =>
                 setInclude((current) => ({ ...current, [option.key]: !current[option.key] }))
               }
-              className="mt-0.5 h-4 w-4 cursor-pointer accent-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="mt-0.5"
             />
             <span className="flex flex-col gap-[var(--space-1)]">
               <span className="text-body font-medium text-text-primary">{option.label}</span>
@@ -431,17 +406,13 @@ export function ReportDialog({
       </fieldset>
       <Footer>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
-          onClick={() => onCreate({ name: name.trim() || defaultName, format, include })}
-          className={PRIMARY}
-        >
+        </Button>
+        <Button onClick={() => onCreate({ name: name.trim() || defaultName, format, include })}>
           <Download aria-hidden className="h-4 w-4" />
           Create report
-        </button>
+        </Button>
       </Footer>
     </Modal>
   )
@@ -480,13 +451,13 @@ export function ArchiveConfirmDialog({ runs, onClose, onConfirm }: ArchiveConfir
       )}
       <Footer>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button type="button" onClick={onConfirm} className={PRIMARY}>
+        </Button>
+        <Button onClick={onConfirm}>
           <Archive aria-hidden className="h-4 w-4" />
           Move to the archive
-        </button>
+        </Button>
       </Footer>
     </Modal>
   )
@@ -514,13 +485,13 @@ export function RestoreConfirmDialog({
       </p>
       <Footer>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button type="button" onClick={onConfirm} className={PRIMARY}>
+        </Button>
+        <Button onClick={onConfirm}>
           <RotateCcw aria-hidden className="h-4 w-4" />
           Restore
-        </button>
+        </Button>
       </Footer>
     </Modal>
   )

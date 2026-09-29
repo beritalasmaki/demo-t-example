@@ -1,15 +1,16 @@
-import { Tabs as TabsPrimitive } from 'radix-ui'
-import { useId, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import type { ComponentType, ReactNode } from 'react'
 import { cn } from '../lib/utils'
-import { keepTooltipInView } from './tooltipPlacement'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
+import * as UI from './ui/tabs'
 
 /**
  * A real ARIA tabs widget (`role="tablist"`/`"tab"`/`"tabpanel"`, arrow-key navigation between
- * triggers) built on `radix-ui`'s `Tabs` primitive rather than a hand-rolled toggle, so the
- * correct keyboard behaviour and assistive-tech semantics come for free. Knows nothing about policy gates or any other
+ * triggers), on shadcn/ui's Tabs (`ui/tabs.tsx`, Radix — docs/DECISIONS.md, 0070), so the
+ * correct keyboard behaviour and assistive-tech semantics come for free. This file adds what
+ * shadcn's has not: the pill's sliding background, and a shadcn Tooltip on a pill tab. Knows nothing about policy gates or any other
  * product concept; `value`/`onValueChange` are the caller's, same shape as
- * `TabsPrimitive.Root`.
+ * Radix's `Tabs.Root`.
  */
 export interface TabsProps {
   value: string
@@ -30,14 +31,14 @@ export function Tabs({
   activationMode = 'automatic',
 }: TabsProps) {
   return (
-    <TabsPrimitive.Root
+    <UI.Tabs
       value={value}
       onValueChange={onValueChange}
       activationMode={activationMode}
       className={className}
     >
       {children}
-    </TabsPrimitive.Root>
+    </UI.Tabs>
   )
 }
 
@@ -73,24 +74,15 @@ export function TabsList({ children, className, variant = 'segmented', label }: 
   }
   if (variant === 'line') {
     return (
-      <TabsPrimitive.List
-        aria-label={label}
-        className={cn(
-          'scrollbar-none flex gap-[var(--space-2)] overflow-x-auto border-b border-border-subtle px-[var(--space-5)] pt-[var(--space-3)]',
-          className,
-        )}
-      >
+      <UI.TabsList variant="line" aria-label={label} className={className}>
         {children}
-      </TabsPrimitive.List>
+      </UI.TabsList>
     )
   }
   return (
-    <TabsPrimitive.List
-      aria-label={label}
-      className={cn('flex divide-x divide-border-subtle border-y border-border-subtle', className)}
-    >
+    <UI.TabsList variant="segmented" aria-label={label} className={className}>
       {children}
-    </TabsPrimitive.List>
+    </UI.TabsList>
   )
 }
 
@@ -161,17 +153,10 @@ function PillTabsList({
   }, [])
 
   return (
-    <TabsPrimitive.List
-      ref={listRef}
-      aria-label={label}
-      className={cn(
-        'relative inline-flex gap-[var(--space-1)] rounded-full bg-surface-raised p-[var(--space-1)]',
-        className,
-      )}
-    >
+    <UI.TabsList ref={listRef} variant="pill" aria-label={label} className={className}>
       <span ref={pillRef} aria-hidden className="t-tabs-pill rounded-full bg-surface shadow-sm" />
       {children}
-    </TabsPrimitive.List>
+    </UI.TabsList>
   )
 }
 
@@ -193,12 +178,6 @@ export interface TabsTriggerProps {
   tooltip?: string
 }
 
-const PILL_TRIGGER =
-  't-tab inline-flex cursor-pointer items-center gap-[var(--space-2)] whitespace-nowrap rounded-full px-[var(--space-4)] py-[var(--space-2)] ' +
-  'text-meta font-semibold font-heading leading-none text-text-secondary ' +
-  'hover:text-text-primary data-[state=active]:text-text-primary ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
-
 function PillTrigger({
   value,
   children,
@@ -207,50 +186,20 @@ function PillTrigger({
   className,
   tooltip,
 }: Omit<TabsTriggerProps, 'variant'>) {
-  const tooltipId = useId()
-  const [dismissed, setDismissed] = useState(false)
-  const tooltipRef = useRef<HTMLSpanElement>(null)
-
-  // Centred under its tab, the tooltip can run past the window's edge: the tab bar can sit
-  // at the right of the page.
-  const keepInView = () => keepTooltipInView(tooltipRef.current)
   const trigger = (
-    <TabsPrimitive.Trigger
-      value={value}
-      aria-describedby={tooltip ? tooltipId : undefined}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape') setDismissed(true)
-      }}
-      onBlur={() => setDismissed(false)}
-      onFocus={keepInView}
-      className={cn(PILL_TRIGGER, tooltip && 't-tt-trigger', className)}
-    >
+    <UI.TabsTrigger variant="pill" value={value} className={className}>
       {Icon && <Icon aria-hidden className={cn('h-4 w-4 shrink-0', iconClassName)} />}
       {children}
-    </TabsPrimitive.Trigger>
+    </UI.TabsTrigger>
   )
   if (!tooltip) return trigger
+  // shadcn's Tooltip (Radix): it opens on hover and focus, closes on Escape, stays in the
+  // window, and renders outside the tab list, which may only contain tabs.
   return (
-    <span
-      className="t-tt-wrap"
-      data-dismissed={dismissed || undefined}
-      onMouseEnter={keepInView}
-      onMouseLeave={() => setDismissed(false)}
-    >
-      {trigger}
-      {/* aria-hidden: a tab list may only contain tabs, and this sits inside one. The tab
-          still announces the text, because aria-describedby reads hidden content it points
-          to (docs/DECISIONS.md, 0059). */}
-      <span
-        ref={tooltipRef}
-        id={tooltipId}
-        role="tooltip"
-        aria-hidden
-        className="t-tt text-caption font-normal font-body text-text-primary"
-      >
-        {tooltip}
-      </span>
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+      <TooltipContent side="bottom">{tooltip}</TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -276,42 +225,11 @@ export function TabsTrigger({
       </PillTrigger>
     )
   }
-  if (variant === 'line') {
-    return (
-      <TabsPrimitive.Trigger
-        value={value}
-        className={cn(
-          // No -mb-px onto the list's rule: the list scrolls sideways, which clips anything
-          // below its edge, and that clipped the selected tab's underline to nothing.
-          'inline-flex cursor-pointer items-center gap-[var(--space-3)] border-b-2 border-transparent whitespace-nowrap',
-          'px-[var(--space-5)] py-[var(--space-4)] text-body font-semibold font-heading leading-none text-text-secondary',
-          'hover:border-border hover:text-text-primary',
-          'data-[state=active]:border-primary-strong data-[state=active]:text-text-primary',
-          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring',
-          className,
-        )}
-      >
-        {Icon && <Icon aria-hidden className={cn('h-4 w-4 shrink-0', iconClassName)} />}
-        {children}
-      </TabsPrimitive.Trigger>
-    )
-  }
   return (
-    <TabsPrimitive.Trigger
-      value={value}
-      className={cn(
-        'flex flex-1 cursor-pointer items-center justify-center gap-[var(--space-2)] px-[var(--space-5)] py-[var(--space-3)]',
-        'text-item-title font-semibold font-body text-text-secondary underline-offset-4 transition-colors',
-        'duration-[var(--motion-duration-fast)] bg-surface-raised hover:underline',
-        'data-[state=active]:bg-surface data-[state=active]:text-text-primary',
-        'focus-visible:relative focus-visible:z-10 focus-visible:outline focus-visible:outline-2',
-        'focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring',
-        className,
-      )}
-    >
+    <UI.TabsTrigger variant={variant} value={value} className={className}>
       {Icon && <Icon aria-hidden className={cn('h-4 w-4 shrink-0', iconClassName)} />}
       {children}
-    </TabsPrimitive.Trigger>
+    </UI.TabsTrigger>
   )
 }
 
@@ -323,8 +241,8 @@ export interface TabsContentProps {
 
 export function TabsContent({ value, children, className }: TabsContentProps) {
   return (
-    <TabsPrimitive.Content value={value} className={className}>
+    <UI.TabsContent value={value} className={className}>
       {children}
-    </TabsPrimitive.Content>
+    </UI.TabsContent>
   )
 }

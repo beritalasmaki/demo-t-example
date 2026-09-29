@@ -1,5 +1,6 @@
 import { CircleCheckBig, CircleHelp, CircleMinus, CircleX, TriangleAlert } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { Badge } from './ui/badge'
 
 /**
  * A generic status badge: icon + text, never colour alone. Knows nothing about runs or
@@ -49,15 +50,9 @@ export function StatusBadge({ tone, label, className }: StatusBadgeProps) {
   const { icon: Icon, className: toneClassName } = TONE[tone]
 
   return (
-    <span
-      className={cn(
-        'text-badge-label inline-flex items-center gap-[var(--space-2)] rounded-full border bg-surface-raised px-[var(--space-3)] py-[var(--space-1)] font-semibold font-heading text-text-primary',
-        toneClassName,
-        className,
-      )}
-    >
-      <Icon aria-hidden className="h-4 w-4 shrink-0" />
+    <Badge className={cn(toneClassName, className)}>
+      <Icon aria-hidden />
       {label}
-    </span>
+    </Badge>
   )
 }

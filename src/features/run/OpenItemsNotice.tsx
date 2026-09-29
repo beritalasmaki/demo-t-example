@@ -35,8 +35,9 @@ export function OpenItemsNotice({ run, href = '#open-items' }: OpenItemsNoticePr
           spotlight(target)
           // The spotlight is only seen. Focus goes to the first item still to tick, so a
           // keyboard or screen reader user lands where the work is (docs/DECISIONS.md, 0059).
-          const boxes = target.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
-          const next = [...boxes].find((box) => !box.checked) ?? boxes[0]
+          const boxes = target.querySelectorAll<HTMLElement>('[role="checkbox"]')
+          const next =
+            [...boxes].find((box) => box.getAttribute('aria-checked') !== 'true') ?? boxes[0]
           next?.focus({ preventScroll: true })
         }}
         className="font-medium whitespace-nowrap text-primary no-underline underline-offset-2 hover:underline"

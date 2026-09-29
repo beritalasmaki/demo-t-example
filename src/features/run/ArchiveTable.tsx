@@ -1,3 +1,13 @@
+import { Button } from '../../components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table'
+import { Badge } from '../../components/ui/badge'
 import { Lock, RotateCcw, RotateCw } from 'lucide-react'
 import type { ArchiveSortKey, ManualArchive, SortDirection } from '../../lib/reviews'
 import { ARCHIVE_AFTER_MONTHS, RESTORE_DAYS, archiveState, reviewStatus } from '../../lib/reviews'
@@ -6,7 +16,7 @@ import type { Run } from '../../lib/types'
 import { cn } from '../../lib/utils'
 import { ActorName } from './ActorName'
 import { ReviewStatusPill, RunCell } from './ReviewParts'
-import { CELL, ColumnHeader, DateCell, DetailsButton, ICON_BUTTON, SelectBox } from './ReviewsTable'
+import { CELL, ColumnHeader, DateCell, DetailsButton, SelectBox } from './ReviewsTable'
 
 /**
  * Archived runs (docs/DECISIONS.md, 0060): approved and declined runs, moved here by the
@@ -49,8 +59,8 @@ export function ArchiveTable({
 }: ArchiveTableProps) {
   const header = { current: sort, onSort }
   return (
-    <table className="w-full min-w-[75rem] border-collapse">
-      <caption className="sr-only">{caption}</caption>
+    <Table containerClassName="scrollbar-none" className="min-w-[75rem]">
+      <TableCaption className="sr-only">{caption}</TableCaption>
       <colgroup>
         <col className="w-12" />
         <col className="w-9" />
@@ -61,8 +71,8 @@ export function ArchiveTable({
         <col className="w-48" />
         <col className="w-44" />
       </colgroup>
-      <thead className="border-b border-border-subtle bg-surface-raised">
-        <tr>
+      <TableHeader className="border-b border-border-subtle bg-surface-raised">
+        <TableRow>
           <ColumnHeader label="Details" hiddenLabel="Decision details" />
           <ColumnHeader label="Select" hiddenLabel="Select" />
           <ColumnHeader
@@ -115,18 +125,18 @@ export function ArchiveTable({
             info={`New run: ask for a new run to fix a mistake. The old run is not changed. Restore brings a run back to My reviews, but only in the first ${RESTORE_DAYS} days after it was archived.`}
             align="end"
           />
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {runs.map((run) => {
           const state = archiveState(run, manual, now)
           const sent = requestedRuns.has(run.id)
           return (
-            <tr key={run.id} className="border-b border-border-subtle bg-surface hover:bg-bg">
-              <td className={CELL}>
+            <TableRow key={run.id} className="border-b border-border-subtle bg-surface hover:bg-bg">
+              <TableCell className={CELL}>
                 <DetailsButton run={run} onClick={() => onDetails(run.id)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 {selectable && (
                   <SelectBox
                     run={run}
@@ -134,23 +144,25 @@ export function ArchiveTable({
                     onToggle={() => onToggle(run.id)}
                   />
                 )}
-              </td>
-              <td className={cn(CELL, 'max-w-0')}>
+              </TableCell>
+              <TableCell className={cn(CELL, 'max-w-0')}>
                 <RunCell run={run} href={runHref(run.id)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <ReviewStatusPill status={reviewStatus(run)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <ActorName
                   name={run.requestedBy}
                   className="text-meta font-medium whitespace-nowrap"
                 />
-              </td>
-              <td className={cn(CELL, 'text-meta font-medium whitespace-nowrap text-text-primary')}>
+              </TableCell>
+              <TableCell
+                className={cn(CELL, 'text-meta font-medium whitespace-nowrap text-text-primary')}
+              >
                 {run.decision ? formatCalendarDate(run.decision.at) : ''}
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <DateCell
                   date={state.archivedAt ? formatCalendarDate(state.archivedAt) : ''}
                   sub={
@@ -159,40 +171,40 @@ export function ArchiveTable({
                       : `Automatically, after ${ARCHIVE_AFTER_MONTHS} months`
                   }
                 />
-              </td>
-              <td className={cn(CELL, 'text-right')}>
+              </TableCell>
+              <TableCell className={cn(CELL, 'text-right')}>
                 <span className="inline-flex items-center gap-[var(--space-2)]">
                   {sent ? (
-                    <span
+                    <Badge
+                      variant="primary-tint"
+                      size="sm"
                       title={`Waiting for ${run.requestedBy} to answer`}
-                      className="rounded-full bg-primary-tint px-[var(--space-3)] py-[var(--space-2)] text-caption leading-none font-semibold whitespace-nowrap text-primary"
+                      className="px-[var(--space-3)] py-[var(--space-2)] leading-none"
                     >
                       Request sent
-                    </span>
+                    </Badge>
                   ) : (
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => onNewRun(run.id)}
                       aria-label={`Request a new run: ${run.initiative}`}
-                      className={cn(
-                        ICON_BUTTON,
-                        'w-auto gap-[var(--space-2)] px-[var(--space-3)] text-meta font-semibold font-heading',
-                      )}
+                      className="h-8 hover:border-primary hover:bg-surface hover:text-primary"
                     >
                       <RotateCw aria-hidden className="h-3.5 w-3.5" />
                       New run
-                    </button>
+                    </Button>
                   )}
                   {state.canRestore ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => onRestore(run.id)}
                       aria-label={`Restore “${run.initiative}” to My reviews`}
                       title={`Restore to My reviews. Possible for ${state.restoreDaysLeft} more day${state.restoreDaysLeft === 1 ? '' : 's'}.`}
-                      className={ICON_BUTTON}
                     >
                       <RotateCcw aria-hidden className="h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                   ) : (
                     <span
                       role="img"
@@ -204,11 +216,11 @@ export function ArchiveTable({
                     </span>
                   )}
                 </span>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )
         })}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   )
 }

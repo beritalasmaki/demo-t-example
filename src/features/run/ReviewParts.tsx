@@ -1,4 +1,5 @@
 import { ArrowRightLeft, Check, Clock, X } from 'lucide-react'
+import { Badge } from '../../components/ui/badge'
 import type { ComponentType } from 'react'
 import type { ReviewStage, ReviewStatus } from '../../lib/reviews'
 import { STAGE_STEP, formatReviewStatus } from '../../lib/reviews'
@@ -11,26 +12,30 @@ import { cn } from '../../lib/utils'
  * an icon and a word, never colour alone.
  */
 
-const PILL: Record<ReviewStatus, { icon: ComponentType<{ className?: string }>; tone: string }> = {
-  pending: { icon: Clock, tone: 'bg-status-waived-tint-bg text-status-waived-tint-fg' },
-  requested: { icon: ArrowRightLeft, tone: 'bg-status-info-tint-bg text-status-info-tint-fg' },
-  declined: { icon: X, tone: 'bg-status-fail-tint-bg text-status-fail-tint-fg' },
-  approved: { icon: Check, tone: 'bg-status-pass-tint-bg text-status-pass-tint-fg' },
+const PILL: Record<
+  ReviewStatus,
+  {
+    icon: ComponentType<{ className?: string }>
+    variant: 'warning' | 'info' | 'danger' | 'success'
+  }
+> = {
+  pending: { icon: Clock, variant: 'warning' },
+  requested: { icon: ArrowRightLeft, variant: 'info' },
+  declined: { icon: X, variant: 'danger' },
+  approved: { icon: Check, variant: 'success' },
 }
 
 export function ReviewStatusPill({ status, label }: { status: ReviewStatus; label?: string }) {
-  const { icon: Icon, tone } = PILL[status]
+  const { icon: Icon, variant } = PILL[status]
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-[var(--space-2)] justify-self-start rounded-full py-[var(--space-1)] pr-[var(--space-3)] pl-[var(--space-2)]',
-        'text-caption leading-snug font-semibold font-heading whitespace-nowrap',
-        tone,
-      )}
+    <Badge
+      variant={variant}
+      className="justify-self-start py-[var(--space-1)] pr-[var(--space-3)] pl-[var(--space-2)] text-caption leading-snug font-heading"
+      size="sm"
     >
-      <Icon aria-hidden className="h-3.5 w-3.5 shrink-0" />
+      <Icon aria-hidden className="h-3.5 w-3.5" />
       {label ?? formatReviewStatus(status)}
-    </span>
+    </Badge>
   )
 }
 

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
@@ -31,21 +31,18 @@ describe('Tabs, pill variant', () => {
     expect(screen.getAllByRole('tab')).toHaveLength(2)
   })
 
-  it('links a tooltip to its tab, and Escape dismisses it', async () => {
+  it("shows a tab's tooltip on keyboard focus, as its description, and Escape hides it", async () => {
     const user = userEvent.setup()
     render(<PillTabs />)
     const tab = screen.getByRole('tab', { name: 'First' })
-    const tooltip = screen.getByRole('tooltip', { hidden: true })
-    expect(tooltip).toHaveTextContent('The first view')
-    expect(tab).toHaveAttribute('aria-describedby', tooltip.id)
-    // Hidden from the tab list's children, still the tab's description.
-    expect(tooltip).toHaveAttribute('aria-hidden', 'true')
+    await user.tab()
+    expect(tab).toHaveFocus()
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('The first view')
     expect(tab).toHaveAccessibleDescription('The first view')
-    expect(screen.getByRole('tab', { name: 'Second' })).not.toHaveAttribute('aria-describedby')
 
-    tab.focus()
     await user.keyboard('{Escape}')
-    expect(tooltip.parentElement).toHaveAttribute('data-dismissed')
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument())
+    expect(tab).toHaveFocus()
   })
 
   it('line variant: a real tab list whose selected tab is marked', async () => {

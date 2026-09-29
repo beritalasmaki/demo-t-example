@@ -1,3 +1,5 @@
+import { Button } from '../../components/ui/button'
+import { Textarea } from '../../components/ui/textarea'
 import { useEffect, useRef, useState } from 'react'
 import { Modal } from '../../components/Modal'
 import { DecisionConflictError, submitDecision } from '../../lib/api'
@@ -163,12 +165,11 @@ export function DecisionDialog({
           >
             {reasonPrompt}
           </label>
-          <textarea
+          <Textarea
             id="decision-reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             rows={4}
-            className="text-body rounded-md border border-border bg-surface p-[var(--space-2)] font-normal font-body text-text-primary"
           />
         </div>
       )}
@@ -181,14 +182,14 @@ export function DecisionDialog({
 
       <div className="flex justify-end gap-[var(--space-3)]">
         <CancelButton onClick={onClose}>Cancel</CancelButton>
-        <button
-          type="button"
+        <Button
+          size="sm"
+          variant={action === 'rejected' ? 'destructive' : 'default'}
           onClick={() => void handleSubmit()}
           disabled={!canSubmit}
-          className="rounded-md border border-border px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium text-text-primary disabled:opacity-50"
         >
           {TITLE[action]}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -196,13 +197,9 @@ export function DecisionDialog({
 
 function CancelButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-md border border-border px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium text-text-primary"
-    >
+    <Button size="sm" variant="outline" onClick={onClick}>
       {children}
-    </button>
+    </Button>
   )
 }
 

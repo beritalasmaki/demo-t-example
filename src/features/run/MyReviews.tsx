@@ -12,12 +12,20 @@ import {
   RefreshCw,
   X,
 } from 'lucide-react'
+import { Badge } from '../../components/ui/badge'
 import { useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs'
+import { Button } from '../../components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../../components/ui/collapsible'
 import { ThemeToggle } from '../../components/ThemeToggle'
-import { Toast } from '../../components/Toast'
+import { notify } from '../../components/notify'
+import { Toaster } from '../../components/ui/sonner'
 import { listRuns } from '../../lib/api'
 import type { GetRunOptions } from '../../lib/api'
 import { formatCalendarDate, formatRelativeTime } from '../../lib/format'
@@ -119,16 +127,17 @@ export function MyReviews({ runHref, options, now }: MyReviewsProps) {
       ) : (
         <p className="text-body text-text-secondary">
           Could not load your reviews. {state.message}{' '}
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="inline"
             onClick={() => {
               setState({ status: 'loading' })
               setAttempt((n) => n + 1)
             }}
-            className="cursor-pointer text-primary underline"
+            className="text-body font-normal font-body underline"
           >
             Retry
-          </button>
+          </Button>
         </p>
       )}
     </div>
@@ -230,7 +239,6 @@ function ReviewsBoard({
   const [restored, setRestored] = useState<ReadonlySet<string>>(new Set())
   const [requested, setRequested] = useState<ReadonlySet<string>>(new Set())
   const [dialog, setDialog] = useState<Dialog>(null)
-  const [toast, setToast] = useState<string | null>(null)
   const [progOpen, setProgOpen] = useState(false)
   const tableRef = useRef<HTMLTableElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -324,7 +332,7 @@ function ReviewsBoard({
     setRestored((current) => new Set([...current].filter((id) => !ids.includes(id))))
     setSelected(new Set())
     const only = ids.length === 1 ? byId(ids[0]) : undefined
-    setToast(
+    notify(
       `${only ? `Archived “${only.initiative}”` : `${plural(ids.length, 'run')} archived`}. You can restore ${
         ids.length === 1 ? 'it' : 'them'
       } for ${RESTORE_DAYS} days.`,
@@ -338,7 +346,7 @@ function ReviewsBoard({
     )
     setRestored((current) => new Set(current).add(id))
     const run = byId(id)
-    setToast(`Restored “${run?.initiative ?? id}” to My reviews.`)
+    notify(`Restored “${run?.initiative ?? id}” to My reviews.`)
     focusAfterDialog.current = 'heading'
   }
   function createReport(report: {
@@ -351,13 +359,13 @@ function ReviewsBoard({
     setSelected(new Set())
     if (report.format === 'csv') {
       downloadCsvReport(report.name, chosen, report.include)
-      setToast(`“${report.name}” created as CSV, ${plural(chosen.length, 'run')}.`)
+      notify(`“${report.name}” created as CSV, ${plural(chosen.length, 'run')}.`)
     } else if (openPdfReport(report.name, chosen, report.include)) {
-      setToast(
+      notify(
         `“${report.name}” is open in a new tab. Choose Save as PDF in the print dialog to keep it.`,
       )
     } else {
-      setToast('Your browser blocked the report tab. Allow pop-ups for this page, then try again.')
+      notify('Your browser blocked the report tab. Allow pop-ups for this page, then try again.')
     }
   }
 
@@ -374,60 +382,45 @@ function ReviewsBoard({
         <span className="text-body leading-none font-semibold whitespace-nowrap text-text-primary">
           {plural(selected.size, 'run')} selected
         </span>
-        <button
-          type="button"
-          onClick={() => setDialog({ type: 'report' })}
-          className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-text-primary bg-text-primary px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-surface hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
+        <Button size="sm" onClick={() => setDialog({ type: 'report' })}>
           <FileBarChart aria-hidden className="h-3.5 w-3.5" />
           Create report
-        </button>
+        </Button>
         {withArchive && (
-          <button
-            type="button"
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setDialog({ type: 'archive', ids: archivable })}
             disabled={archivable.length === 0}
-            className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           >
             <Archive aria-hidden className="h-3.5 w-3.5" />
             Archive
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
-          onClick={() => setSelected(new Set())}
-          className="cursor-pointer text-meta font-semibold font-heading whitespace-nowrap text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
+        <Button variant="link" size="inline" onClick={() => setSelected(new Set())}>
           Clear selection
-        </button>
+        </Button>
         <span className="ml-auto text-caption text-text-secondary">{hint}</span>
       </div>
     )
 
   const archiveTable = (selectable: boolean) => (
-    <div className="scrollbar-none overflow-x-auto">
-      <ArchiveTable
-        runs={archivedRuns}
-        caption="Archived runs"
-        runHref={runHref}
-        sort={aSort}
-        onSort={(key, dir) => setASort({ key, dir })}
-        selectable={selectable}
-        selected={selected}
-        onToggle={toggle}
-        manual={manual}
-        now={now}
-        requestedRuns={requested}
-        onDetails={(id) => setDialog({ type: 'details', id })}
-        onNewRun={(id) => setDialog({ type: 'newrun', id })}
-        onRestore={(id) => setDialog({ type: 'restore', id })}
-      />
-      {archivedRuns.length === 0 && (
-        <p className="px-[var(--space-5)] py-[var(--space-6)] text-center text-body text-text-secondary">
-          No archived runs match these filters.
-        </p>
-      )}
-    </div>
+    <ArchiveTable
+      runs={archivedRuns}
+      caption="Archived runs"
+      runHref={runHref}
+      sort={aSort}
+      onSort={(key, dir) => setASort({ key, dir })}
+      selectable={selectable}
+      selected={selected}
+      onToggle={toggle}
+      manual={manual}
+      now={now}
+      requestedRuns={requested}
+      onDetails={(id) => setDialog({ type: 'details', id })}
+      onNewRun={(id) => setDialog({ type: 'newrun', id })}
+      onRestore={(id) => setDialog({ type: 'restore', id })}
+    />
   )
 
   return (
@@ -443,36 +436,40 @@ function ReviewsBoard({
             </p>
           </div>
           <div className="flex items-center gap-[var(--space-3)]">
-            <span className="inline-flex items-center gap-[var(--space-2)] rounded-full bg-status-waived-tint-bg px-[var(--space-4)] py-[var(--space-2)] text-meta leading-none font-semibold whitespace-nowrap text-status-waived-tint-fg">
+            <Badge
+              variant="warning"
+              className="px-[var(--space-4)] py-[var(--space-2)] text-meta leading-none font-body"
+            >
               <span aria-hidden className="h-2 w-2 rounded-full bg-status-waived-tint-fg" />
               {needsYou} need{needsYou === 1 ? 's' : ''} your review
-            </span>
-            <button
-              type="button"
+            </Badge>
+            <Button
+              variant="outline"
               onClick={() => openView('archive')}
               aria-label={`Archive, ${plural(archived.length, 'archived run')}`}
-              className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-3)] text-body leading-none font-semibold font-heading whitespace-nowrap text-text-primary hover:border-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="gap-[var(--space-2)]"
             >
               <Archive aria-hidden className="h-4 w-4" />
               Archive
-              <span className="rounded-full bg-surface-raised px-[var(--space-2)] py-px text-caption font-semibold text-text-secondary">
+              <Badge variant="muted" size="sm">
                 {archived.length}
-              </span>
-            </button>
+              </Badge>
+            </Button>
             <ThemeToggle />
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-[var(--space-3)]">
           <div className="flex items-center justify-between gap-[var(--space-4)]">
-            <button
-              type="button"
+            <Button
+              variant="link"
+              size="inline"
               onClick={() => openView('main')}
-              className="inline-flex cursor-pointer items-center gap-[var(--space-1)] self-start text-meta font-medium text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="self-start font-medium font-body"
             >
               <ChevronLeft aria-hidden className="h-4 w-4" />
               My reviews
-            </button>
+            </Button>
             <ThemeToggle />
           </div>
           <PageTitle icon={Archive} headingRef={headingRef}>
@@ -510,16 +507,9 @@ function ReviewsBoard({
                     <Icon aria-hidden className="h-4 w-4 text-text-secondary" />
                   )}
                   {label}
-                  <span
-                    className={cn(
-                      'rounded-full px-[var(--space-2)] py-px text-caption font-semibold font-body',
-                      tab === value
-                        ? 'bg-primary-tint text-primary'
-                        : 'bg-surface-raised text-text-secondary',
-                    )}
-                  >
+                  <Badge variant={tab === value ? 'primary-tint' : 'muted'} size="sm">
                     {counts[value]}
-                  </span>
+                  </Badge>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -550,23 +540,21 @@ function ReviewsBoard({
                 'You can select approved and declined runs, to make a report or to archive them.',
                 true,
               )}
-              <div className="scrollbar-none overflow-x-auto">
-                <ReviewsTable
-                  ref={tableRef}
-                  runs={tableRuns}
-                  caption={`${TABS.find((t) => t.value === tab)?.label ?? ''} runs`}
-                  runHref={runHref}
-                  sort={sort}
-                  onSort={(key, dir) => setSort({ key, dir })}
-                  selected={selected}
-                  onToggle={toggle}
-                  manual={manual}
-                  now={now}
-                  onDetails={(id) => setDialog({ type: 'details', id })}
-                  onNewRun={(id) => setDialog({ type: 'newrun', id })}
-                  onArchive={(id) => setDialog({ type: 'archive', ids: [id] })}
-                />
-              </div>
+              <ReviewsTable
+                ref={tableRef}
+                runs={tableRuns}
+                caption={`${TABS.find((t) => t.value === tab)?.label ?? ''} runs`}
+                runHref={runHref}
+                sort={sort}
+                onSort={(key, dir) => setSort({ key, dir })}
+                selected={selected}
+                onToggle={toggle}
+                manual={manual}
+                now={now}
+                onDetails={(id) => setDialog({ type: 'details', id })}
+                onNewRun={(id) => setDialog({ type: 'newrun', id })}
+                onArchive={(id) => setDialog({ type: 'archive', ids: [id] })}
+              />
               {tableRuns.length === 0 && (
                 <div className="flex flex-col items-center gap-[var(--space-2)] px-[var(--space-5)] py-[var(--space-7)] text-center">
                   {/* Nothing to decide here, but work is under way below: say that, not "no
@@ -582,13 +570,14 @@ function ReviewsBoard({
                       : 'Try another tab, time range or requester.'}
                   </p>
                   {hasFilters && (
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={clearFilters}
-                      className="mt-[var(--space-1)] cursor-pointer rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-2)] text-meta font-semibold font-heading text-text-primary hover:border-text-secondary"
+                      className="mt-[var(--space-1)] px-[var(--space-4)]"
                     >
                       Clear filters
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
@@ -611,23 +600,24 @@ function ReviewsBoard({
             <h2 className="flex items-center gap-[var(--space-3)] text-section-heading font-bold font-heading text-text-primary">
               <Archive aria-hidden className="h-5 w-5 text-primary" />
               Also found in the archive
-              <span className="rounded-full bg-surface-raised px-[var(--space-2)] py-px text-caption font-semibold text-text-secondary">
+              <Badge variant="muted" size="sm">
                 {archivedRuns.length}
-              </span>
+              </Badge>
             </h2>
             <p className="text-body text-text-secondary">
               Archived runs that match “{filters.query.trim()}”. They are shown here only while you
               search.
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="inline"
             onClick={() => openView('archive')}
-            className="inline-flex cursor-pointer items-center gap-[var(--space-2)] text-meta font-semibold font-heading text-primary underline-offset-2 hover:underline"
+            className="gap-[var(--space-2)]"
           >
             Open the archive
             <ArrowRight aria-hidden className="h-3.5 w-3.5" />
-          </button>
+          </Button>
         </div>
       )}
       {inlineArchive && (
@@ -687,7 +677,7 @@ function ReviewsBoard({
           onSend={() => {
             setRequested((current) => new Set(current).add(newRunRun.id))
             setDialog(null)
-            setToast(
+            notify(
               `Request sent to ${newRunRun.requestedBy}. You will get a message when they answer.`,
             )
           }}
@@ -723,7 +713,7 @@ function ReviewsBoard({
           onCreate={createReport}
         />
       )}
-      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+      <Toaster />
     </div>
   )
 }
@@ -741,13 +731,12 @@ function InProgress({
   now: Date
 }) {
   return (
-    <div className="flex flex-col border-t-4 border-surface-raised">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex w-full cursor-pointer items-center gap-[var(--space-4)] rounded-b-lg px-[var(--space-5)] py-[var(--space-4)] text-left hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring"
-      >
+    <Collapsible
+      open={open}
+      onOpenChange={onToggle}
+      className="flex flex-col border-t-4 border-surface-raised"
+    >
+      <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-[var(--space-4)] rounded-b-lg data-[state=open]:rounded-b-none px-[var(--space-5)] py-[var(--space-4)] text-left hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring">
         <span
           aria-hidden
           className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-tint text-primary"
@@ -771,8 +760,8 @@ function InProgress({
             <ChevronDown aria-hidden className="h-3 w-3" />
           )}
         </span>
-      </button>
-      {open && (
+      </CollapsibleTrigger>
+      <CollapsibleContent asChild>
         <ul className="flex flex-col rounded-b-lg border-t border-border-subtle bg-bg">
           {runs.map((run) => {
             const progress = progressOf(run)
@@ -819,7 +808,7 @@ function InProgress({
             )
           })}
         </ul>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

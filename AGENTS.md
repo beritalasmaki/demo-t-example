@@ -81,6 +81,11 @@ extractable into their own packages later, so they must not import from `feature
 - Motion is functional only: state changes, entering data, focus. Nothing decorative.
   Respect `prefers-reduced-motion`.
 - Target: a new screen can be built without adding a single new colour or spacing value.
+- **Controls come from shadcn/ui, in `src/components/ui/`.** Buttons, dialogs, tabs, check
+  boxes, radio groups, switches, selects, text fields, tables, badges, tooltips, disclosures
+  and toasts all use the shadcn component, restyled onto our tokens. Need a control that
+  isn't there yet? Add the shadcn one first (docs/DECISIONS.md, 0070, says how, since the
+  registry is blocked here). Don't hand-write a styled `<button>`, `<input>` or `<dialog>`.
 
 ## How to work
 

@@ -17,7 +17,8 @@ describe('OpenItemsNotice', () => {
   it('scrolls to the tick list, spotlights it, and focuses the first item left to tick', async () => {
     const list = document.createElement('fieldset')
     list.id = 'open-items'
-    list.innerHTML = '<input type="checkbox" checked /><input type="checkbox" id="next" />'
+    list.innerHTML =
+      '<button role="checkbox" aria-checked="true"></button><button role="checkbox" aria-checked="false" id="next"></button>'
     const scrollIntoView = vi.fn()
     list.scrollIntoView = scrollIntoView
     document.body.append(list)

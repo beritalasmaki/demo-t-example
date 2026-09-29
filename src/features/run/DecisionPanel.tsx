@@ -1,3 +1,6 @@
+import { Button } from '../../components/ui/button'
+import { Textarea } from '../../components/ui/textarea'
+import { Checkbox } from '../../components/ui/checkbox'
 import { ArrowLeft, Check, Info, ShieldCheck, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { SubmitDecisionOptions } from '../../lib/api'
@@ -45,10 +48,6 @@ const SHOW_LABEL: Record<OpenItemTarget['kind'], (target: OpenItemTarget) => str
   score: () => 'Show the score →',
   step: () => 'Show the step →',
 }
-
-const OUTLINE_BUTTON =
-  'inline-flex w-full items-center justify-center gap-[var(--space-3)] rounded-md border bg-surface px-[var(--space-4)] py-[var(--space-3)] ' +
-  'text-body font-semibold font-heading leading-none whitespace-nowrap cursor-pointer'
 
 function StepNumber({ children }: { children: React.ReactNode }) {
   return (
@@ -196,33 +195,25 @@ export function DecisionPanel({
                       'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus-ring',
                     )}
                   >
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={checked}
-                      onChange={() => toggle(item.id)}
-                      className="peer sr-only"
+                      onCheckedChange={() => toggle(item.id)}
+                      // The label's own ring shows focus, around the box and its sentence.
+                      className="mt-[var(--space-1)] border-status-waived text-surface focus-visible:outline-none data-[state=checked]:border-status-waived data-[state=checked]:bg-status-waived"
                     />
-                    <span
-                      aria-hidden
-                      className={cn(
-                        'mt-[var(--space-1)] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-status-waived',
-                        checked ? 'bg-status-waived text-surface' : 'bg-surface text-transparent',
-                      )}
-                    >
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </span>
                     <span className="text-meta font-normal font-body leading-relaxed text-text-primary">
                       {item.text}
                     </span>
                   </label>
                   {onShowItem && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="link"
+                      size="inline"
                       onClick={() => onShowItem(item.target)}
-                      className="ml-[calc(1rem+var(--space-3))] cursor-pointer self-start text-meta font-medium font-body text-primary underline-offset-2 hover:underline"
+                      className="ml-[calc(1rem+var(--space-3))] self-start font-medium font-body"
                     >
                       {SHOW_LABEL[item.target.kind](item.target)}
-                    </button>
+                    </Button>
                   )}
                 </div>
               )
@@ -249,7 +240,7 @@ export function DecisionPanel({
                 : '(optional)'}
             </span>
           </label>
-          <textarea
+          <Textarea
             id={reasonId}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
@@ -260,27 +251,20 @@ export function DecisionPanel({
                 ? 'For example: these checks do not apply because no new dependencies or screens were added.'
                 : undefined
             }
-            className="w-full resize-y rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-meta font-normal font-body leading-relaxed text-text-primary placeholder:text-text-secondary focus-visible:border-primary"
+            className="text-meta focus-visible:border-primary"
           />
-          <button
-            type="button"
+          <Button
             onClick={approve}
             disabled={!ready}
             aria-describedby={hintId}
             data-popping={popping || undefined}
-            className={cn(
-              't-pop inline-flex items-center justify-center gap-[var(--space-3)] rounded-md border px-[var(--space-4)] py-[var(--space-3)]',
-              'text-body font-semibold font-heading leading-none whitespace-nowrap',
-              ready
-                ? 'cursor-pointer border-text-primary bg-text-primary text-surface hover:opacity-90'
-                : 'cursor-not-allowed border-border-subtle bg-border-subtle text-text-disabled',
-            )}
+            className="t-pop"
           >
             <span className="t-pop-label">
               <Check aria-hidden className="h-4 w-4" strokeWidth={2.5} />
               Approve and release
             </span>
-          </button>
+          </Button>
           <span
             id={hintId}
             className="text-caption font-normal font-body leading-relaxed text-text-secondary"
@@ -300,17 +284,10 @@ export function DecisionPanel({
         </div>
 
         <div className="flex flex-col gap-[var(--space-2)]">
-          <button
-            type="button"
-            onClick={() => openOther('changes_requested')}
-            className={cn(
-              OUTLINE_BUTTON,
-              'border-border text-text-primary hover:border-text-secondary hover:bg-bg active:bg-surface-raised',
-            )}
-          >
+          <Button variant="outline" onClick={() => openOther('changes_requested')}>
             <ArrowLeft aria-hidden className="h-4 w-4" />
             Request changes
-          </button>
+          </Button>
           <span className="text-caption font-normal font-body leading-relaxed text-text-secondary">
             Sends the run back to the agent with your reason. The agent tries again. Nothing is
             released.
@@ -318,17 +295,10 @@ export function DecisionPanel({
         </div>
 
         <div className="flex flex-col gap-[var(--space-2)]">
-          <button
-            type="button"
-            onClick={() => openOther('rejected')}
-            className={cn(
-              OUTLINE_BUTTON,
-              'border-status-fail text-status-fail-tint-fg hover:bg-status-fail-tint-bg active:bg-status-fail-tint-bg',
-            )}
-          >
+          <Button variant="destructive" onClick={() => openOther('rejected')}>
             <X aria-hidden className="h-4 w-4" />
             Reject run
-          </button>
+          </Button>
           <span className="text-caption font-normal font-body leading-relaxed text-text-secondary">
             Closes the run for good. The agent does not try again. Nothing is released.
           </span>

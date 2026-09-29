@@ -1,5 +1,13 @@
+import { Button } from '../../components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../../components/ui/collapsible'
+import { Input } from '../../components/ui/input'
+import { NativeSelect, NativeSelectOption } from '../../components/ui/native-select'
+import { Badge } from '../../components/ui/badge'
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal, X } from 'lucide-react'
-import { useId } from 'react'
 import type { TimeRange } from '../../lib/reviews'
 import { cn } from '../../lib/utils'
 
@@ -37,9 +45,6 @@ export interface ReviewsToolbarProps {
   onClear?: () => void
 }
 
-const FIELD =
-  'rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-body font-medium font-body text-text-primary ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring'
 const FIELD_LABEL =
   'flex items-center gap-[var(--space-2)] text-meta font-medium font-body whitespace-nowrap text-text-secondary'
 
@@ -57,14 +62,14 @@ export function ReviewsToolbar({
   resultLabel,
   onClear,
 }: ReviewsToolbarProps) {
-  const panelId = useId()
   const filterCount =
     (filters.time !== 'all' ? 1 : 0) +
     (filters.requester !== 'all' ? 1 : 0) +
     (type.counts && type.value !== 'all' ? 1 : 0)
 
   return (
-    <>
+    // `contents`: the collapsible adds no box of its own, so the layout is unchanged.
+    <Collapsible open={open} onOpenChange={onToggleOpen} className="contents">
       <div className="flex flex-wrap items-center gap-[var(--space-3)] border-b border-border-subtle p-[var(--space-5)]">
         <label className="relative flex w-full items-center sm:w-[21.25rem]">
           <span className="sr-only">{searchLabel}</span>
@@ -72,129 +77,113 @@ export function ReviewsToolbar({
             aria-hidden
             className="absolute left-[var(--space-3)] h-4 w-4 text-text-secondary"
           />
-          <input
+          <Input
             type="search"
             value={filters.query}
             onChange={(event) => onFilters({ query: event.target.value })}
             placeholder={searchPlaceholder}
-            className={cn(
-              FIELD,
-              'w-full py-[var(--space-3)] pl-[calc(var(--space-6)+var(--space-1))] font-normal',
-            )}
+            className="py-[var(--space-3)] pl-[calc(var(--space-6)+var(--space-1))]"
           />
         </label>
-        <button
-          type="button"
-          onClick={onToggleOpen}
-          aria-expanded={open}
-          aria-controls={panelId}
-          className={cn(
-            'inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border px-[var(--space-4)] py-[var(--space-3)]',
-            'text-body leading-none font-semibold font-heading whitespace-nowrap',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
-            open
-              ? 'border-primary bg-primary-tint text-primary'
-              : 'border-border bg-surface text-text-primary hover:border-text-secondary',
-          )}
-        >
-          <SlidersHorizontal aria-hidden className="h-4 w-4" />
-          Filters
-          {filterCount > 0 && (
-            <span className="rounded-full bg-primary px-[var(--space-2)] py-px text-caption font-semibold text-primary-foreground">
-              {filterCount}
-              <span className="sr-only"> on</span>
-            </span>
-          )}
-          {open ? (
-            <ChevronUp aria-hidden className="h-3 w-3" />
-          ) : (
-            <ChevronDown aria-hidden className="h-3 w-3" />
-          )}
-        </button>
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              'gap-[var(--space-2)]',
+              open &&
+                'border-primary bg-primary-tint text-primary hover:border-primary hover:bg-primary-tint',
+            )}
+          >
+            <SlidersHorizontal aria-hidden className="h-4 w-4" />
+            Filters
+            {filterCount > 0 && (
+              <Badge variant="primary" size="sm" className="gap-0">
+                {filterCount}
+                <span className="sr-only"> on</span>
+              </Badge>
+            )}
+            {open ? (
+              <ChevronUp aria-hidden className="h-3 w-3" />
+            ) : (
+              <ChevronDown aria-hidden className="h-3 w-3" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
         <div className="ml-auto flex items-center gap-[var(--space-4)]">
           <span className="text-meta whitespace-nowrap text-text-secondary">{resultLabel}</span>
           {onClear && (
-            <button
-              type="button"
-              onClick={onClear}
-              className="inline-flex cursor-pointer items-center gap-[var(--space-1)] text-meta font-semibold font-heading whitespace-nowrap text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            >
+            <Button variant="link" size="inline" onClick={onClear}>
               <X aria-hidden className="h-3.5 w-3.5" />
               Clear filters
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
-      {open && (
-        <div
-          id={panelId}
-          className="flex flex-wrap items-center gap-[var(--space-5)] border-b border-border-subtle bg-bg px-[var(--space-5)] py-[var(--space-4)]"
-        >
-          <label className={FIELD_LABEL}>
-            {timeLabel}
-            <select
-              value={filters.time}
-              onChange={(event) => onFilters({ time: event.target.value as TimeRange })}
-              className={cn(FIELD, 'cursor-pointer')}
-            >
-              {timeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {filters.time === 'custom' && (
-            <div className="flex items-center gap-[var(--space-2)] text-meta text-text-secondary">
-              <input
-                type="date"
-                aria-label="From"
-                value={filters.from}
-                onChange={(event) => onFilters({ from: event.target.value })}
-                className={cn(FIELD, 'text-meta')}
-              />
-              <span>to</span>
-              <input
-                type="date"
-                aria-label="To"
-                value={filters.to}
-                onChange={(event) => onFilters({ to: event.target.value })}
-                className={cn(FIELD, 'text-meta')}
-              />
-            </div>
-          )}
-          <label className={FIELD_LABEL}>
-            Run type
-            <select
-              value={type.value}
-              onChange={(event) => type.onChange(event.target.value)}
-              className={cn(FIELD, 'cursor-pointer')}
-            >
-              {type.options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={FIELD_LABEL}>
-            Requester
-            <select
-              value={filters.requester}
-              onChange={(event) => onFilters({ requester: event.target.value })}
-              className={cn(FIELD, 'cursor-pointer')}
-            >
-              <option value="all">Everyone</option>
-              {people.map((person) => (
-                <option key={person} value={person}>
-                  {person}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      )}
-    </>
+      <CollapsibleContent className="flex flex-wrap items-center gap-[var(--space-5)] border-b border-border-subtle bg-bg px-[var(--space-5)] py-[var(--space-4)]">
+        <label className={FIELD_LABEL}>
+          {timeLabel}
+          <NativeSelect
+            value={filters.time}
+            onChange={(event) => onFilters({ time: event.target.value as TimeRange })}
+            className="font-medium"
+          >
+            {timeOptions.map((option) => (
+              <NativeSelectOption key={option.value} value={option.value}>
+                {option.label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </label>
+        {filters.time === 'custom' && (
+          <div className="flex items-center gap-[var(--space-2)] text-meta text-text-secondary">
+            <Input
+              type="date"
+              aria-label="From"
+              value={filters.from}
+              onChange={(event) => onFilters({ from: event.target.value })}
+              className="w-auto text-meta font-medium"
+            />
+            <span>to</span>
+            <Input
+              type="date"
+              aria-label="To"
+              value={filters.to}
+              onChange={(event) => onFilters({ to: event.target.value })}
+              className="w-auto text-meta font-medium"
+            />
+          </div>
+        )}
+        <label className={FIELD_LABEL}>
+          Run type
+          <NativeSelect
+            value={type.value}
+            onChange={(event) => type.onChange(event.target.value)}
+            className="font-medium"
+          >
+            {type.options.map((option) => (
+              <NativeSelectOption key={option.value} value={option.value}>
+                {option.label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </label>
+        <label className={FIELD_LABEL}>
+          Requester
+          <NativeSelect
+            value={filters.requester}
+            onChange={(event) => onFilters({ requester: event.target.value })}
+            className="font-medium"
+          >
+            <NativeSelectOption value="all">Everyone</NativeSelectOption>
+            {people.map((person) => (
+              <NativeSelectOption key={person} value={person}>
+                {person}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </label>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

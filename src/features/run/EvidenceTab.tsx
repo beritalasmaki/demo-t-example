@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { FileText } from 'lucide-react'
 import { isSystemActor } from '../../lib/actors'
 import { buildEvidenceGroups } from '../../lib/evidence'
@@ -111,14 +112,15 @@ export function EvidenceTab({ run, onOpenStep }: EvidenceTabProps) {
                 <span className="row-start-1 justify-self-end text-caption font-normal font-body text-text-secondary tabular-nums md:row-start-auto md:justify-self-start">
                   {formatClock(row.event.at)}
                 </span>
-                <button
-                  type="button"
+                <Button
+                  variant="link"
+                  size="inline"
                   onClick={() => onOpenStep(row.event.id)}
                   aria-label={`Open step: ${row.event.title}`}
-                  className="justify-self-start text-meta font-medium font-body text-primary underline-offset-2 hover:underline md:justify-self-end"
+                  className="justify-self-start font-medium font-body md:justify-self-end"
                 >
                   Open
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

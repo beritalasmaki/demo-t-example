@@ -6,6 +6,67 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 
 ---
 
+## 0070 · Every control on shadcn/ui
+
+**Context.** AGENTS.md has always listed shadcn/ui in the stack. It was set up early
+(`components.json`, the theme bridge, `cn()`) and three components were fetched (0013). The
+screen was then built on hand-styled elements and Radix used directly, and nothing ever
+imported from `components/ui/`. A later cleanup (commit a80a348) removed those three files as unused, and nobody flagged that the listed stack wasn't being used. The user noticed, and
+asked for a full migration.
+
+**Options.** (a) Restore `ui/` and use it for new work only. (b) Migrate the primitives most
+used (Button, Dialog, Checkbox, Tabs). (c) Migrate every control. The user chose (c).
+
+**Choice.** (c), one component per commit, with `npm run check` gating each:
+- **Source:** fetched from shadcn-ui/ui's `new-york-v4` registry on GitHub, because
+  ui.shadcn.com is blocked by this environment's egress policy. Imports point at our aliases.
+- **Styling:** each file is restyled onto our tokens (type, spacing, colours, radius, focus
+  ring), and the API stays shadcn's. shadcn's `accent` classes become `surface-raised`, since
+  our `accent` is the brand teal (0007). Additions to shadcn's API, each noted in its file:
+  - Button: `inline` size;
+  - Tabs: our `segmented`, `pill` and `line` looks as variants;
+  - Table: `containerClassName`;
+  - Switch: `children` and `thumbClassName`;
+  - RadioGroup: `RadioGroupSegment`;
+  - Tooltip: its own provider;
+  - Input: `fieldClassName`.
+- **Components:** Badge, Button, Checkbox, Collapsible, Dialog, Input, NativeSelect,
+  RadioGroup, Sonner, Switch, Table, Tabs, Textarea and Tooltip. Popover was fetched and not
+  used: the filters open in place, as before.
+- **Wrappers kept, now on shadcn:** `Modal` (Dialog), `Tabs`, `InfoTip` (Tooltip),
+  `StatusBadge` (Badge), `ThemeToggle` (Switch) and `notify()` (Sonner, replacing `Toast`).
+  Their APIs didn't change, so pages barely did. `tooltipPlacement.ts` and the hand-ported
+  tooltip CSS are gone: Radix places tooltips itself.
+- **Packages:** `class-variance-authority` and `sonner`. `radix-ui` was already installed.
+- **`dark:`** now also follows the system's dark mode when no theme is chosen, as the tokens
+  already did (0063).
+
+**Found on the way, fixed:**
+- **Focus return from dialogs.** Radix gives focus back to a `DialogTrigger`. Modal is opened
+  by mounting it, so it records its opener and gives focus back itself.
+- **A keyboard loop in Sonner.** Sonner gives focus back to where it was before the toast
+  list whenever focus leaves the list. Tab out of the toast jumped back to the last row, and
+  never reached the rest of the page. The toast is marked not dismissible (Sonner then skips
+  that), and its body keeps its focus events to itself.
+- **Unlayered CSS.** Sonner's stylesheet sets `outline: 0` outside Tailwind's cascade layers,
+  which beats any utility. The toast's focus ring is marked important.
+- **A lightening overlay.** The dialog overlay used `text-primary` and lightened the page in
+  dark mode. `--color-modal-scrim` dims it in both themes.
+- **Duplicate scroll containers.** The tables' scroll wrappers moved onto Table's own
+  container.
+- **The overflowing toast.** A long message made the toast wider than Sonner's list and put it
+  over the Archive button. Toasts share one width, capped by the window.
+
+**Consequence.**
+- AGENTS.md now says controls come from `components/ui/`, and to add the shadcn component
+  before hand-writing one.
+- The one native control left is the step-group toggle in All steps. It has three states,
+  which no shadcn component has.
+- Tests find a Radix checkbox by role and `aria-checked`, and find toasts in the
+  "Notifications" region.
+
+---
+
 ## 0069 · Deeper, brighter accents in dark mode
 
 **Context.** In dark mode, the progress bars, the selected tab's underline, "Needs your

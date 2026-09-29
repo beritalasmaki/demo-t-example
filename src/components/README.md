@@ -1,8 +1,14 @@
 # components
 
-Reusable UI parts that know nothing about runs, gates or agents: buttons, table, badges,
-empty states, timestamps. shadcn/ui components go in `ui/` when one is added (none is in use
-now; the theme bridge in `src/styles/index.css` is ready for them).
+Reusable UI parts that know nothing about runs, gates or agents.
+
+**`ui/` is shadcn/ui** (docs/DECISIONS.md, 0070): Badge, Button, Checkbox, Collapsible, Dialog,
+Input, NativeSelect, RadioGroup, Sonner, Switch, Table, Tabs, Textarea and Tooltip. Each was
+fetched from shadcn-ui/ui on GitHub (the registry is blocked here) and restyled onto our
+tokens. The API stays shadcn's, with a few additions, each noted in the file's header comment.
+Every control in the app is built from these. The files beside `ui/` put them together for
+this app: `Modal` (Dialog), `Tabs` (Tabs, with a sliding pill), `InfoTip` (Tooltip),
+`StatusBadge` (Badge), `ThemeToggle` (Switch) and `notify` (Sonner).
 
 **The test:** would this component work, unchanged, in a completely different product? If
 yes, it belongs here. If it needs to know what a policy gate is, it belongs in `features/run/`.
@@ -15,12 +21,12 @@ Rules:
 - Status is never carried by colour alone: icon plus text as well.
 
 `Tabs` has three variants: `segmented`, `pill` and `line`. The pill variant has a sliding
-background and optional per-tab tooltips (`tooltip`), both from transitions.dev
-(docs/DECISIONS.md, 0047). `line` is underlined text tabs for filtering one list (0060).
+background from transitions.dev (docs/DECISIONS.md, 0047) and optional per-tab tooltips
+(`tooltip`). `line` is underlined text tabs for filtering one list (0060).
 
-`InfoTip` is the small "i" that explains a label, on hover and keyboard focus. `Toast` is a
-short confirmation that stays until closed. Both come from the My reviews design (0060).
-`tooltipPlacement.ts` keeps any `.t-tt` tooltip inside the window; `Tabs` and `InfoTip` use it.
+`InfoTip` is the small "i" that explains a label, on hover and keyboard focus. `notify()`
+shows a short confirmation that stays until closed; the page renders `<Toaster />` for it. Both
+come from the My reviews design (0060).
 
 `ThemeToggle` switches light and dark (docs/DECISIONS.md, 0063); `theme.ts` reads and sets the
 page's theme for it.

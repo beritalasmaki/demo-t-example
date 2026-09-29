@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { Modal } from './Modal'
 
@@ -24,36 +24,40 @@ describe('Modal', () => {
     expect(dialog).toHaveAttribute('aria-labelledby', heading.id)
   })
 
-  it('calls onClose when the dialog fires its native close event (Escape, in a real browser)', () => {
-    // jsdom has no HTMLDialogElement behaviour at all (confirmed: showModal/close are simply
-    // undefined), so there is no way to make a real Escape keypress actually close a <dialog>
-    // here. This dispatches the same 'close' event a browser would, to prove this component's
-    // own listener wiring works; the real Escape-triggers-it behaviour is a browser feature
-    // this project verifies separately, in an actual browser (see docs/WORKLOG.md).
+  it('calls onClose on Escape', () => {
     const onClose = vi.fn()
     render(
       <Modal title="Release revision" onClose={onClose}>
         <p>Body text</p>
       </Modal>,
     )
-    fireEvent(screen.getByRole('dialog'), new Event('close'))
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('does not call onClose again just from unmounting after it already closed itself', () => {
+  it('does not close on a click outside it, so a half-typed reason is never lost', () => {
+    const onClose = vi.fn()
+    render(
+      <Modal title="Release revision" onClose={onClose}>
+        <p>Body text</p>
+      </Modal>,
+    )
+    fireEvent.pointerDown(document.body)
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('does not call onClose just from unmounting', () => {
     const onClose = vi.fn()
     const { unmount } = render(
       <Modal title="Release revision" onClose={onClose}>
         <p>Body text</p>
       </Modal>,
     )
-    fireEvent(screen.getByRole('dialog'), new Event('close'))
-    expect(onClose).toHaveBeenCalledTimes(1)
     unmount()
-    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('gives focus back to what opened it when it closes', () => {
+  it('gives focus back to what opened it when it closes', async () => {
     function Page({ open }: { open: boolean }) {
       return (
         <>
@@ -71,10 +75,11 @@ describe('Modal', () => {
     rerender(<Page open />)
     screen.getByRole('button', { name: 'Cancel' }).focus()
     rerender(<Page open={false} />)
-    expect(screen.getByRole('button', { name: 'Open' })).toHaveFocus()
+    // Radix gives focus back a tick after the dialog goes.
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Open' })).toHaveFocus())
   })
 
-  it('leaves focus alone if something outside the dialog took it on purpose', () => {
+  it('leaves focus alone if something outside the dialog took it on purpose', async () => {
     function Page({ open }: { open: boolean }) {
       return (
         <>
@@ -91,8 +96,11 @@ describe('Modal', () => {
     const { rerender } = render(<Page open={false} />)
     screen.getByRole('button', { name: 'Open' }).focus()
     rerender(<Page open />)
-    screen.getByRole('heading', { name: 'Approved' }).focus()
+    // As on the page: the dialog goes, then the undo box's heading takes focus in an effect,
+    // before the dialog's own focus return runs.
     rerender(<Page open={false} />)
+    screen.getByRole('heading', { name: 'Approved' }).focus()
+    await new Promise((resolve) => setTimeout(resolve, 20))
     expect(screen.getByRole('heading', { name: 'Approved' })).toHaveFocus()
   })
 })

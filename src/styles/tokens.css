@@ -226,6 +226,8 @@
   --color-intro-muted: var(--neutral-8);
   /* The spotlight's dimmed surroundings, the same in both themes (docs/DECISIONS.md, 0056). */
   --color-spotlight-scrim: rgb(0 0 0 / 0.5);
+  /* Behind a dialog: dims the page in both themes, never lightens it (0070). */
+  --color-modal-scrim: rgb(20 24 40 / 0.45);
 
   /* The page's decorative circles (0068). */
   --color-decor-disc: var(--decor-disc-light);
@@ -345,6 +347,7 @@
     --color-decor-mint: var(--decor-mint-dark);
     --color-decor-line: var(--decor-line-dark);
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+    --color-modal-scrim: rgb(0 0 0 / 0.6);
   }
 }
 
@@ -396,6 +399,7 @@
   --color-decor-mint: var(--decor-mint-dark);
   --color-decor-line: var(--decor-line-dark);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+  --color-modal-scrim: rgb(0 0 0 / 0.6);
 }
 
 /*

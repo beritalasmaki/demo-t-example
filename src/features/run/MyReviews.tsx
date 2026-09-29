@@ -400,29 +400,22 @@ function ReviewsBoard({
     )
 
   const archiveTable = (selectable: boolean) => (
-    <div className="scrollbar-none overflow-x-auto">
-      <ArchiveTable
-        runs={archivedRuns}
-        caption="Archived runs"
-        runHref={runHref}
-        sort={aSort}
-        onSort={(key, dir) => setASort({ key, dir })}
-        selectable={selectable}
-        selected={selected}
-        onToggle={toggle}
-        manual={manual}
-        now={now}
-        requestedRuns={requested}
-        onDetails={(id) => setDialog({ type: 'details', id })}
-        onNewRun={(id) => setDialog({ type: 'newrun', id })}
-        onRestore={(id) => setDialog({ type: 'restore', id })}
-      />
-      {archivedRuns.length === 0 && (
-        <p className="px-[var(--space-5)] py-[var(--space-6)] text-center text-body text-text-secondary">
-          No archived runs match these filters.
-        </p>
-      )}
-    </div>
+    <ArchiveTable
+      runs={archivedRuns}
+      caption="Archived runs"
+      runHref={runHref}
+      sort={aSort}
+      onSort={(key, dir) => setASort({ key, dir })}
+      selectable={selectable}
+      selected={selected}
+      onToggle={toggle}
+      manual={manual}
+      now={now}
+      requestedRuns={requested}
+      onDetails={(id) => setDialog({ type: 'details', id })}
+      onNewRun={(id) => setDialog({ type: 'newrun', id })}
+      onRestore={(id) => setDialog({ type: 'restore', id })}
+    />
   )
 
   return (
@@ -542,23 +535,21 @@ function ReviewsBoard({
                 'You can select approved and declined runs, to make a report or to archive them.',
                 true,
               )}
-              <div className="scrollbar-none overflow-x-auto">
-                <ReviewsTable
-                  ref={tableRef}
-                  runs={tableRuns}
-                  caption={`${TABS.find((t) => t.value === tab)?.label ?? ''} runs`}
-                  runHref={runHref}
-                  sort={sort}
-                  onSort={(key, dir) => setSort({ key, dir })}
-                  selected={selected}
-                  onToggle={toggle}
-                  manual={manual}
-                  now={now}
-                  onDetails={(id) => setDialog({ type: 'details', id })}
-                  onNewRun={(id) => setDialog({ type: 'newrun', id })}
-                  onArchive={(id) => setDialog({ type: 'archive', ids: [id] })}
-                />
-              </div>
+              <ReviewsTable
+                ref={tableRef}
+                runs={tableRuns}
+                caption={`${TABS.find((t) => t.value === tab)?.label ?? ''} runs`}
+                runHref={runHref}
+                sort={sort}
+                onSort={(key, dir) => setSort({ key, dir })}
+                selected={selected}
+                onToggle={toggle}
+                manual={manual}
+                now={now}
+                onDetails={(id) => setDialog({ type: 'details', id })}
+                onNewRun={(id) => setDialog({ type: 'newrun', id })}
+                onArchive={(id) => setDialog({ type: 'archive', ids: [id] })}
+              />
               {tableRuns.length === 0 && (
                 <div className="flex flex-col items-center gap-[var(--space-2)] px-[var(--space-5)] py-[var(--space-7)] text-center">
                   {/* Nothing to decide here, but work is under way below: say that, not "no

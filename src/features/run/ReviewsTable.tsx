@@ -1,4 +1,13 @@
 import { Button } from '../../components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table'
 import { Badge } from '../../components/ui/badge'
 import { Checkbox } from '../../components/ui/checkbox'
 import {
@@ -32,7 +41,7 @@ import { ReviewStatusPill, RunCell, StageSteps } from './ReviewParts'
 /**
  * The My reviews table (docs/DECISIONS.md, 0060): one row per run, with its type, where it
  * is now, its open items, who asked, when it last changed, and what the reviewer can do.
- * A real `<table>`: column headers are announced with every cell, and the sorted column says
+ * A real `<Table>`: column headers are announced with every cell, and the sorted column says
  * so through `aria-sort`.
  */
 
@@ -83,7 +92,7 @@ export function ColumnHeader<K extends string>({
   const SortIcon = dir === 'asc' ? ArrowUp : dir === 'desc' ? ArrowDown : ArrowUpDown
 
   return (
-    <th
+    <TableHead
       scope="col"
       aria-sort={dir === 'asc' ? 'ascending' : dir === 'desc' ? 'descending' : undefined}
       className={cn(
@@ -122,7 +131,7 @@ export function ColumnHeader<K extends string>({
           )}
         </span>
       )}
-    </th>
+    </TableHead>
   )
 }
 
@@ -270,8 +279,13 @@ export function ReviewsTable({
 }: ReviewsTableProps) {
   const header = { current: sort, onSort }
   return (
-    <table ref={ref} tabIndex={-1} className="w-full min-w-[75rem] border-collapse outline-none">
-      <caption className="sr-only">{caption}</caption>
+    <Table
+      ref={ref}
+      tabIndex={-1}
+      containerClassName="scrollbar-none"
+      className="min-w-[75rem] outline-none"
+    >
+      <TableCaption className="sr-only">{caption}</TableCaption>
       <colgroup>
         <col className="w-12" />
         <col className="w-9" />
@@ -283,8 +297,8 @@ export function ReviewsTable({
         <col className="w-36" />
         <col className="w-28" />
       </colgroup>
-      <thead className="border-b border-border-subtle bg-surface-raised">
-        <tr>
+      <TableHeader className="border-b border-border-subtle bg-surface-raised">
+        <TableRow>
           <ColumnHeader label="Details" hiddenLabel="Decision details" />
           <ColumnHeader label="Select" hiddenLabel="Select" />
           <ColumnHeader
@@ -344,19 +358,19 @@ export function ReviewsTable({
             {...header}
           />
           <ColumnHeader label="Action" info={INFO.action} align="end" />
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {runs.map((run) => {
           const finished = isFinished(run)
           const archive = archiveState(run, manual, now)
           const updated = updatedAt(run)
           return (
-            <tr key={run.id} className="border-b border-border-subtle bg-surface hover:bg-bg">
-              <td className={CELL}>
+            <TableRow key={run.id} className="border-b border-border-subtle bg-surface hover:bg-bg">
+              <TableCell className={CELL}>
                 <DetailsButton run={run} onClick={() => onDetails(run.id)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <SelectBox
                   run={run}
                   checked={selected.has(run.id)}
@@ -364,26 +378,26 @@ export function ReviewsTable({
                   disabledReason="Only approved and declined runs can be selected"
                   onToggle={() => onToggle(run.id)}
                 />
-              </td>
-              <td className={cn(CELL, 'max-w-0')}>
+              </TableCell>
+              <TableCell className={cn(CELL, 'max-w-0')}>
                 <RunCell run={run} href={runHref(run.id)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <ReviewStatusPill status={reviewStatus(run)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <StageCell run={run} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <OpenItemsCell run={run} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <ActorName
                   name={run.requestedBy}
                   className="text-meta font-medium whitespace-nowrap"
                 />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <DateCell
                   date={formatCalendarDate(updated)}
                   sub={
@@ -392,8 +406,8 @@ export function ReviewsTable({
                       : formatRelativeTime(updated, now)
                   }
                 />
-              </td>
-              <td className={cn(CELL, 'text-right')}>
+              </TableCell>
+              <TableCell className={cn(CELL, 'text-right')}>
                 {reviewStage(run) === 'review' ? (
                   <Button asChild size="sm" className="no-underline">
                     <a href={runHref(run.id)} aria-label={`Review “${run.initiative}”`}>
@@ -428,11 +442,11 @@ export function ReviewsTable({
                     <span className="sr-only">Nothing to do yet</span>
                   </span>
                 )}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )
         })}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   )
 }

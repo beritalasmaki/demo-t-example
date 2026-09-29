@@ -1,4 +1,12 @@
 import { Button } from '../../components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table'
 import { Badge } from '../../components/ui/badge'
 import { Lock, RotateCcw, RotateCw } from 'lucide-react'
 import type { ArchiveSortKey, ManualArchive, SortDirection } from '../../lib/reviews'
@@ -51,8 +59,8 @@ export function ArchiveTable({
 }: ArchiveTableProps) {
   const header = { current: sort, onSort }
   return (
-    <table className="w-full min-w-[75rem] border-collapse">
-      <caption className="sr-only">{caption}</caption>
+    <Table containerClassName="scrollbar-none" className="min-w-[75rem]">
+      <TableCaption className="sr-only">{caption}</TableCaption>
       <colgroup>
         <col className="w-12" />
         <col className="w-9" />
@@ -63,8 +71,8 @@ export function ArchiveTable({
         <col className="w-48" />
         <col className="w-44" />
       </colgroup>
-      <thead className="border-b border-border-subtle bg-surface-raised">
-        <tr>
+      <TableHeader className="border-b border-border-subtle bg-surface-raised">
+        <TableRow>
           <ColumnHeader label="Details" hiddenLabel="Decision details" />
           <ColumnHeader label="Select" hiddenLabel="Select" />
           <ColumnHeader
@@ -117,18 +125,18 @@ export function ArchiveTable({
             info={`New run: ask for a new run to fix a mistake. The old run is not changed. Restore brings a run back to My reviews, but only in the first ${RESTORE_DAYS} days after it was archived.`}
             align="end"
           />
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {runs.map((run) => {
           const state = archiveState(run, manual, now)
           const sent = requestedRuns.has(run.id)
           return (
-            <tr key={run.id} className="border-b border-border-subtle bg-surface hover:bg-bg">
-              <td className={CELL}>
+            <TableRow key={run.id} className="border-b border-border-subtle bg-surface hover:bg-bg">
+              <TableCell className={CELL}>
                 <DetailsButton run={run} onClick={() => onDetails(run.id)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 {selectable && (
                   <SelectBox
                     run={run}
@@ -136,23 +144,25 @@ export function ArchiveTable({
                     onToggle={() => onToggle(run.id)}
                   />
                 )}
-              </td>
-              <td className={cn(CELL, 'max-w-0')}>
+              </TableCell>
+              <TableCell className={cn(CELL, 'max-w-0')}>
                 <RunCell run={run} href={runHref(run.id)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <ReviewStatusPill status={reviewStatus(run)} />
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <ActorName
                   name={run.requestedBy}
                   className="text-meta font-medium whitespace-nowrap"
                 />
-              </td>
-              <td className={cn(CELL, 'text-meta font-medium whitespace-nowrap text-text-primary')}>
+              </TableCell>
+              <TableCell
+                className={cn(CELL, 'text-meta font-medium whitespace-nowrap text-text-primary')}
+              >
                 {run.decision ? formatCalendarDate(run.decision.at) : ''}
-              </td>
-              <td className={CELL}>
+              </TableCell>
+              <TableCell className={CELL}>
                 <DateCell
                   date={state.archivedAt ? formatCalendarDate(state.archivedAt) : ''}
                   sub={
@@ -161,8 +171,8 @@ export function ArchiveTable({
                       : `Automatically, after ${ARCHIVE_AFTER_MONTHS} months`
                   }
                 />
-              </td>
-              <td className={cn(CELL, 'text-right')}>
+              </TableCell>
+              <TableCell className={cn(CELL, 'text-right')}>
                 <span className="inline-flex items-center gap-[var(--space-2)]">
                   {sent ? (
                     <Badge
@@ -206,11 +216,11 @@ export function ArchiveTable({
                     </span>
                   )}
                 </span>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )
         })}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   )
 }

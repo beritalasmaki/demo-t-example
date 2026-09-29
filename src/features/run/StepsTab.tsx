@@ -1,4 +1,12 @@
 import { Button } from '../../components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table'
 import { ChevronRight, List } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { isSystemActor } from '../../lib/actors'
@@ -70,7 +78,7 @@ export function StepsTab({ run, focusEventId }: StepsTabProps) {
     const focused = event.id === focusEventId
     const attention = result.tone !== 'done'
     return (
-      <tr
+      <TableRow
         key={event.id}
         id={`step-${event.id}`}
         ref={focused ? focusRef : undefined}
@@ -82,23 +90,25 @@ export function StepsTab({ run, focusEventId }: StepsTabProps) {
           nested && 'text-text-secondary',
         )}
       >
-        <td className={cn(CELL, 'font-mono text-text-secondary tabular-nums')}>
+        <TableCell className={cn(CELL, 'font-mono text-text-secondary tabular-nums')}>
           {formatStepNumber(number, total)}
-        </td>
-        <td className={cn(CELL, 'text-text-secondary tabular-nums')}>{formatClock(event.at)}</td>
-        <td className={cn(CELL, 'text-text-secondary')}>
+        </TableCell>
+        <TableCell className={cn(CELL, 'text-text-secondary tabular-nums')}>
+          {formatClock(event.at)}
+        </TableCell>
+        <TableCell className={cn(CELL, 'text-text-secondary')}>
           {isSystemActor(actor) ? actor : <ActorName name={actor} className="text-text-primary" />}
-        </td>
-        <td className={cn(CELL, '[overflow-wrap:anywhere]')}>
+        </TableCell>
+        <TableCell className={cn(CELL, '[overflow-wrap:anywhere]')}>
           {event.title}
           {event.detail && !nested && (
             <span className="block pt-[var(--space-1)] text-caption text-text-secondary">
               {event.detail}
             </span>
           )}
-        </td>
-        <td className={cn(CELL, RESULT_TONE[result.tone])}>{result.label}</td>
-      </tr>
+        </TableCell>
+        <TableCell className={cn(CELL, RESULT_TONE[result.tone])}>{result.label}</TableCell>
+      </TableRow>
     )
   }
 
@@ -124,116 +134,118 @@ export function StepsTab({ run, focusEventId }: StepsTabProps) {
           No steps yet. This run started at {formatClock(run.startedAt)}.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface shadow-card">
-          <table className="w-full min-w-[40rem] table-fixed border-collapse text-left">
-            <colgroup>
-              <col className="w-[5.5rem]" />
-              <col className="w-[4.5rem]" />
-              <col className="w-[10rem]" />
-              <col />
-              <col className="w-[7rem]" />
-            </colgroup>
-            <thead className="border-b border-border-subtle bg-surface-raised text-caption font-semibold font-heading text-text-secondary">
-              <tr>
-                <th scope="col" className={CELL}>
-                  #
-                </th>
-                <th scope="col" className={CELL}>
-                  Time
-                </th>
-                <th scope="col" className={CELL}>
-                  Who
-                </th>
-                <th scope="col" className={CELL}>
-                  What
-                </th>
-                <th scope="col" className={CELL}>
-                  Result
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => {
-                if (row.kind === 'step') return renderStep(row.event, row.number)
+        <Table
+          containerClassName="rounded-lg border border-border-subtle bg-surface shadow-card"
+          className="min-w-[40rem] table-fixed"
+        >
+          <colgroup>
+            <col className="w-[5.5rem]" />
+            <col className="w-[4.5rem]" />
+            <col className="w-[10rem]" />
+            <col />
+            <col className="w-[7rem]" />
+          </colgroup>
+          <TableHeader className="border-b border-border-subtle bg-surface-raised text-caption font-semibold font-heading text-text-secondary">
+            <TableRow>
+              <TableHead scope="col" className={CELL}>
+                #
+              </TableHead>
+              <TableHead scope="col" className={CELL}>
+                Time
+              </TableHead>
+              <TableHead scope="col" className={CELL}>
+                Who
+              </TableHead>
+              <TableHead scope="col" className={CELL}>
+                What
+              </TableHead>
+              <TableHead scope="col" className={CELL}>
+                Result
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => {
+              if (row.kind === 'step') return renderStep(row.event, row.number)
 
-                const state = groups[row.firstNumber] ?? 'closed'
-                const last = row.firstNumber + row.events.length - 1
-                const visible =
-                  state === 'closed'
-                    ? []
-                    : state === 'all'
-                      ? row.events
-                      : row.events.slice(0, PREVIEW_ROWS)
-                const actor = stepActor(row.events[0], run)
-                const toggle = () =>
-                  setGroups((current) => ({
-                    ...current,
-                    [row.firstNumber]: state === 'closed' ? 'preview' : 'closed',
-                  }))
+              const state = groups[row.firstNumber] ?? 'closed'
+              const last = row.firstNumber + row.events.length - 1
+              const visible =
+                state === 'closed'
+                  ? []
+                  : state === 'all'
+                    ? row.events
+                    : row.events.slice(0, PREVIEW_ROWS)
+              const actor = stepActor(row.events[0], run)
+              const toggle = () =>
+                setGroups((current) => ({
+                  ...current,
+                  [row.firstNumber]: state === 'closed' ? 'preview' : 'closed',
+                }))
 
-                return (
-                  <Fragment key={`group-${row.firstNumber}`}>
-                    <tr className="border-b border-border-subtle bg-surface-raised text-meta font-normal font-body text-text-primary">
-                      <td className={cn(CELL, 'font-mono text-text-secondary tabular-nums')}>
-                        {formatStepNumber(row.firstNumber, total, last)}
-                      </td>
-                      <td className={cn(CELL, 'text-text-secondary tabular-nums')}>
-                        {formatClock(row.events[0].at)}
-                      </td>
-                      <td className={cn(CELL, 'text-text-secondary')}>{actor}</td>
-                      <td className={CELL}>
-                        <button
-                          type="button"
-                          aria-expanded={state !== 'closed'}
-                          onClick={toggle}
-                          className="flex w-full cursor-pointer items-center gap-[var(--space-2)] text-left hover:underline"
+              return (
+                <Fragment key={`group-${row.firstNumber}`}>
+                  <TableRow className="border-b border-border-subtle bg-surface-raised text-meta font-normal font-body text-text-primary">
+                    <TableCell className={cn(CELL, 'font-mono text-text-secondary tabular-nums')}>
+                      {formatStepNumber(row.firstNumber, total, last)}
+                    </TableCell>
+                    <TableCell className={cn(CELL, 'text-text-secondary tabular-nums')}>
+                      {formatClock(row.events[0].at)}
+                    </TableCell>
+                    <TableCell className={cn(CELL, 'text-text-secondary')}>{actor}</TableCell>
+                    <TableCell className={CELL}>
+                      <button
+                        type="button"
+                        aria-expanded={state !== 'closed'}
+                        onClick={toggle}
+                        className="flex w-full cursor-pointer items-center gap-[var(--space-2)] text-left hover:underline"
+                      >
+                        <ChevronRight
+                          aria-hidden
+                          className={cn(
+                            'h-4 w-4 shrink-0 text-primary transition-transform duration-[var(--motion-duration-fast)]',
+                            state !== 'closed' && 'rotate-90',
+                          )}
+                        />
+                        <span>
+                          <b className="font-semibold">
+                            {formatCount(row.events.length, 'similar step')}
+                          </b>{' '}
+                          · the same action repeated, from “{row.events[0].title}” to “
+                          {row.events[row.events.length - 1].title}”
+                        </span>
+                      </button>
+                    </TableCell>
+                    <TableCell className={cn(CELL, 'text-status-pass-tint-fg')}>
+                      {row.events.length} done
+                    </TableCell>
+                  </TableRow>
+                  {visible.map((event, index) => renderStep(event, row.firstNumber + index, true))}
+                  {state === 'preview' && row.events.length > PREVIEW_ROWS && (
+                    <TableRow className="border-b border-border-subtle bg-bg">
+                      <TableCell colSpan={3} />
+                      <TableCell
+                        className={cn(CELL, 'text-meta font-medium font-body')}
+                        colSpan={2}
+                      >
+                        <Button
+                          variant="link"
+                          size="inline"
+                          onClick={() =>
+                            setGroups((current) => ({ ...current, [row.firstNumber]: 'all' }))
+                          }
+                          className="text-[length:inherit] leading-[inherit] font-normal font-body"
                         >
-                          <ChevronRight
-                            aria-hidden
-                            className={cn(
-                              'h-4 w-4 shrink-0 text-primary transition-transform duration-[var(--motion-duration-fast)]',
-                              state !== 'closed' && 'rotate-90',
-                            )}
-                          />
-                          <span>
-                            <b className="font-semibold">
-                              {formatCount(row.events.length, 'similar step')}
-                            </b>{' '}
-                            · the same action repeated, from “{row.events[0].title}” to “
-                            {row.events[row.events.length - 1].title}”
-                          </span>
-                        </button>
-                      </td>
-                      <td className={cn(CELL, 'text-status-pass-tint-fg')}>
-                        {row.events.length} done
-                      </td>
-                    </tr>
-                    {visible.map((event, index) =>
-                      renderStep(event, row.firstNumber + index, true),
-                    )}
-                    {state === 'preview' && row.events.length > PREVIEW_ROWS && (
-                      <tr className="border-b border-border-subtle bg-bg">
-                        <td colSpan={3} />
-                        <td className={cn(CELL, 'text-meta font-medium font-body')} colSpan={2}>
-                          <Button
-                            variant="link"
-                            size="inline"
-                            onClick={() =>
-                              setGroups((current) => ({ ...current, [row.firstNumber]: 'all' }))
-                            }
-                            className="text-[length:inherit] leading-[inherit] font-normal font-body"
-                          >
-                            Show {row.events.length - PREVIEW_ROWS} more
-                          </Button>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                          Show {row.events.length - PREVIEW_ROWS} more
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              )
+            })}
+          </TableBody>
+        </Table>
       )}
     </section>
   )

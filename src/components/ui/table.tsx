@@ -1,12 +1,25 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
-function Table({ className, ...props }: React.ComponentProps<'table'>) {
+/*
+ * shadcn/ui's Table, restyled onto this project's tokens (docs/DECISIONS.md, 0070): a real
+ * <table> in a container that scrolls sideways when the table is wider than the page. One
+ * addition to shadcn's API: `containerClassName`, for that container — a card's border, or
+ * `scrollbar-none` where the user asked for no visible scrollbar (0061).
+ */
+function Table({
+  className,
+  containerClassName,
+  ...props
+}: React.ComponentProps<'table'> & { containerClassName?: string }) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div
+      data-slot="table-container"
+      className={cn('relative w-full overflow-x-auto', containerClassName)}
+    >
       <table
         data-slot="table"
-        className={cn('w-full caption-bottom text-sm', className)}
+        className={cn('w-full border-collapse text-left', className)}
         {...props}
       />
     </div>
@@ -14,24 +27,24 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
-  return <thead data-slot="table-header" className={cn('[&_tr]:border-b', className)} {...props} />
-}
-
-function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   return (
-    <tbody
-      data-slot="table-body"
-      className={cn('[&_tr:last-child]:border-0', className)}
+    <thead
+      data-slot="table-header"
+      className={cn('border-b border-border-subtle bg-surface-raised', className)}
       {...props}
     />
   )
+}
+
+function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
+  return <tbody data-slot="table-body" className={className} {...props} />
 }
 
 function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
   return (
     <tfoot
       data-slot="table-footer"
-      className={cn('border-t bg-muted/50 font-medium [&>tr]:last:border-b-0', className)}
+      className={cn('border-t border-border-subtle bg-surface-raised font-semibold', className)}
       {...props}
     />
   )
@@ -41,10 +54,7 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
   return (
     <tr
       data-slot="table-row"
-      className={cn(
-        'border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted',
-        className,
-      )}
+      className={cn('border-b border-border-subtle', className)}
       {...props}
     />
   )
@@ -54,33 +64,21 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
   return (
     <th
       data-slot="table-head"
-      className={cn(
-        'h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
-        className,
-      )}
+      className={cn('text-left align-middle font-normal', className)}
       {...props}
     />
   )
 }
 
 function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
-  return (
-    <td
-      data-slot="table-cell"
-      className={cn(
-        'p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
-        className,
-      )}
-      {...props}
-    />
-  )
+  return <td data-slot="table-cell" className={cn('align-middle', className)} {...props} />
 }
 
 function TableCaption({ className, ...props }: React.ComponentProps<'caption'>) {
   return (
     <caption
       data-slot="table-caption"
-      className={cn('mt-4 text-sm text-muted-foreground', className)}
+      className={cn('text-meta text-text-secondary', className)}
       {...props}
     />
   )

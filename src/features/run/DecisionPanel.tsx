@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/button'
+import { Checkbox } from '../../components/ui/checkbox'
 import { ArrowLeft, Check, Info, ShieldCheck, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { SubmitDecisionOptions } from '../../lib/api'
@@ -193,21 +194,12 @@ export function DecisionPanel({
                       'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus-ring',
                     )}
                   >
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={checked}
-                      onChange={() => toggle(item.id)}
-                      className="peer sr-only"
+                      onCheckedChange={() => toggle(item.id)}
+                      // The label's own ring shows focus, around the box and its sentence.
+                      className="mt-[var(--space-1)] border-status-waived text-surface focus-visible:outline-none data-[state=checked]:border-status-waived data-[state=checked]:bg-status-waived"
                     />
-                    <span
-                      aria-hidden
-                      className={cn(
-                        'mt-[var(--space-1)] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-status-waived',
-                        checked ? 'bg-status-waived text-surface' : 'bg-surface text-transparent',
-                      )}
-                    >
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </span>
                     <span className="text-meta font-normal font-body leading-relaxed text-text-primary">
                       {item.text}
                     </span>

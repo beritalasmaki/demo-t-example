@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/button'
+import { Checkbox } from '../../components/ui/checkbox'
 import {
   ArrowDown,
   ArrowRight,
@@ -158,14 +159,12 @@ export function SelectBox({
   onToggle: () => void
 }) {
   return (
-    <input
-      type="checkbox"
+    <Checkbox
       checked={checked}
       disabled={disabled}
-      onChange={onToggle}
+      onCheckedChange={onToggle}
       aria-label={`Select “${run.initiative}”`}
       title={disabled ? disabledReason : 'Select for a report or to archive'}
-      className="h-4 w-4 cursor-pointer accent-primary disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
     />
   )
 }

@@ -1,4 +1,5 @@
 import { Archive, ArrowRight, Download, FileBarChart, RotateCcw, RotateCw } from 'lucide-react'
+import { Checkbox } from '../../components/ui/checkbox'
 import { Button } from '../../components/ui/button'
 import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
@@ -404,13 +405,12 @@ export function ReportDialog({
             key={option.key}
             className="flex cursor-pointer items-start gap-[var(--space-3)] py-[var(--space-2)]"
           >
-            <input
-              type="checkbox"
+            <Checkbox
               checked={include[option.key]}
-              onChange={() =>
+              onCheckedChange={() =>
                 setInclude((current) => ({ ...current, [option.key]: !current[option.key] }))
               }
-              className="mt-0.5 h-4 w-4 cursor-pointer accent-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="mt-0.5"
             />
             <span className="flex flex-col gap-[var(--space-1)]">
               <span className="text-body font-medium text-text-primary">{option.label}</span>

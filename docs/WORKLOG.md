@@ -39,6 +39,43 @@ What is unfinished, uncertain, or should be decided by a human.
 
 <!-- New entries go below this line, newest first. -->
 
+### 2026-09-29 · Every control on shadcn/ui
+
+**Goal**
+The stack says shadcn/ui, but nothing used it. Migrate every control to it.
+
+**What changed**
+- `src/components/ui/`: 14 shadcn components, restyled onto the tokens.
+- Buttons in 13 files, and every dialog, tab, check box, tooltip, badge, text field, table,
+  select, radio group, switch, disclosure and toast now use them.
+- `Toast` became `notify()` on Sonner. `tooltipPlacement.ts` and the tooltip CSS are gone.
+- Packages: `class-variance-authority`, `sonner`.
+- Tests: Modal, InfoTip, Tabs and notify rewritten for Radix and Sonner; the keyboard spec
+  accepts a checkbox label's focus ring for either kind of checkbox.
+- DECISIONS 0070, AGENTS.md, `components/README.md`, README.
+
+**Steps, in order**
+1. `git checkout -b feat/shadcn-ui` from main.
+2. Checked the registry (blocked) and GitHub (reachable), then fetched the components with
+   `curl` from `shadcn-ui/ui/main/apps/v4/registry/new-york-v4/ui/`.
+3. Adapted imports, the accent clash and `next-themes` in Sonner; restyled each onto the
+   tokens as it was used.
+4. Migrated one component per commit. After each: typecheck, lint, unit tests, all
+   Playwright specs, screenshots in both themes, then `npm run check`.
+5. Fixed what the specs found. Radix returns focus only to its own trigger. Sonner's focus
+   restore made a keyboard loop (traced by logging every Tab stop's outline and
+   `:focus-visible`). Sonner's unlayered `outline: 0` hid the toast's focus ring.
+6. Built Storybook, then merged only on exit code 0.
+
+**Why it was done this way**
+See DECISIONS 0070. Keeping the wrappers' APIs meant the pages barely changed, so each swap
+could be checked on its own.
+
+**How to do this by hand**
+Open any control in DevTools: it carries a `data-slot` attribute (`button`, `dialog-content`,
+`checkbox`, …), which marks a shadcn component. Tab through My reviews after archiving a run:
+focus passes through the toast and on to the top of the page.
+
 ### 2026-09-25 · Deeper, brighter accents in dark mode
 
 **Goal**

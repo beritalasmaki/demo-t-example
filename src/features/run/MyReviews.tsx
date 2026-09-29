@@ -19,7 +19,8 @@ import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs'
 import { Button } from '../../components/ui/button'
 import { ThemeToggle } from '../../components/ThemeToggle'
-import { Toast } from '../../components/Toast'
+import { notify } from '../../components/notify'
+import { Toaster } from '../../components/ui/sonner'
 import { listRuns } from '../../lib/api'
 import type { GetRunOptions } from '../../lib/api'
 import { formatCalendarDate, formatRelativeTime } from '../../lib/format'
@@ -233,7 +234,6 @@ function ReviewsBoard({
   const [restored, setRestored] = useState<ReadonlySet<string>>(new Set())
   const [requested, setRequested] = useState<ReadonlySet<string>>(new Set())
   const [dialog, setDialog] = useState<Dialog>(null)
-  const [toast, setToast] = useState<string | null>(null)
   const [progOpen, setProgOpen] = useState(false)
   const tableRef = useRef<HTMLTableElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -327,7 +327,7 @@ function ReviewsBoard({
     setRestored((current) => new Set([...current].filter((id) => !ids.includes(id))))
     setSelected(new Set())
     const only = ids.length === 1 ? byId(ids[0]) : undefined
-    setToast(
+    notify(
       `${only ? `Archived “${only.initiative}”` : `${plural(ids.length, 'run')} archived`}. You can restore ${
         ids.length === 1 ? 'it' : 'them'
       } for ${RESTORE_DAYS} days.`,
@@ -341,7 +341,7 @@ function ReviewsBoard({
     )
     setRestored((current) => new Set(current).add(id))
     const run = byId(id)
-    setToast(`Restored “${run?.initiative ?? id}” to My reviews.`)
+    notify(`Restored “${run?.initiative ?? id}” to My reviews.`)
     focusAfterDialog.current = 'heading'
   }
   function createReport(report: {
@@ -354,13 +354,13 @@ function ReviewsBoard({
     setSelected(new Set())
     if (report.format === 'csv') {
       downloadCsvReport(report.name, chosen, report.include)
-      setToast(`“${report.name}” created as CSV, ${plural(chosen.length, 'run')}.`)
+      notify(`“${report.name}” created as CSV, ${plural(chosen.length, 'run')}.`)
     } else if (openPdfReport(report.name, chosen, report.include)) {
-      setToast(
+      notify(
         `“${report.name}” is open in a new tab. Choose Save as PDF in the print dialog to keep it.`,
       )
     } else {
-      setToast('Your browser blocked the report tab. Allow pop-ups for this page, then try again.')
+      notify('Your browser blocked the report tab. Allow pop-ups for this page, then try again.')
     }
   }
 
@@ -672,7 +672,7 @@ function ReviewsBoard({
           onSend={() => {
             setRequested((current) => new Set(current).add(newRunRun.id))
             setDialog(null)
-            setToast(
+            notify(
               `Request sent to ${newRunRun.requestedBy}. You will get a message when they answer.`,
             )
           }}
@@ -708,7 +708,7 @@ function ReviewsBoard({
           onCreate={createReport}
         />
       )}
-      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+      <Toaster />
     </div>
   )
 }

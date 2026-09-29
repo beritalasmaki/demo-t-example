@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { toast } from 'sonner'
 import { MyReviews } from './MyReviews'
 
 const runHref = (id: string) => `?run=${id}`
@@ -18,7 +19,11 @@ const rows = () =>
     .slice(1)
 
 describe('MyReviews', () => {
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    vi.restoreAllMocks()
+    // Sonner keeps its toasts at module level; start each test with none.
+    toast.dismiss()
+  })
 
   it('opens on pending runs, with a count on every tab and a link to each review', async () => {
     await renderLoaded()
@@ -80,7 +85,7 @@ describe('MyReviews', () => {
     expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('5')
     await user.click(screen.getByRole('button', { name: /^Archive “Move refund processing/ }))
     await user.click(screen.getByRole('button', { name: 'Move to the archive' }))
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(await screen.findByRole('region', { name: /Notifications/ })).toHaveTextContent(
       /Archived “Move refund processing.*restore it for 7 days/,
     )
     expect(screen.getByRole('tab', { name: /Approved/ })).toHaveTextContent('4')
@@ -136,7 +141,9 @@ describe('MyReviews', () => {
     expect(send).toBeDisabled()
     await user.type(screen.getByRole('textbox', { name: /What went wrong/ }), 'Rounding is wrong.')
     await user.click(send)
-    expect(screen.getByRole('status')).toHaveTextContent('Request sent to Maarit Kasakallio.')
+    expect(await screen.findByRole('region', { name: /Notifications/ })).toHaveTextContent(
+      'Request sent to Maarit Kasakallio.',
+    )
   })
 
   it('makes a CSV report of the selected runs', async () => {
@@ -153,7 +160,9 @@ describe('MyReviews', () => {
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Create report' }),
     )
     expect(createObjectURL).toHaveBeenCalledOnce()
-    expect(screen.getByRole('status')).toHaveTextContent(/created as CSV, 1 run\./)
+    expect(await screen.findByRole('region', { name: /Notifications/ })).toHaveTextContent(
+      /created as CSV, 1 run\./,
+    )
   })
 
   it('does not let a pending run be selected', async () => {

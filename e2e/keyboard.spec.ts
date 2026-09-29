@@ -127,7 +127,7 @@ test('My reviews, keyboard only', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Move to the archive?' })).toBeVisible()
   await tabTo(page, /^Move to the archive$/)
   await keys.press('Enter')
-  await expect(page.getByRole('status')).toContainText('Archived')
+  await expect(page.getByRole('region', { name: /Notifications/ })).toContainText('Archived')
   // The row is gone; focus went to its table, not to <body>.
   await expect(page.getByRole('table', { name: /runs$/ })).toBeFocused()
 

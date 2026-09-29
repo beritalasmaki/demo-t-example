@@ -1,4 +1,5 @@
 import { Archive, ArrowRight, Download, FileBarChart, RotateCcw, RotateCw } from 'lucide-react'
+import { RadioGroup, RadioGroupSegment } from '../../components/ui/radio-group'
 import { Textarea } from '../../components/ui/textarea'
 import { Input } from '../../components/ui/input'
 import { Checkbox } from '../../components/ui/checkbox'
@@ -341,7 +342,7 @@ export function ReportDialog({
     steps: false,
   })
   const nameId = useId()
-  const formatName = useId()
+  const formatId = useId()
 
   return (
     <Modal title="Create a report" onClose={onClose} className="max-w-[37.5rem]">
@@ -356,38 +357,28 @@ export function ReportDialog({
         </label>
         <Input id={nameId} value={name} onChange={(event) => setName(event.target.value)} />
       </div>
-      <fieldset className="flex flex-col gap-[var(--space-2)]">
-        <legend className="mb-[var(--space-2)] text-meta font-semibold text-text-primary">
+      <div className="flex flex-col gap-[var(--space-2)]">
+        <p id={formatId} className="mb-[var(--space-2)] text-meta font-semibold text-text-primary">
           Format
-        </legend>
-        <div className="flex gap-[var(--space-1)] self-start rounded-lg bg-surface-raised p-[var(--space-1)]">
+        </p>
+        <RadioGroup
+          aria-labelledby={formatId}
+          value={format}
+          onValueChange={(value) => setFormat(value as typeof format)}
+          className="flex gap-[var(--space-1)] self-start rounded-lg bg-surface-raised p-[var(--space-1)]"
+        >
           {(
             [
               ['pdf', 'PDF, for reading and sharing'],
               ['csv', 'CSV, for spreadsheets'],
             ] as const
           ).map(([value, label]) => (
-            <label
-              key={value}
-              className={cn(
-                'cursor-pointer rounded-md px-[var(--space-4)] py-[var(--space-2)] text-meta font-semibold font-heading whitespace-nowrap',
-                'has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus-ring',
-                format === value ? 'bg-surface text-text-primary shadow-sm' : 'text-text-secondary',
-              )}
-            >
-              <input
-                type="radio"
-                name={formatName}
-                value={value}
-                checked={format === value}
-                onChange={() => setFormat(value)}
-                className="sr-only"
-              />
+            <RadioGroupSegment key={value} value={value}>
               {label}
-            </label>
+            </RadioGroupSegment>
           ))}
-        </div>
-      </fieldset>
+        </RadioGroup>
+      </div>
       <fieldset className="flex flex-col gap-[var(--space-1)]">
         <legend className="mb-[var(--space-2)] text-meta font-semibold text-text-primary">
           What to include

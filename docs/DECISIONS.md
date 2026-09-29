@@ -11,8 +11,7 @@ Each entry has four parts: the situation, the options, the choice, and what it m
 **Context.** AGENTS.md has always listed shadcn/ui in the stack. It was set up early
 (`components.json`, the theme bridge, `cn()`) and three components were fetched (0013). The
 screen was then built on hand-styled elements and Radix used directly, and nothing ever
-imported from `components/ui/`. The cleanup in 0058's session removed those three files as
-unused, and nobody flagged that the listed stack wasn't being used. The user noticed, and
+imported from `components/ui/`. A later cleanup (commit a80a348) removed those three files as unused, and nobody flagged that the listed stack wasn't being used. The user noticed, and
 asked for a full migration.
 
 **Options.** (a) Restore `ui/` and use it for new work only. (b) Migrate the primitives most

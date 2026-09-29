@@ -1,4 +1,6 @@
 import { Archive, ArrowRight, Download, FileBarChart, RotateCcw, RotateCw } from 'lucide-react'
+import { Textarea } from '../../components/ui/textarea'
+import { Input } from '../../components/ui/input'
 import { Checkbox } from '../../components/ui/checkbox'
 import { Button } from '../../components/ui/button'
 import { useId, useState } from 'react'
@@ -29,9 +31,6 @@ import { ReviewStatusPill } from './ReviewParts'
 
 const SECTION_LABEL =
   'text-caption leading-none font-semibold font-heading tracking-wider text-text-secondary uppercase'
-const TEXTAREA =
-  'w-full resize-y rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-body font-body text-text-primary ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring'
 
 function Footer({ children }: { children: ReactNode }) {
   return (
@@ -241,27 +240,25 @@ export function NewRunDialog({ run, onClose, onSend }: NewRunDialogProps) {
         <label htmlFor={wrongId} className="text-meta font-semibold text-text-primary">
           What went wrong? <span className="font-normal text-text-secondary">(required)</span>
         </label>
-        <textarea
+        <Textarea
           id={wrongId}
           rows={3}
           required
           value={whatWentWrong}
           onChange={(event) => setWhatWentWrong(event.target.value)}
           placeholder="For example: the refund amount is rounded the wrong way for Swedish orders."
-          className={TEXTAREA}
         />
       </div>
       <div className="flex flex-col gap-[var(--space-2)]">
         <label htmlFor={doId} className="text-meta font-semibold text-text-primary">
           What should the new run do?
         </label>
-        <textarea
+        <Textarea
           id={doId}
           rows={2}
           value={whatToDo}
           onChange={(event) => setWhatToDo(event.target.value)}
           placeholder="For example: round to the nearest öre and add a test for it."
-          className={TEXTAREA}
         />
       </div>
       <div className="flex flex-col gap-[var(--space-3)] border-t border-border-subtle pt-[var(--space-4)]">
@@ -357,12 +354,7 @@ export function ReportDialog({
         <label htmlFor={nameId} className="text-meta font-semibold text-text-primary">
           Report name
         </label>
-        <input
-          id={nameId}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          className={TEXTAREA}
-        />
+        <Input id={nameId} value={name} onChange={(event) => setName(event.target.value)} />
       </div>
       <fieldset className="flex flex-col gap-[var(--space-2)]">
         <legend className="mb-[var(--space-2)] text-meta font-semibold text-text-primary">

@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/button'
+import { Textarea } from '../../components/ui/textarea'
 import { Checkbox } from '../../components/ui/checkbox'
 import { ArrowLeft, Check, Info, ShieldCheck, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
@@ -239,7 +240,7 @@ export function DecisionPanel({
                 : '(optional)'}
             </span>
           </label>
-          <textarea
+          <Textarea
             id={reasonId}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
@@ -250,7 +251,7 @@ export function DecisionPanel({
                 ? 'For example: these checks do not apply because no new dependencies or screens were added.'
                 : undefined
             }
-            className="w-full resize-y rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-meta font-normal font-body leading-relaxed text-text-primary placeholder:text-text-secondary focus-visible:border-primary"
+            className="text-meta focus-visible:border-primary"
           />
           <Button
             onClick={approve}

@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/button'
+import { Textarea } from '../../components/ui/textarea'
 import { useEffect, useRef, useState } from 'react'
 import { Modal } from '../../components/Modal'
 import { DecisionConflictError, submitDecision } from '../../lib/api'
@@ -164,12 +165,11 @@ export function DecisionDialog({
           >
             {reasonPrompt}
           </label>
-          <textarea
+          <Textarea
             id="decision-reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             rows={4}
-            className="text-body rounded-md border border-border bg-surface p-[var(--space-2)] font-normal font-body text-text-primary"
           />
         </div>
       )}

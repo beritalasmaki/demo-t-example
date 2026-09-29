@@ -1,20 +1,27 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
+/*
+ * shadcn/ui's Input, restyled onto this project's tokens (docs/DECISIONS.md, 0070).
+ * `fieldClassName` is the same look for a native <select>, which has no shadcn file here.
+ */
+const fieldClassName = cn(
+  'rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-body font-body text-text-primary',
+  'placeholder:text-text-secondary',
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring',
+  'disabled:cursor-not-allowed disabled:bg-surface-raised disabled:text-text-disabled',
+  'aria-invalid:border-status-fail',
+)
+
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
   return (
     <input
       type={type}
       data-slot="input"
-      className={cn(
-        'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30',
-        'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
-        'aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40',
-        className,
-      )}
+      className={cn(fieldClassName, 'w-full min-w-0', className)}
       {...props}
     />
   )
 }
 
-export { Input }
+export { Input, fieldClassName }

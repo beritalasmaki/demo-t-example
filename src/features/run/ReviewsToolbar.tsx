@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/button'
+import { Input, fieldClassName } from '../../components/ui/input'
 import { Badge } from '../../components/ui/badge'
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useId } from 'react'
@@ -39,9 +40,8 @@ export interface ReviewsToolbarProps {
   onClear?: () => void
 }
 
-const FIELD =
-  'rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-body font-medium font-body text-text-primary ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring'
+/** The native selects share the shadcn Input's look. */
+const FIELD = cn(fieldClassName, 'font-medium')
 const FIELD_LABEL =
   'flex items-center gap-[var(--space-2)] text-meta font-medium font-body whitespace-nowrap text-text-secondary'
 
@@ -74,15 +74,12 @@ export function ReviewsToolbar({
             aria-hidden
             className="absolute left-[var(--space-3)] h-4 w-4 text-text-secondary"
           />
-          <input
+          <Input
             type="search"
             value={filters.query}
             onChange={(event) => onFilters({ query: event.target.value })}
             placeholder={searchPlaceholder}
-            className={cn(
-              FIELD,
-              'w-full py-[var(--space-3)] pl-[calc(var(--space-6)+var(--space-1))] font-normal',
-            )}
+            className="py-[var(--space-3)] pl-[calc(var(--space-6)+var(--space-1))]"
           />
         </label>
         <Button
@@ -142,20 +139,20 @@ export function ReviewsToolbar({
           </label>
           {filters.time === 'custom' && (
             <div className="flex items-center gap-[var(--space-2)] text-meta text-text-secondary">
-              <input
+              <Input
                 type="date"
                 aria-label="From"
                 value={filters.from}
                 onChange={(event) => onFilters({ from: event.target.value })}
-                className={cn(FIELD, 'text-meta')}
+                className="w-auto text-meta font-medium"
               />
               <span>to</span>
-              <input
+              <Input
                 type="date"
                 aria-label="To"
                 value={filters.to}
                 onChange={(event) => onFilters({ to: event.target.value })}
-                className={cn(FIELD, 'text-meta')}
+                className="w-auto text-meta font-medium"
               />
             </div>
           )}

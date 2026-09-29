@@ -7,7 +7,18 @@
  * A `dark:` variant for the rare case that a component needs more than a token
  * swap. Tokens handle the normal case on their own, so reach for this sparingly.
  */
-@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+/* `dark:` follows the page's theme, not only the system's: an explicit data-theme="dark", or
+   the system's dark mode when the viewer hasn't chosen light (ThemeToggle, 0063). */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *) {
+      @slot;
+    }
+  }
+}
 
 /*
  * shadcn/ui bridge.

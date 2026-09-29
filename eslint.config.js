@@ -151,6 +151,14 @@ export default tseslint.config(
     },
   },
   {
+    // shadcn/ui files export their variant helpers (`buttonVariants`) beside the component, by
+    // design — the rest of the app composes with them (docs/DECISIONS.md, 0070).
+    files: ['src/components/ui/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
     // Test files are exempt from the strict type-checked ruleset's stricter
     // assertions (e.g. no-non-null-assertion shows up a lot in test setup).
     files: ['**/*.test.{ts,tsx}', 'vitest.setup.ts', 'e2e/**/*.ts'],

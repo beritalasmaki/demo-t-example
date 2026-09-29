@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { buildUnverifiedItems } from '../../lib/openItems'
@@ -79,13 +80,14 @@ export function UnverifiedList({ run }: UnverifiedListProps) {
       )}
       {decided && items.length > 0 && (
         <div className="flex flex-col gap-[var(--space-1)]">
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="inline"
             onClick={() => void copy()}
-            className="w-fit cursor-pointer text-meta font-medium font-body text-primary underline-offset-2 hover:underline"
+            className="w-fit font-medium font-body"
           >
             Copy this list for the record
-          </button>
+          </Button>
           <span
             aria-live="polite"
             className="text-caption font-normal font-body text-text-secondary"

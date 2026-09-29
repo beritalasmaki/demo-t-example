@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { LoadingState } from '../../components/LoadingState'
@@ -166,9 +167,14 @@ export function RunReviewPage({
     return (
       <p className="mx-auto max-w-6xl p-[var(--space-6)] text-body text-text-secondary">
         Could not find a run with id "{runId}".{' '}
-        <a href={reviewsHref} className="text-primary underline">
-          Back to my reviews
-        </a>
+        <Button
+          asChild
+          variant="link"
+          size="inline"
+          className="text-body font-normal font-body underline"
+        >
+          <a href={reviewsHref}>Back to my reviews</a>
+        </Button>
       </p>
     )
   }
@@ -177,9 +183,14 @@ export function RunReviewPage({
     return (
       <p className="mx-auto max-w-6xl p-[var(--space-6)] text-body text-text-secondary">
         Could not load this run. {state.error.message}{' '}
-        <button type="button" onClick={refetch} className="cursor-pointer text-primary underline">
+        <Button
+          variant="link"
+          size="inline"
+          onClick={refetch}
+          className="text-body font-normal font-body underline"
+        >
           Retry
-        </button>
+        </Button>
       </p>
     )
   }

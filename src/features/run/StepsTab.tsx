@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { ChevronRight, List } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { isSystemActor } from '../../lib/actors'
@@ -214,15 +215,16 @@ export function StepsTab({ run, focusEventId }: StepsTabProps) {
                       <tr className="border-b border-border-subtle bg-bg">
                         <td colSpan={3} />
                         <td className={cn(CELL, 'text-meta font-medium font-body')} colSpan={2}>
-                          <button
-                            type="button"
+                          <Button
+                            variant="link"
+                            size="inline"
                             onClick={() =>
                               setGroups((current) => ({ ...current, [row.firstNumber]: 'all' }))
                             }
-                            className="cursor-pointer text-primary underline-offset-2 hover:underline"
+                            className="text-[length:inherit] leading-[inherit] font-normal font-body"
                           >
                             Show {row.events.length - PREVIEW_ROWS} more
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     )}

@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { explanationFor } from '../../lib/gates'
@@ -69,19 +70,19 @@ export function CheckCard({ gate, timeline, actionable = false }: CheckCardProps
 
       {actionable && result !== 'waived' && (
         <div className="mt-[var(--space-3)] flex flex-wrap items-center gap-[var(--space-4)] border-t border-status-waived/40 pt-[var(--space-3)]">
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setQueued(true)}
             disabled={queued}
             className={cn(
-              'inline-flex items-center gap-[var(--space-2)] rounded-md border border-status-waived bg-surface px-[var(--space-4)] py-[var(--space-2)]',
-              'text-meta font-semibold font-heading whitespace-nowrap text-text-primary',
-              'hover:bg-status-waived-tint-bg active:bg-status-waived-tint-bg disabled:cursor-default disabled:opacity-70',
+              'border-status-waived px-[var(--space-4)] hover:border-status-waived hover:bg-status-waived-tint-bg active:bg-status-waived-tint-bg',
+              'disabled:cursor-default disabled:border-status-waived disabled:bg-surface disabled:text-text-primary disabled:opacity-70',
             )}
           >
             <RefreshCw aria-hidden className="h-4 w-4" />
             {queued ? 'Check asked for' : 'Run check again'}
-          </button>
+          </Button>
           <span
             className="text-caption font-normal font-body text-text-secondary"
             aria-live="polite"

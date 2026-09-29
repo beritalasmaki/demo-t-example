@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { Undo2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { undoDecision, type SubmitDecisionOptions } from '../../lib/api'
@@ -116,15 +117,15 @@ export function UndoBox({
           >
             {formatDuration(undo.remainingMs)}
           </span>
-          <button
-            type="button"
+          <Button
             onClick={() => void takeBack()}
             disabled={undoing}
-            className="inline-flex cursor-pointer items-center justify-center gap-[var(--space-3)] rounded-md border border-text-primary bg-text-primary px-[var(--space-4)] py-[var(--space-3)] text-body font-semibold font-heading leading-none whitespace-nowrap text-surface hover:opacity-90 disabled:cursor-wait disabled:opacity-70"
+            // Busy, not unavailable: it keeps its colour, dimmed, while the undo runs.
+            className="disabled:cursor-wait disabled:border-text-primary disabled:bg-text-primary disabled:text-surface disabled:opacity-70"
           >
             <Undo2 aria-hidden className="h-4 w-4" />
             {undoing ? 'Undoing…' : 'Undo this decision'}
-          </button>
+          </Button>
           {undoError && (
             <span
               role="alert"

@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { Lock, RotateCcw, RotateCw } from 'lucide-react'
 import type { ArchiveSortKey, ManualArchive, SortDirection } from '../../lib/reviews'
 import { ARCHIVE_AFTER_MONTHS, RESTORE_DAYS, archiveState, reviewStatus } from '../../lib/reviews'
@@ -6,7 +7,7 @@ import type { Run } from '../../lib/types'
 import { cn } from '../../lib/utils'
 import { ActorName } from './ActorName'
 import { ReviewStatusPill, RunCell } from './ReviewParts'
-import { CELL, ColumnHeader, DateCell, DetailsButton, ICON_BUTTON, SelectBox } from './ReviewsTable'
+import { CELL, ColumnHeader, DateCell, DetailsButton, SelectBox } from './ReviewsTable'
 
 /**
  * Archived runs (docs/DECISIONS.md, 0060): approved and declined runs, moved here by the
@@ -170,29 +171,27 @@ export function ArchiveTable({
                       Request sent
                     </span>
                   ) : (
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => onNewRun(run.id)}
                       aria-label={`Request a new run: ${run.initiative}`}
-                      className={cn(
-                        ICON_BUTTON,
-                        'w-auto gap-[var(--space-2)] px-[var(--space-3)] text-meta font-semibold font-heading',
-                      )}
+                      className="h-8 hover:border-primary hover:bg-surface hover:text-primary"
                     >
                       <RotateCw aria-hidden className="h-3.5 w-3.5" />
                       New run
-                    </button>
+                    </Button>
                   )}
                   {state.canRestore ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => onRestore(run.id)}
                       aria-label={`Restore “${run.initiative}” to My reviews`}
                       title={`Restore to My reviews. Possible for ${state.restoreDaysLeft} more day${state.restoreDaysLeft === 1 ? '' : 's'}.`}
-                      className={ICON_BUTTON}
                     >
                       <RotateCcw aria-hidden className="h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                   ) : (
                     <span
                       role="img"

@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import {
   ArrowDown,
   ArrowRight,
@@ -103,20 +104,19 @@ export function ColumnHeader<K extends string>({
             </InfoTip>
           )}
           {sort && next && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => onSort?.(sort.key, next)}
               aria-label={`Order by ${label.toLowerCase()}: ${nextText}`}
               title={`Order by ${label.toLowerCase()}: ${nextText}`}
               className={cn(
-                'inline-flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-sm',
-                'hover:bg-border-subtle hover:text-text-primary',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring',
+                'h-5 w-5 rounded-sm hover:bg-border-subtle hover:text-text-primary focus-visible:outline-offset-1',
                 active ? 'bg-primary-tint text-primary' : 'text-text-secondary',
               )}
             >
               <SortIcon aria-hidden className="h-3 w-3" strokeWidth={2.5} />
-            </button>
+            </Button>
           )}
         </span>
       )}
@@ -127,26 +127,20 @@ export function ColumnHeader<K extends string>({
 export const CELL =
   'px-[var(--space-2)] py-[var(--space-3)] align-middle first:pl-[var(--space-5)] last:pr-[var(--space-5)]'
 
-export const ICON_BUTTON =
-  'inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border bg-surface text-text-primary ' +
-  'hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
-
 /** The row's "decision details" button: first in the row, before the tick box. */
 export function DetailsButton({ run, onClick }: { run: Run; onClick: () => void }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
+      size="icon"
       onClick={onClick}
       aria-haspopup="dialog"
       aria-label={`Decision details: ${run.initiative}`}
       title="Show decision details"
-      className={cn(
-        ICON_BUTTON,
-        'h-7 w-7 border-border-subtle text-text-secondary hover:bg-primary-tint',
-      )}
+      className="h-7 w-7 border-border-subtle text-text-secondary hover:bg-primary-tint"
     >
       <FileText aria-hidden className="h-3.5 w-3.5" />
-    </button>
+    </Button>
   )
 }
 
@@ -401,34 +395,32 @@ export function ReviewsTable({
               </td>
               <td className={cn(CELL, 'text-right')}>
                 {reviewStage(run) === 'review' ? (
-                  <a
-                    href={runHref(run.id)}
-                    aria-label={`Review “${run.initiative}”`}
-                    className="inline-flex items-center gap-[var(--space-2)] rounded-md border border-text-primary bg-text-primary px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-surface no-underline hover:opacity-90"
-                  >
-                    Review
-                    <ArrowRight aria-hidden className="h-3.5 w-3.5" />
-                  </a>
+                  <Button asChild size="sm" className="no-underline">
+                    <a href={runHref(run.id)} aria-label={`Review “${run.initiative}”`}>
+                      Review
+                      <ArrowRight aria-hidden className="h-3.5 w-3.5" />
+                    </a>
+                  </Button>
                 ) : finished ? (
                   <span className="inline-flex gap-[var(--space-2)]">
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => onNewRun(run.id)}
                       aria-label={`Request a new run: ${run.initiative}`}
                       title="Request a new run to fix a mistake"
-                      className={ICON_BUTTON}
                     >
                       <RotateCw aria-hidden className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => onArchive(run.id)}
                       aria-label={`Archive “${run.initiative}”`}
                       title="Archive"
-                      className={ICON_BUTTON}
                     >
                       <Archive aria-hidden className="h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                   </span>
                 ) : (
                   <span className="text-meta text-text-secondary">

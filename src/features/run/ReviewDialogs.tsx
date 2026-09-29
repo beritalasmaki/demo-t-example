@@ -1,4 +1,5 @@
 import { Archive, ArrowRight, Download, FileBarChart, RotateCcw, RotateCw } from 'lucide-react'
+import { Button } from '../../components/ui/button'
 import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Modal } from '../../components/Modal'
@@ -25,15 +26,6 @@ import { ReviewStatusPill } from './ReviewParts'
  * them is read from the run itself.
  */
 
-const PRIMARY =
-  'inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-text-primary bg-text-primary px-[var(--space-4)] py-[var(--space-3)] ' +
-  'text-body leading-none font-semibold font-heading whitespace-nowrap text-surface no-underline hover:opacity-90 ' +
-  'disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-border-subtle disabled:text-text-disabled disabled:hover:opacity-100 ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
-const SECONDARY =
-  'inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-3)] ' +
-  'text-body leading-none font-semibold font-heading whitespace-nowrap text-text-primary hover:border-text-secondary ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
 const SECTION_LABEL =
   'text-caption leading-none font-semibold font-heading tracking-wider text-text-secondary uppercase'
 const TEXTAREA =
@@ -184,19 +176,21 @@ export function DecisionDetailsDialog({
 
       <Footer>
         {isFinished(run) && (
-          <button type="button" onClick={onNewRun} className={SECONDARY}>
+          <Button variant="outline" onClick={onNewRun}>
             <RotateCw aria-hidden className="h-3.5 w-3.5" />
             Request a new run
-          </button>
+          </Button>
         )}
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Close
-        </button>
-        <a href={href} className={PRIMARY}>
-          Open the full review
-          <ArrowRight aria-hidden className="h-3.5 w-3.5" />
-        </a>
+        </Button>
+        <Button asChild className="no-underline">
+          <a href={href}>
+            Open the full review
+            <ArrowRight aria-hidden className="h-3.5 w-3.5" />
+          </a>
+        </Button>
       </Footer>
     </Modal>
   )
@@ -296,17 +290,15 @@ export function NewRunDialog({ run, onClose, onSend }: NewRunDialogProps) {
       </div>
       <Footer>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           disabled={!ready}
           onClick={() => onSend({ whatWentWrong: whatWentWrong.trim(), whatToDo: whatToDo.trim() })}
-          className={PRIMARY}
         >
           Send request
-        </button>
+        </Button>
       </Footer>
     </Modal>
   )
@@ -431,17 +423,13 @@ export function ReportDialog({
       </fieldset>
       <Footer>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
-          onClick={() => onCreate({ name: name.trim() || defaultName, format, include })}
-          className={PRIMARY}
-        >
+        </Button>
+        <Button onClick={() => onCreate({ name: name.trim() || defaultName, format, include })}>
           <Download aria-hidden className="h-4 w-4" />
           Create report
-        </button>
+        </Button>
       </Footer>
     </Modal>
   )
@@ -480,13 +468,13 @@ export function ArchiveConfirmDialog({ runs, onClose, onConfirm }: ArchiveConfir
       )}
       <Footer>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button type="button" onClick={onConfirm} className={PRIMARY}>
+        </Button>
+        <Button onClick={onConfirm}>
           <Archive aria-hidden className="h-4 w-4" />
           Move to the archive
-        </button>
+        </Button>
       </Footer>
     </Modal>
   )
@@ -514,13 +502,13 @@ export function RestoreConfirmDialog({
       </p>
       <Footer>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className={SECONDARY}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
-        <button type="button" onClick={onConfirm} className={PRIMARY}>
+        </Button>
+        <Button onClick={onConfirm}>
           <RotateCcw aria-hidden className="h-4 w-4" />
           Restore
-        </button>
+        </Button>
       </Footer>
     </Modal>
   )

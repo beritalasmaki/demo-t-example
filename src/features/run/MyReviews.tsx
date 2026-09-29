@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs'
+import { Button } from '../../components/ui/button'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Toast } from '../../components/Toast'
 import { listRuns } from '../../lib/api'
@@ -119,16 +120,17 @@ export function MyReviews({ runHref, options, now }: MyReviewsProps) {
       ) : (
         <p className="text-body text-text-secondary">
           Could not load your reviews. {state.message}{' '}
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="inline"
             onClick={() => {
               setState({ status: 'loading' })
               setAttempt((n) => n + 1)
             }}
-            className="cursor-pointer text-primary underline"
+            className="text-body font-normal font-body underline"
           >
             Retry
-          </button>
+          </Button>
         </p>
       )}
     </div>
@@ -374,32 +376,24 @@ function ReviewsBoard({
         <span className="text-body leading-none font-semibold whitespace-nowrap text-text-primary">
           {plural(selected.size, 'run')} selected
         </span>
-        <button
-          type="button"
-          onClick={() => setDialog({ type: 'report' })}
-          className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-text-primary bg-text-primary px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-surface hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
+        <Button size="sm" onClick={() => setDialog({ type: 'report' })}>
           <FileBarChart aria-hidden className="h-3.5 w-3.5" />
           Create report
-        </button>
+        </Button>
         {withArchive && (
-          <button
-            type="button"
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setDialog({ type: 'archive', ids: archivable })}
             disabled={archivable.length === 0}
-            className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-3)] py-[var(--space-2)] text-meta leading-none font-semibold font-heading whitespace-nowrap text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           >
             <Archive aria-hidden className="h-3.5 w-3.5" />
             Archive
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
-          onClick={() => setSelected(new Set())}
-          className="cursor-pointer text-meta font-semibold font-heading whitespace-nowrap text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
+        <Button variant="link" size="inline" onClick={() => setSelected(new Set())}>
           Clear selection
-        </button>
+        </Button>
         <span className="ml-auto text-caption text-text-secondary">{hint}</span>
       </div>
     )
@@ -447,32 +441,33 @@ function ReviewsBoard({
               <span aria-hidden className="h-2 w-2 rounded-full bg-status-waived-tint-fg" />
               {needsYou} need{needsYou === 1 ? 's' : ''} your review
             </span>
-            <button
-              type="button"
+            <Button
+              variant="outline"
               onClick={() => openView('archive')}
               aria-label={`Archive, ${plural(archived.length, 'archived run')}`}
-              className="inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-3)] text-body leading-none font-semibold font-heading whitespace-nowrap text-text-primary hover:border-text-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="gap-[var(--space-2)]"
             >
               <Archive aria-hidden className="h-4 w-4" />
               Archive
               <span className="rounded-full bg-surface-raised px-[var(--space-2)] py-px text-caption font-semibold text-text-secondary">
                 {archived.length}
               </span>
-            </button>
+            </Button>
             <ThemeToggle />
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-[var(--space-3)]">
           <div className="flex items-center justify-between gap-[var(--space-4)]">
-            <button
-              type="button"
+            <Button
+              variant="link"
+              size="inline"
               onClick={() => openView('main')}
-              className="inline-flex cursor-pointer items-center gap-[var(--space-1)] self-start text-meta font-medium text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="self-start font-medium font-body"
             >
               <ChevronLeft aria-hidden className="h-4 w-4" />
               My reviews
-            </button>
+            </Button>
             <ThemeToggle />
           </div>
           <PageTitle icon={Archive} headingRef={headingRef}>
@@ -582,13 +577,14 @@ function ReviewsBoard({
                       : 'Try another tab, time range or requester.'}
                   </p>
                   {hasFilters && (
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={clearFilters}
-                      className="mt-[var(--space-1)] cursor-pointer rounded-md border border-border bg-surface px-[var(--space-4)] py-[var(--space-2)] text-meta font-semibold font-heading text-text-primary hover:border-text-secondary"
+                      className="mt-[var(--space-1)] px-[var(--space-4)]"
                     >
                       Clear filters
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
@@ -620,14 +616,15 @@ function ReviewsBoard({
               search.
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="inline"
             onClick={() => openView('archive')}
-            className="inline-flex cursor-pointer items-center gap-[var(--space-2)] text-meta font-semibold font-heading text-primary underline-offset-2 hover:underline"
+            className="gap-[var(--space-2)]"
           >
             Open the archive
             <ArrowRight aria-hidden className="h-3.5 w-3.5" />
-          </button>
+          </Button>
         </div>
       )}
       {inlineArchive && (

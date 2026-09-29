@@ -1,3 +1,4 @@
+import { Button } from '../../components/ui/button'
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useId } from 'react'
 import type { TimeRange } from '../../lib/reviews'
@@ -83,18 +84,15 @@ export function ReviewsToolbar({
             )}
           />
         </label>
-        <button
-          type="button"
+        <Button
+          variant="outline"
           onClick={onToggleOpen}
           aria-expanded={open}
           aria-controls={panelId}
           className={cn(
-            'inline-flex cursor-pointer items-center gap-[var(--space-2)] rounded-md border px-[var(--space-4)] py-[var(--space-3)]',
-            'text-body leading-none font-semibold font-heading whitespace-nowrap',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
-            open
-              ? 'border-primary bg-primary-tint text-primary'
-              : 'border-border bg-surface text-text-primary hover:border-text-secondary',
+            'gap-[var(--space-2)]',
+            open &&
+              'border-primary bg-primary-tint text-primary hover:border-primary hover:bg-primary-tint',
           )}
         >
           <SlidersHorizontal aria-hidden className="h-4 w-4" />
@@ -110,18 +108,14 @@ export function ReviewsToolbar({
           ) : (
             <ChevronDown aria-hidden className="h-3 w-3" />
           )}
-        </button>
+        </Button>
         <div className="ml-auto flex items-center gap-[var(--space-4)]">
           <span className="text-meta whitespace-nowrap text-text-secondary">{resultLabel}</span>
           {onClear && (
-            <button
-              type="button"
-              onClick={onClear}
-              className="inline-flex cursor-pointer items-center gap-[var(--space-1)] text-meta font-semibold font-heading whitespace-nowrap text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            >
+            <Button variant="link" size="inline" onClick={onClear}>
               <X aria-hidden className="h-3.5 w-3.5" />
               Clear filters
-            </button>
+            </Button>
           )}
         </div>
       </div>

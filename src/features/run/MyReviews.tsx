@@ -18,6 +18,11 @@ import type { ComponentType } from 'react'
 import { LoadingState } from '../../components/LoadingState'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs'
 import { Button } from '../../components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../../components/ui/collapsible'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { notify } from '../../components/notify'
 import { Toaster } from '../../components/ui/sonner'
@@ -726,13 +731,12 @@ function InProgress({
   now: Date
 }) {
   return (
-    <div className="flex flex-col border-t-4 border-surface-raised">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex w-full cursor-pointer items-center gap-[var(--space-4)] rounded-b-lg px-[var(--space-5)] py-[var(--space-4)] text-left hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring"
-      >
+    <Collapsible
+      open={open}
+      onOpenChange={onToggle}
+      className="flex flex-col border-t-4 border-surface-raised"
+    >
+      <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-[var(--space-4)] rounded-b-lg data-[state=open]:rounded-b-none px-[var(--space-5)] py-[var(--space-4)] text-left hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring">
         <span
           aria-hidden
           className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-tint text-primary"
@@ -756,8 +760,8 @@ function InProgress({
             <ChevronDown aria-hidden className="h-3 w-3" />
           )}
         </span>
-      </button>
-      {open && (
+      </CollapsibleTrigger>
+      <CollapsibleContent asChild>
         <ul className="flex flex-col rounded-b-lg border-t border-border-subtle bg-bg">
           {runs.map((run) => {
             const progress = progressOf(run)
@@ -804,7 +808,7 @@ function InProgress({
             )
           })}
         </ul>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

@@ -1,4 +1,5 @@
 import { cn } from '../lib/utils'
+import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 /**
@@ -20,19 +21,17 @@ export function InfoTip({ label, children, align = 'start', className }: InfoTip
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="icon"
           aria-label={`About ${label}`}
           className={cn(
-            'inline-flex h-4 w-4 shrink-0 cursor-help items-center justify-center rounded-full',
-            'border border-border bg-surface text-caption leading-none font-semibold font-heading text-text-secondary',
-            'hover:border-primary hover:text-primary',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
+            'h-4 w-4 cursor-help rounded-full border-border text-caption leading-none text-text-secondary hover:border-primary hover:text-primary',
             className,
           )}
         >
           i
-        </button>
+        </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom" align={align}>
         {children}

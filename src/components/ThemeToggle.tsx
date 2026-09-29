@@ -1,6 +1,7 @@
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { cn } from '../lib/utils'
+import { Switch } from './ui/switch'
 import { currentTheme, setTheme, systemTheme } from './theme'
 import type { Theme } from './theme'
 
@@ -28,39 +29,31 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   const dark = theme === 'dark'
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={dark}
-      aria-label="Dark theme"
-      title={dark ? 'Switch to the light theme' : 'Switch to the dark theme'}
-      onClick={() => {
-        const next: Theme = dark ? 'light' : 'dark'
+    <Switch
+      checked={dark}
+      onCheckedChange={(checked) => {
+        const next: Theme = checked ? 'dark' : 'light'
         setTheme(next)
         setThemeState(next)
       }}
+      aria-label="Dark theme"
+      title={dark ? 'Switch to the light theme' : 'Switch to the dark theme'}
+      // The track stays neutral in both states: the sun or the moon, in the brand colour, says
+      // which theme is on.
       className={cn(
-        'relative inline-flex h-8 w-16 shrink-0 cursor-pointer items-center justify-between rounded-full border border-border bg-surface-raised px-[var(--space-2)]',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
+        'h-8 w-16 justify-between px-[var(--space-2)] data-[state=checked]:bg-surface-raised',
         className,
       )}
+      thumbClassName="absolute top-1/2 left-1 h-6 w-6 -translate-y-1/2 data-[state=checked]:translate-x-8"
     >
-      <span
-        aria-hidden
-        className={cn(
-          'absolute top-1/2 left-1 h-6 w-6 -translate-y-1/2 rounded-full border border-border bg-surface shadow-sm',
-          'transition-transform duration-[var(--motion-duration-base)] ease-[var(--motion-ease-standard)] motion-reduce:transition-none',
-          dark && 'translate-x-8',
-        )}
-      />
       <Sun
         aria-hidden
-        className={cn('relative h-4 w-4', dark ? 'text-text-secondary' : 'text-primary')}
+        className={cn('relative z-10 h-4 w-4', dark ? 'text-text-secondary' : 'text-primary')}
       />
       <Moon
         aria-hidden
-        className={cn('relative h-4 w-4', dark ? 'text-primary' : 'text-text-secondary')}
+        className={cn('relative z-10 h-4 w-4', dark ? 'text-primary' : 'text-text-secondary')}
       />
-    </button>
+    </Switch>
   )
 }

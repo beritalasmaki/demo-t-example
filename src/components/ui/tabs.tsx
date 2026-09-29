@@ -3,40 +3,33 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { Tabs as TabsPrimitive } from 'radix-ui'
 
-function Tabs({
-  className,
-  orientation = 'horizontal',
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
-  return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      data-orientation={orientation}
-      orientation={orientation}
-      className={cn('group/tabs flex gap-2 data-[orientation=horizontal]:flex-col', className)}
-      {...props}
-    />
-  )
+/*
+ * shadcn/ui's Tabs (Radix), restyled onto this project's tokens (docs/DECISIONS.md, 0070).
+ * shadcn ships `default` and `line`; this project has three looks, as variants of both the
+ * list and the trigger — pass the same one to each:
+ * - `segmented`: a full-width bar, each tab an equal share, the selected one filled.
+ * - `pill`: a compact rounded track; `components/Tabs.tsx` adds the sliding pill behind it.
+ * - `line`: text tabs on a rule, the selected one underlined — for tabs that filter one list.
+ */
+
+function Tabs({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  return <TabsPrimitive.Root data-slot="tabs" className={className} {...props} />
 }
 
-const tabsListVariants = cva(
-  'group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-[orientation=horizontal]/tabs:h-9 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col data-[variant=line]:rounded-none',
-  {
-    variants: {
-      variant: {
-        default: 'bg-muted',
-        line: 'gap-1 bg-transparent',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
+const tabsListVariants = cva('', {
+  variants: {
+    variant: {
+      segmented: 'flex divide-x divide-border-subtle border-y border-border-subtle',
+      pill: 'relative inline-flex gap-[var(--space-1)] rounded-full bg-surface-raised p-[var(--space-1)]',
+      line: 'scrollbar-none flex gap-[var(--space-2)] overflow-x-auto border-b border-border-subtle px-[var(--space-5)] pt-[var(--space-3)]',
     },
   },
-)
+  defaultVariants: { variant: 'segmented' },
+})
 
 function TabsList({
   className,
-  variant = 'default',
+  variant = 'segmented',
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> & VariantProps<typeof tabsListVariants>) {
   return (
@@ -49,30 +42,55 @@ function TabsList({
   )
 }
 
-function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+const tabsTriggerVariants = cva(
+  'cursor-pointer items-center whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus-ring',
+  {
+    variants: {
+      variant: {
+        segmented: [
+          'flex flex-1 justify-center gap-[var(--space-2)] px-[var(--space-5)] py-[var(--space-3)]',
+          'text-item-title font-semibold font-body text-text-secondary underline-offset-4',
+          'bg-surface-raised transition-colors duration-[var(--motion-duration-fast)] hover:underline',
+          'data-[state=active]:bg-surface data-[state=active]:text-text-primary',
+          'focus-visible:relative focus-visible:z-10 focus-visible:outline-offset-[-2px]',
+        ],
+        pill: [
+          't-tab inline-flex gap-[var(--space-2)] rounded-full px-[var(--space-4)] py-[var(--space-2)]',
+          'text-meta font-semibold font-heading leading-none text-text-secondary',
+          'hover:text-text-primary data-[state=active]:text-text-primary focus-visible:outline-offset-2',
+        ],
+        // No -mb-px onto the list's rule: the list scrolls sideways, which clips anything below
+        // its edge, and that clipped the selected tab's underline to nothing. No colour
+        // transition either: one made keyboard tests drop arrow presses (docs/WORKLOG.md).
+        line: [
+          'inline-flex gap-[var(--space-3)] border-b-2 border-transparent px-[var(--space-5)] py-[var(--space-4)]',
+          'text-body font-semibold font-heading leading-none text-text-secondary',
+          'hover:border-border hover:text-text-primary',
+          'data-[state=active]:border-primary-strong data-[state=active]:text-text-primary',
+          'focus-visible:outline-offset-[-2px]',
+        ],
+      },
+    },
+    defaultVariants: { variant: 'segmented' },
+  },
+)
+
+function TabsTrigger({
+  className,
+  variant = 'segmented',
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger> & VariantProps<typeof tabsTriggerVariants>) {
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
-      className={cn(
-        "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 group-data-[variant=default]/tabs-list:data-[state=active]:shadow-sm group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none dark:text-muted-foreground dark:hover:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        'group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:border-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent',
-        'data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground',
-        'after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100',
-        className,
-      )}
+      className={cn(tabsTriggerVariants({ variant }), className)}
       {...props}
     />
   )
 }
 
 function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {
-  return (
-    <TabsPrimitive.Content
-      data-slot="tabs-content"
-      className={cn('flex-1 outline-none', className)}
-      {...props}
-    />
-  )
+  return <TabsPrimitive.Content data-slot="tabs-content" className={className} {...props} />
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants }
+export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants, tabsTriggerVariants }

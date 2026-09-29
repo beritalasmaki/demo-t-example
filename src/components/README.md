@@ -20,7 +20,7 @@ background and optional per-tab tooltips (`tooltip`), both from transitions.dev
 
 `InfoTip` is the small "i" that explains a label, on hover and keyboard focus. `Toast` is a
 short confirmation that stays until closed. Both come from the My reviews design (0060).
-`tooltipPlacement.ts` keeps any `.t-tt` tooltip inside the window; `Tabs` and `InfoTip` use it.
+`InfoTip` and the pill tabs' tooltips are shadcn's Tooltip, which keeps itself in the window.
 
 `ThemeToggle` switches light and dark (docs/DECISIONS.md, 0063); `theme.ts` reads and sets the
 page's theme for it.

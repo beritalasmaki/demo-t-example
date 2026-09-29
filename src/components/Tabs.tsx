@@ -1,14 +1,14 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import type { ComponentType, ReactNode } from 'react'
 import { cn } from '../lib/utils'
-import { keepTooltipInView } from './tooltipPlacement'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 import * as UI from './ui/tabs'
 
 /**
  * A real ARIA tabs widget (`role="tablist"`/`"tab"`/`"tabpanel"`, arrow-key navigation between
  * triggers), on shadcn/ui's Tabs (`ui/tabs.tsx`, Radix — docs/DECISIONS.md, 0070), so the
  * correct keyboard behaviour and assistive-tech semantics come for free. This file adds what
- * shadcn's has not: the pill's sliding background, and a tooltip on a pill tab. Knows nothing about policy gates or any other
+ * shadcn's has not: the pill's sliding background, and a shadcn Tooltip on a pill tab. Knows nothing about policy gates or any other
  * product concept; `value`/`onValueChange` are the caller's, same shape as
  * Radix's `Tabs.Root`.
  */
@@ -186,51 +186,20 @@ function PillTrigger({
   className,
   tooltip,
 }: Omit<TabsTriggerProps, 'variant'>) {
-  const tooltipId = useId()
-  const [dismissed, setDismissed] = useState(false)
-  const tooltipRef = useRef<HTMLSpanElement>(null)
-
-  // Centred under its tab, the tooltip can run past the window's edge: the tab bar can sit
-  // at the right of the page.
-  const keepInView = () => keepTooltipInView(tooltipRef.current)
   const trigger = (
-    <UI.TabsTrigger
-      variant="pill"
-      value={value}
-      aria-describedby={tooltip ? tooltipId : undefined}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape') setDismissed(true)
-      }}
-      onBlur={() => setDismissed(false)}
-      onFocus={keepInView}
-      className={cn(tooltip && 't-tt-trigger', className)}
-    >
+    <UI.TabsTrigger variant="pill" value={value} className={className}>
       {Icon && <Icon aria-hidden className={cn('h-4 w-4 shrink-0', iconClassName)} />}
       {children}
     </UI.TabsTrigger>
   )
   if (!tooltip) return trigger
+  // shadcn's Tooltip (Radix): it opens on hover and focus, closes on Escape, stays in the
+  // window, and renders outside the tab list, which may only contain tabs.
   return (
-    <span
-      className="t-tt-wrap"
-      data-dismissed={dismissed || undefined}
-      onMouseEnter={keepInView}
-      onMouseLeave={() => setDismissed(false)}
-    >
-      {trigger}
-      {/* aria-hidden: a tab list may only contain tabs, and this sits inside one. The tab
-          still announces the text, because aria-describedby reads hidden content it points
-          to (docs/DECISIONS.md, 0059). */}
-      <span
-        ref={tooltipRef}
-        id={tooltipId}
-        role="tooltip"
-        aria-hidden
-        className="t-tt text-caption font-normal font-body text-text-primary"
-      >
-        {tooltip}
-      </span>
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+      <TooltipContent side="bottom">{tooltip}</TooltipContent>
+    </Tooltip>
   )
 }
 
